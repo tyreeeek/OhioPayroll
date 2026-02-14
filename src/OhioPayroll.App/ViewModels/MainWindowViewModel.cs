@@ -32,10 +32,12 @@ public partial class MainWindowViewModel : ViewModelBase
             {
                 "Dashboard" => _services.GetRequiredService<DashboardViewModel>(),
                 "Employees" => _services.GetRequiredService<EmployeeListViewModel>(),
+                "Contractors" => _services.GetRequiredService<ContractorListViewModel>(),
                 "Payroll" => _services.GetRequiredService<PayrollRunViewModel>(),
                 "BankAccounts" => _services.GetRequiredService<BankAccountsViewModel>(),
                 "CheckPrinting" => _services.GetRequiredService<CheckPrintingViewModel>(),
                 "DirectDeposit" => _services.GetRequiredService<DirectDepositViewModel>(),
+                "Quarterly" => _services.GetRequiredService<QuarterlyViewModel>(),
                 "TaxLiability" => _services.GetRequiredService<TaxLiabilityViewModel>(),
                 "Reports" => _services.GetRequiredService<ReportsViewModel>(),
                 "YearEnd" => _services.GetRequiredService<YearEndViewModel>(),

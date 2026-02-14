@@ -194,10 +194,12 @@ sealed class Program
         services.AddTransient<DashboardViewModel>();
         services.AddTransient<SettingsViewModel>();
         services.AddTransient<EmployeeListViewModel>();
+        services.AddTransient<ContractorListViewModel>();
         services.AddTransient<PayrollRunViewModel>();
         services.AddTransient<BankAccountsViewModel>();
         services.AddTransient<CheckPrintingViewModel>();
         services.AddTransient<DirectDepositViewModel>();
+        services.AddTransient<QuarterlyViewModel>();
         services.AddTransient<TaxLiabilityViewModel>();
         services.AddTransient<ReportsViewModel>();
         services.AddTransient<YearEndViewModel>();

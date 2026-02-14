@@ -206,13 +206,14 @@ public partial class EmployeeListViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task EditEmployeeAsync()
+    private async Task EditEmployeeAsync(EmployeeRowViewModel? row)
     {
-        if (SelectedEmployee is null) return;
+        var target = row ?? SelectedEmployee;
+        if (target is null) return;
 
         var employee = await _db.Employees
             .AsNoTracking()
-            .FirstOrDefaultAsync(e => e.Id == SelectedEmployee.Id);
+            .FirstOrDefaultAsync(e => e.Id == target.Id);
 
         if (employee is null) return;
 
@@ -388,11 +389,12 @@ public partial class EmployeeListViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task DeactivateEmployeeAsync()
+    private async Task DeactivateEmployeeAsync(EmployeeRowViewModel? row)
     {
-        if (SelectedEmployee is null) return;
+        var target = row ?? SelectedEmployee;
+        if (target is null) return;
 
-        var employee = await _db.Employees.FindAsync(SelectedEmployee.Id);
+        var employee = await _db.Employees.FindAsync(target.Id);
         if (employee is null) return;
 
         employee.IsActive = false;

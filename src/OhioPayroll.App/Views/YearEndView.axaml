@@ -93,7 +93,7 @@
             </WrapPanel>
         </Border>
 
-        <!-- Year Selector and Action Buttons -->
+        <!-- Year Selector and Generate All -->
         <Border DockPanel.Dock="Top" Padding="8,12,8,12">
             <StackPanel Orientation="Horizontal" Spacing="16">
 
@@ -104,29 +104,13 @@
                               MinWidth="120"/>
                 </StackPanel>
 
-                <Button Content="Generate All W-2s"
-                        Command="{Binding GenerateW2sCommand}"
-                        IsEnabled="{Binding !IsGenerating}"
-                        VerticalAlignment="Bottom"
-                        Padding="16,8"
-                        Classes="accent"/>
-
-                <Button Content="Generate W-3"
-                        Command="{Binding GenerateW3Command}"
-                        IsEnabled="{Binding !IsGenerating}"
-                        VerticalAlignment="Bottom"
-                        Padding="16,8"
-                        Background="#3E3E42"
-                        Foreground="#CCC"
-                        CornerRadius="4"/>
-
-                <Button Content="Generate All"
+                <Button Content="Generate All (W-2s, W-3, 1099-NECs, 1096)"
                         Command="{Binding GenerateAllCommand}"
                         IsEnabled="{Binding !IsGenerating}"
                         VerticalAlignment="Bottom"
                         Padding="16,8"
-                        Background="#3E3E42"
-                        Foreground="#CCC"
+                        Background="#0078D4"
+                        Foreground="White"
                         CornerRadius="4"/>
 
             </StackPanel>
@@ -150,42 +134,150 @@
                        FontSize="13" Foreground="#999"/>
         </Border>
 
-        <!-- Employee DataGrid -->
-        <DataGrid ItemsSource="{Binding EmployeeRows}"
-                  AutoGenerateColumns="False"
-                  IsReadOnly="True"
-                  CanUserResizeColumns="True"
-                  CanUserSortColumns="True"
-                  GridLinesVisibility="Horizontal"
-                  SelectionMode="Single"
-                  Margin="8,0,8,8">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Employee"
-                                    Binding="{Binding EmployeeName}"
-                                    Width="200"/>
-                <DataGridTextColumn Header="SSN Last 4"
-                                    Binding="{Binding SsnLast4}"
-                                    Width="80"/>
-                <DataGridTextColumn Header="Total Wages"
-                                    Binding="{Binding TotalWagesDisplay}"
-                                    Width="120"/>
-                <DataGridTextColumn Header="Federal Tax"
-                                    Binding="{Binding FederalTaxDisplay}"
-                                    Width="110"/>
-                <DataGridTextColumn Header="State Tax"
-                                    Binding="{Binding StateTaxDisplay}"
-                                    Width="110"/>
-                <DataGridTextColumn Header="SS Tax"
-                                    Binding="{Binding SsTaxDisplay}"
-                                    Width="100"/>
-                <DataGridTextColumn Header="Medicare Tax"
-                                    Binding="{Binding MedicareTaxDisplay}"
-                                    Width="100"/>
-                <DataGridTextColumn Header="Local Tax"
-                                    Binding="{Binding LocalTaxDisplay}"
-                                    Width="*"/>
-            </DataGrid.Columns>
-        </DataGrid>
+        <!-- Main Scrollable Content -->
+        <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                      VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="0" Margin="8,0,8,8">
+
+                <!-- ═══════ W-2 Employee Section ═══════ -->
+                <Border Background="#2D2D30" CornerRadius="8" Padding="20">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="W-2 Employees" FontSize="20" FontWeight="SemiBold" Foreground="White"/>
+                        <TextBlock Text="Employees with finalized payroll for the selected tax year" FontSize="13" Foreground="#999"/>
+
+                        <DataGrid ItemsSource="{Binding EmployeeRows}"
+                                  AutoGenerateColumns="False"
+                                  IsReadOnly="True"
+                                  CanUserResizeColumns="True"
+                                  CanUserSortColumns="True"
+                                  GridLinesVisibility="Horizontal"
+                                  SelectionMode="Single"
+                                  MaxHeight="400">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Employee"
+                                                    Binding="{Binding EmployeeName}"
+                                                    Width="200"/>
+                                <DataGridTextColumn Header="SSN Last 4"
+                                                    Binding="{Binding SsnLast4}"
+                                                    Width="80"/>
+                                <DataGridTextColumn Header="Total Wages"
+                                                    Binding="{Binding TotalWagesDisplay}"
+                                                    Width="120"/>
+                                <DataGridTextColumn Header="Federal Tax"
+                                                    Binding="{Binding FederalTaxDisplay}"
+                                                    Width="110"/>
+                                <DataGridTextColumn Header="State Tax"
+                                                    Binding="{Binding StateTaxDisplay}"
+                                                    Width="110"/>
+                                <DataGridTextColumn Header="SS Tax"
+                                                    Binding="{Binding SsTaxDisplay}"
+                                                    Width="100"/>
+                                <DataGridTextColumn Header="Medicare Tax"
+                                                    Binding="{Binding MedicareTaxDisplay}"
+                                                    Width="100"/>
+                                <DataGridTextColumn Header="Local Tax"
+                                                    Binding="{Binding LocalTaxDisplay}"
+                                                    Width="*"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <!-- W-2 Generation Buttons -->
+                        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                            <Button Content="Generate All W-2s"
+                                    Command="{Binding GenerateW2sCommand}"
+                                    IsEnabled="{Binding !IsGenerating}"
+                                    Padding="16,8"
+                                    Classes="accent"/>
+                            <Button Content="Generate W-3"
+                                    Command="{Binding GenerateW3Command}"
+                                    IsEnabled="{Binding !IsGenerating}"
+                                    Padding="16,8"
+                                    Background="#3E3E42"
+                                    Foreground="#CCC"
+                                    CornerRadius="4"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- ═══════ 1099 Contractor Section ═══════ -->
+                <Border Background="#2D2D30" CornerRadius="8" Padding="20" Margin="0,16,0,0">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="1099-NEC Contractors" FontSize="20" FontWeight="SemiBold" Foreground="White"/>
+                        <TextBlock Text="Contractors paid $600 or more receive a 1099-NEC" FontSize="13" Foreground="#999"/>
+
+                        <!-- Contractor Summary Cards -->
+                        <WrapPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,8,0,0">
+                            <Border Classes="summary-card" Margin="0,0,12,12">
+                                <StackPanel>
+                                    <TextBlock Text="CONTRACTORS" Classes="card-header"/>
+                                    <TextBlock Text="{Binding ContractorCountDisplay}" Classes="card-value"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Classes="summary-card" Margin="0,0,12,12">
+                                <StackPanel>
+                                    <TextBlock Text="TOTAL PAYMENTS" Classes="card-header"/>
+                                    <TextBlock Text="{Binding TotalContractorPaymentsDisplay}" Classes="card-value"
+                                               Foreground="#34D399"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Classes="summary-card" Margin="0,0,12,12">
+                                <StackPanel>
+                                    <TextBlock Text="1099s REQUIRED" Classes="card-header"/>
+                                    <TextBlock Text="{Binding Form1099CountDisplay}" Classes="card-value"
+                                               Foreground="#FB923C"/>
+                                </StackPanel>
+                            </Border>
+                        </WrapPanel>
+
+                        <!-- Contractor DataGrid -->
+                        <DataGrid ItemsSource="{Binding ContractorRows}"
+                                  AutoGenerateColumns="False"
+                                  IsReadOnly="True"
+                                  CanUserResizeColumns="True"
+                                  CanUserSortColumns="True"
+                                  GridLinesVisibility="Horizontal"
+                                  SelectionMode="Single"
+                                  MaxHeight="400">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Contractor"
+                                                    Binding="{Binding ContractorName}"
+                                                    Width="250"/>
+                                <DataGridTextColumn Header="TIN"
+                                                    Binding="{Binding MaskedTin}"
+                                                    Width="120"/>
+                                <DataGridTextColumn Header="Total Payments"
+                                                    Binding="{Binding TotalPaymentsDisplay}"
+                                                    Width="150"/>
+                                <DataGridTextColumn Header="Status"
+                                                    Binding="{Binding StatusDisplay}"
+                                                    Width="*"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <!-- 1099 Generation Buttons -->
+                        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                            <Button Content="Generate 1099-NECs"
+                                    Command="{Binding Generate1099sCommand}"
+                                    IsEnabled="{Binding !IsGenerating}"
+                                    Padding="16,8"
+                                    Background="#0078D4"
+                                    Foreground="White"
+                                    CornerRadius="4"/>
+                            <Button Content="Generate 1096"
+                                    Command="{Binding Generate1096Command}"
+                                    IsEnabled="{Binding !IsGenerating}"
+                                    Padding="16,8"
+                                    Background="#3E3E42"
+                                    Foreground="#CCC"
+                                    CornerRadius="4"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
 
     </DockPanel>
 </UserControl>

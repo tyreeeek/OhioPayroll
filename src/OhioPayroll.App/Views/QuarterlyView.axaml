@@ -1,0 +1,288 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:OhioPayroll.App.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="900"
+             x:Class="OhioPayroll.App.Views.QuarterlyView"
+             x:DataType="vm:QuarterlyViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="Border.summary-card">
+            <Setter Property="Background" Value="#2D2D30"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="20,16"/>
+            <Setter Property="BorderBrush" Value="#444"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="MinWidth" Value="180"/>
+            <Setter Property="MinHeight" Value="90"/>
+        </Style>
+        <Style Selector="TextBlock.card-header">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="#999"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,0,0,6"/>
+        </Style>
+        <Style Selector="TextBlock.card-value">
+            <Setter Property="FontSize" Value="24"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+    </UserControl.Styles>
+
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+        <StackPanel Spacing="20" Margin="8">
+
+            <!-- ============================================================ -->
+            <!-- Header with Year / Quarter selectors                         -->
+            <!-- ============================================================ -->
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Left" Spacing="2">
+                    <TextBlock Text="Quarterly Overview" FontSize="24" FontWeight="Bold" Foreground="White"/>
+                    <TextBlock Text="Detailed payroll and tax breakdown by quarter."
+                               FontSize="14" Foreground="#888"/>
+                </StackPanel>
+
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="12"
+                            HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Year" FontSize="12" Foreground="Gray"/>
+                        <ComboBox ItemsSource="{Binding YearOptions}"
+                                  SelectedItem="{Binding SelectedYear}"
+                                  MinWidth="100"/>
+                    </StackPanel>
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Quarter" FontSize="12" Foreground="Gray"/>
+                        <ComboBox ItemsSource="{Binding QuarterOptions}"
+                                  SelectedItem="{Binding SelectedQuarter}"
+                                  MinWidth="80"/>
+                    </StackPanel>
+                    <Button Content="Refresh"
+                            Command="{Binding LoadDataCommand}"
+                            VerticalAlignment="Bottom"
+                            Padding="16,6"
+                            Background="#3E3E42"
+                            Foreground="#CCC"
+                            CornerRadius="4"/>
+                </StackPanel>
+            </DockPanel>
+
+            <!-- Quarter Title and Period -->
+            <StackPanel Spacing="2">
+                <TextBlock Text="{Binding QuarterTitle}" FontSize="20" FontWeight="SemiBold" Foreground="#0078D4"/>
+                <TextBlock Text="{Binding PeriodDisplay}" FontSize="14" Foreground="#AAA"/>
+            </StackPanel>
+
+            <!-- Status Message -->
+            <TextBlock Text="{Binding StatusMessage}" FontSize="13" Foreground="#89B4FA"
+                       IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+
+            <!-- ============================================================ -->
+            <!-- Summary Cards (8 cards)                                      -->
+            <!-- ============================================================ -->
+            <WrapPanel Orientation="Horizontal" HorizontalAlignment="Left">
+
+                <Border Classes="summary-card" Margin="0,0,10,10">
+                    <StackPanel>
+                        <TextBlock Text="GROSS PAY" Classes="card-header"/>
+                        <TextBlock Text="{Binding GrossPayDisplay}" Classes="card-value"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="summary-card" Margin="0,0,10,10">
+                    <StackPanel>
+                        <TextBlock Text="NET PAY" Classes="card-header"/>
+                        <TextBlock Text="{Binding NetPayDisplay}" Classes="card-value"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="summary-card" Margin="0,0,10,10">
+                    <StackPanel>
+                        <TextBlock Text="FEDERAL TAX" Classes="card-header"/>
+                        <TextBlock Text="{Binding FederalTaxDisplay}" Classes="card-value"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="summary-card" Margin="0,0,10,10">
+                    <StackPanel>
+                        <TextBlock Text="STATE TAX (OH)" Classes="card-header"/>
+                        <TextBlock Text="{Binding StateTaxDisplay}" Classes="card-value"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="summary-card" Margin="0,0,10,10">
+                    <StackPanel>
+                        <TextBlock Text="LOCAL TAX" Classes="card-header"/>
+                        <TextBlock Text="{Binding LocalTaxDisplay}" Classes="card-value"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="summary-card" Margin="0,0,10,10">
+                    <StackPanel>
+                        <TextBlock Text="SOCIAL SECURITY" Classes="card-header"/>
+                        <TextBlock Text="{Binding SsTaxDisplay}" Classes="card-value"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="summary-card" Margin="0,0,10,10">
+                    <StackPanel>
+                        <TextBlock Text="MEDICARE" Classes="card-header"/>
+                        <TextBlock Text="{Binding MedicareTaxDisplay}" Classes="card-value"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="summary-card" Margin="0,0,10,10">
+                    <StackPanel>
+                        <TextBlock Text="EMPLOYER TAXES" Classes="card-header"/>
+                        <TextBlock Text="{Binding EmployerTaxDisplay}" Classes="card-value"/>
+                    </StackPanel>
+                </Border>
+
+            </WrapPanel>
+
+            <!-- ============================================================ -->
+            <!-- 941 Status Banner                                            -->
+            <!-- ============================================================ -->
+            <Border Background="#2D2D30" CornerRadius="8" Padding="20,16"
+                    BorderBrush="#444" BorderThickness="1">
+                <DockPanel>
+                    <TextBlock Text="Form 941 Status" FontSize="16" FontWeight="SemiBold"
+                               Foreground="White" DockPanel.Dock="Top" Margin="0,0,0,12"/>
+                    <WrapPanel Orientation="Horizontal">
+                        <StackPanel Margin="0,0,32,0">
+                            <TextBlock Text="PAYROLL RUNS" FontSize="11" Foreground="#888"/>
+                            <TextBlock Text="{Binding PayrollRunCount}" FontSize="18" FontWeight="Bold" Foreground="White"/>
+                        </StackPanel>
+                        <StackPanel Margin="0,0,32,0">
+                            <TextBlock Text="EMPLOYEES" FontSize="11" Foreground="#888"/>
+                            <TextBlock Text="{Binding EmployeeCount}" FontSize="18" FontWeight="Bold" Foreground="White"/>
+                        </StackPanel>
+                        <StackPanel Margin="0,0,32,0">
+                            <TextBlock Text="DUE DATE" FontSize="11" Foreground="#888"/>
+                            <!-- Normal (not overdue) -->
+                            <TextBlock Text="{Binding Form941DueDateDisplay}" FontSize="18" FontWeight="Bold"
+                                       Foreground="White" IsVisible="{Binding !IsOverdue}"/>
+                            <!-- Overdue -->
+                            <TextBlock Text="{Binding Form941DueDateDisplay}" FontSize="18" FontWeight="Bold"
+                                       Foreground="#F87171" IsVisible="{Binding IsOverdue}"/>
+                        </StackPanel>
+                        <StackPanel Margin="0,0,32,0">
+                            <TextBlock Text="STATUS" FontSize="11" Foreground="#888"/>
+                            <TextBlock Text="{Binding Form941StatusDisplay}" FontSize="18" FontWeight="Bold" Foreground="#0078D4"/>
+                        </StackPanel>
+                    </WrapPanel>
+                </DockPanel>
+            </Border>
+
+            <!-- Overdue warning banner -->
+            <Border IsVisible="{Binding IsOverdue}"
+                    Background="#4A2A00"
+                    CornerRadius="8"
+                    Padding="16,12"
+                    BorderBrush="#D97706"
+                    BorderThickness="1">
+                <TextBlock Text="This quarter has outstanding tax liabilities past the 941 due date. Please review and submit payments."
+                           FontSize="14" Foreground="#FBBF24" TextWrapping="Wrap"/>
+            </Border>
+
+            <!-- ============================================================ -->
+            <!-- Tax Liability by Type                                        -->
+            <!-- ============================================================ -->
+            <Border Background="#2D2D30" CornerRadius="8" Padding="20,16"
+                    BorderBrush="#444" BorderThickness="1">
+                <StackPanel Spacing="12">
+                    <DockPanel>
+                        <TextBlock Text="Tax Liability by Type" FontSize="16" FontWeight="SemiBold"
+                                   Foreground="White" DockPanel.Dock="Left"/>
+                        <WrapPanel DockPanel.Dock="Right" HorizontalAlignment="Right" Orientation="Horizontal">
+                            <StackPanel Margin="0,0,20,0">
+                                <TextBlock Text="TOTAL OWED" FontSize="11" Foreground="#888"/>
+                                <TextBlock Text="{Binding TotalOwedDisplay}" FontSize="16" FontWeight="Bold" Foreground="White"/>
+                            </StackPanel>
+                            <StackPanel Margin="0,0,20,0">
+                                <TextBlock Text="TOTAL PAID" FontSize="11" Foreground="#888"/>
+                                <TextBlock Text="{Binding TotalPaidDisplay}" FontSize="16" FontWeight="Bold" Foreground="#4ADE80"/>
+                            </StackPanel>
+                            <StackPanel>
+                                <TextBlock Text="BALANCE DUE" FontSize="11" Foreground="#888"/>
+                                <TextBlock Text="{Binding BalanceDueDisplay}" FontSize="16" FontWeight="Bold"
+                                           Foreground="#F87171" IsVisible="{Binding HasBalance}"/>
+                                <TextBlock Text="{Binding BalanceDueDisplay}" FontSize="16" FontWeight="Bold"
+                                           Foreground="#4ADE80" IsVisible="{Binding !HasBalance}"/>
+                            </StackPanel>
+                        </WrapPanel>
+                    </DockPanel>
+
+                    <DataGrid ItemsSource="{Binding TaxSummary}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              CanUserResizeColumns="True"
+                              CanUserSortColumns="True"
+                              GridLinesVisibility="Horizontal"
+                              SelectionMode="Single"
+                              MinHeight="120">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Tax Type"
+                                                Binding="{Binding TaxTypeDisplay}"
+                                                Width="160"/>
+                            <DataGridTextColumn Header="Amount Owed"
+                                                Binding="{Binding AmountOwedDisplay}"
+                                                Width="130"/>
+                            <DataGridTextColumn Header="Amount Paid"
+                                                Binding="{Binding AmountPaidDisplay}"
+                                                Width="130"/>
+                            <DataGridTextColumn Header="Balance"
+                                                Binding="{Binding BalanceDisplay}"
+                                                Width="130"/>
+                            <DataGridTextColumn Header="Status"
+                                                Binding="{Binding Status}"
+                                                Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </StackPanel>
+            </Border>
+
+            <!-- ============================================================ -->
+            <!-- Payroll Runs for Quarter                                     -->
+            <!-- ============================================================ -->
+            <Border Background="#2D2D30" CornerRadius="8" Padding="20,16"
+                    BorderBrush="#444" BorderThickness="1">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Payroll Runs" FontSize="16" FontWeight="SemiBold" Foreground="White"/>
+
+                    <DataGrid ItemsSource="{Binding PayrollRuns}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              CanUserResizeColumns="True"
+                              CanUserSortColumns="True"
+                              GridLinesVisibility="Horizontal"
+                              SelectionMode="Single"
+                              MinHeight="120">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Pay Date"
+                                                Binding="{Binding PayDateDisplay}"
+                                                Width="110"/>
+                            <DataGridTextColumn Header="Period"
+                                                Binding="{Binding PeriodDisplay}"
+                                                Width="180"/>
+                            <DataGridTextColumn Header="Employees"
+                                                Binding="{Binding EmployeeCount}"
+                                                Width="100"/>
+                            <DataGridTextColumn Header="Gross Pay"
+                                                Binding="{Binding GrossPayDisplay}"
+                                                Width="130"/>
+                            <DataGridTextColumn Header="Net Pay"
+                                                Binding="{Binding NetPayDisplay}"
+                                                Width="130"/>
+                            <DataGridTextColumn Header="Total Taxes"
+                                                Binding="{Binding TotalTaxesDisplay}"
+                                                Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
+    </ScrollViewer>
+
+</UserControl>

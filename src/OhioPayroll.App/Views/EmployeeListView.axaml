@@ -39,6 +39,15 @@
                 </StackPanel>
             </Border>
 
+            <!-- Empty State -->
+            <TextBlock DockPanel.Dock="Top"
+                       Text="No employees found. Click '+ Add Employee' to get started."
+                       IsVisible="{Binding !Employees.Count}"
+                       Foreground="#888"
+                       FontSize="14"
+                       HorizontalAlignment="Center"
+                       Margin="0,32,0,0"/>
+
             <!-- Employee DataGrid -->
             <DataGrid ItemsSource="{Binding Employees}"
                       SelectedItem="{Binding SelectedEmployee}"
@@ -76,13 +85,16 @@
                                             HorizontalAlignment="Center">
                                     <Button Content="Edit"
                                             Command="{Binding $parent[DataGrid].((vm:EmployeeListViewModel)DataContext).EditEmployeeCommand}"
+                                            CommandParameter="{Binding}"
                                             Padding="8,4"
                                             FontSize="12"/>
                                     <Button Content="Deactivate"
                                             Command="{Binding $parent[DataGrid].((vm:EmployeeListViewModel)DataContext).DeactivateEmployeeCommand}"
+                                            CommandParameter="{Binding}"
                                             Padding="8,4"
                                             FontSize="12"
-                                            IsVisible="{Binding IsActive}"/>
+                                            IsVisible="{Binding IsActive}"
+                                            Classes="danger"/>
                                 </StackPanel>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>

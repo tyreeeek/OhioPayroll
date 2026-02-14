@@ -1,0 +1,439 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:OhioPayroll.App.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
+             x:Class="OhioPayroll.App.Views.ContractorListView"
+             x:DataType="vm:ContractorListViewModel">
+
+    <!-- ============================================================ -->
+    <!-- Three panels: List, Edit Form, Payments View                 -->
+    <!-- ============================================================ -->
+    <Panel>
+
+        <!-- ============================================================ -->
+        <!-- Panel 1: Contractor List                                     -->
+        <!-- ============================================================ -->
+        <DockPanel>
+            <DockPanel.IsVisible>
+                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                    <Binding Path="!IsEditing"/>
+                    <Binding Path="!IsViewingPayments"/>
+                </MultiBinding>
+            </DockPanel.IsVisible>
+
+            <!-- Header -->
+            <Border DockPanel.Dock="Top" Padding="0,0,0,16">
+                <DockPanel>
+                    <TextBlock Text="Contractors"
+                               FontSize="24" FontWeight="Bold"
+                               VerticalAlignment="Center"/>
+                    <Button Content="+ Add Contractor"
+                            Command="{Binding AddContractorCommand}"
+                            HorizontalAlignment="Right"
+                            Padding="16,8"
+                            Classes="accent"/>
+                </DockPanel>
+            </Border>
+
+            <!-- Search / Filter Bar -->
+            <Border DockPanel.Dock="Top" Padding="0,0,0,12">
+                <StackPanel Orientation="Horizontal" Spacing="16">
+                    <TextBox Text="{Binding SearchText}"
+                             Watermark="Search by name, business, or TIN last 4..."
+                             Width="320"/>
+                    <CheckBox Content="Show Inactive"
+                              IsChecked="{Binding ShowInactive}"
+                              VerticalAlignment="Center"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Empty State -->
+            <TextBlock DockPanel.Dock="Top"
+                       Text="No contractors found. Click '+ Add Contractor' to get started."
+                       IsVisible="{Binding !Contractors.Count}"
+                       Foreground="#888"
+                       FontSize="14"
+                       HorizontalAlignment="Center"
+                       Margin="0,32,0,0"/>
+
+            <!-- Contractor DataGrid -->
+            <DataGrid ItemsSource="{Binding Contractors}"
+                      SelectedItem="{Binding SelectedContractor}"
+                      AutoGenerateColumns="False"
+                      IsReadOnly="True"
+                      CanUserResizeColumns="True"
+                      CanUserSortColumns="True"
+                      GridLinesVisibility="Horizontal"
+                      SelectionMode="Single">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Name"
+                                        Binding="{Binding Name}"
+                                        Width="*"/>
+                    <DataGridTextColumn Header="Business Name"
+                                        Binding="{Binding BusinessName}"
+                                        Width="*"/>
+                    <DataGridTextColumn Header="TIN"
+                                        Binding="{Binding MaskedTin}"
+                                        Width="120"/>
+                    <DataGridTextColumn Header="Business Type"
+                                        Binding="{Binding BusinessTypeDisplay}"
+                                        Width="140"/>
+                    <DataGridTextColumn Header="YTD Payments"
+                                        Binding="{Binding YtdPaymentsDisplay}"
+                                        Width="120"/>
+                    <DataGridTextColumn Header="Status"
+                                        Binding="{Binding StatusText}"
+                                        Width="80"/>
+                    <DataGridTemplateColumn Header="Actions" Width="230">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate x:DataType="vm:ContractorRowViewModel">
+                                <StackPanel Orientation="Horizontal"
+                                            Spacing="4"
+                                            VerticalAlignment="Center"
+                                            HorizontalAlignment="Center">
+                                    <Button Content="Edit"
+                                            Command="{Binding $parent[DataGrid].((vm:ContractorListViewModel)DataContext).EditContractorCommand}"
+                                            CommandParameter="{Binding}"
+                                            Padding="8,4"
+                                            FontSize="12"/>
+                                    <Button Content="Payments"
+                                            Command="{Binding $parent[DataGrid].((vm:ContractorListViewModel)DataContext).ViewPaymentsCommand}"
+                                            CommandParameter="{Binding}"
+                                            Padding="8,4"
+                                            FontSize="12"/>
+                                    <Button Content="Deactivate"
+                                            Command="{Binding $parent[DataGrid].((vm:ContractorListViewModel)DataContext).DeactivateContractorCommand}"
+                                            CommandParameter="{Binding}"
+                                            Padding="8,4"
+                                            FontSize="12"
+                                            IsVisible="{Binding IsActive}"
+                                            Classes="danger"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+
+        </DockPanel>
+
+        <!-- ============================================================ -->
+        <!-- Panel 2: Contractor Edit Form                                -->
+        <!-- ============================================================ -->
+        <ScrollViewer IsVisible="{Binding IsEditing}">
+            <DockPanel Margin="0,0,0,24">
+
+                <!-- Form Header -->
+                <Border DockPanel.Dock="Top" Padding="0,0,0,16">
+                    <DockPanel>
+                        <TextBlock Text="{Binding FormTitle}"
+                                   FontSize="24" FontWeight="Bold"
+                                   VerticalAlignment="Center"/>
+                        <Button Content="Cancel"
+                                Command="{Binding CancelEditCommand}"
+                                HorizontalAlignment="Right"
+                                Padding="16,8"/>
+                    </DockPanel>
+                </Border>
+
+                <!-- Validation Error -->
+                <Border DockPanel.Dock="Top"
+                        IsVisible="{Binding ValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                        Background="#FDE8E8"
+                        CornerRadius="4"
+                        Padding="12,8"
+                        Margin="0,0,0,12">
+                    <TextBlock Text="{Binding ValidationError}"
+                               Foreground="#C53030"
+                               TextWrapping="Wrap"/>
+                </Border>
+
+                <!-- Action Buttons -->
+                <Border DockPanel.Dock="Bottom" Padding="0,16,0,0">
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="12"
+                                HorizontalAlignment="Right">
+                        <Button Content="Cancel"
+                                Command="{Binding CancelEditCommand}"
+                                Padding="24,8"/>
+                        <Button Content="Save Contractor"
+                                Command="{Binding SaveContractorCommand}"
+                                Padding="24,8"
+                                Classes="accent"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Form Body - Two Column Grid -->
+                <Grid ColumnDefinitions="*,24,*" RowDefinitions="Auto">
+
+                    <!-- Left Column -->
+                    <StackPanel Grid.Column="0" Spacing="16">
+
+                        <!-- Contractor Information -->
+                        <TextBlock Text="Contractor Information"
+                                   FontSize="16" FontWeight="SemiBold"
+                                   Margin="0,0,0,4"/>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Name *" FontSize="12" Foreground="Gray"/>
+                            <TextBox Text="{Binding Name}"
+                                     Watermark="Contractor name"/>
+                        </StackPanel>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Business Name (DBA)" FontSize="12" Foreground="Gray"/>
+                            <TextBox Text="{Binding BusinessName}"
+                                     Watermark="Business name or DBA"/>
+                        </StackPanel>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="TIN (SSN or EIN) *" FontSize="12" Foreground="Gray"/>
+                            <TextBox Text="{Binding Tin}"
+                                     Watermark="000-00-0000 or 00-0000000"
+                                     PasswordChar="*"/>
+                        </StackPanel>
+
+                        <CheckBox Content="EIN (check if Employer Identification Number)"
+                                  IsChecked="{Binding IsEin}"/>
+
+                        <!-- Business Type -->
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Business Type" FontSize="12" Foreground="Gray"/>
+                            <ComboBox ItemsSource="{Binding BusinessTypeValues}"
+                                      SelectedItem="{Binding BusinessType}"
+                                      HorizontalAlignment="Stretch"/>
+                        </StackPanel>
+
+                        <!-- 1099 Exempt -->
+                        <CheckBox Content="1099 Exempt"
+                                  IsChecked="{Binding Is1099Exempt}"
+                                  Margin="0,8,0,0"/>
+
+                    </StackPanel>
+
+                    <!-- Right Column -->
+                    <StackPanel Grid.Column="2" Spacing="16">
+
+                        <!-- Address -->
+                        <TextBlock Text="Address"
+                                   FontSize="16" FontWeight="SemiBold"
+                                   Margin="0,0,0,4"/>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Street Address *" FontSize="12" Foreground="Gray"/>
+                            <TextBox Text="{Binding Address}"
+                                     Watermark="Street address"/>
+                        </StackPanel>
+
+                        <Grid ColumnDefinitions="*,8,80,8,100">
+                            <StackPanel Grid.Column="0" Spacing="4">
+                                <TextBlock Text="City *" FontSize="12" Foreground="Gray"/>
+                                <TextBox Text="{Binding City}"
+                                         Watermark="City"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Spacing="4">
+                                <TextBlock Text="State" FontSize="12" Foreground="Gray"/>
+                                <TextBox Text="{Binding State}"
+                                         Watermark="OH"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="4" Spacing="4">
+                                <TextBlock Text="ZIP Code *" FontSize="12" Foreground="Gray"/>
+                                <TextBox Text="{Binding ZipCode}"
+                                         Watermark="00000"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Contact -->
+                        <TextBlock Text="Contact"
+                                   FontSize="16" FontWeight="SemiBold"
+                                   Margin="0,12,0,4"/>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Email" FontSize="12" Foreground="Gray"/>
+                            <TextBox Text="{Binding Email}"
+                                     Watermark="email@example.com"/>
+                        </StackPanel>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Phone" FontSize="12" Foreground="Gray"/>
+                            <TextBox Text="{Binding Phone}"
+                                     Watermark="(000) 000-0000"/>
+                        </StackPanel>
+
+                    </StackPanel>
+
+                </Grid>
+
+            </DockPanel>
+        </ScrollViewer>
+
+        <!-- ============================================================ -->
+        <!-- Panel 3: Payments View                                       -->
+        <!-- ============================================================ -->
+        <DockPanel IsVisible="{Binding IsViewingPayments}">
+
+            <!-- Header -->
+            <Border DockPanel.Dock="Top" Padding="0,0,0,16">
+                <DockPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Button Content="&lt; Back"
+                                Command="{Binding BackToListCommand}"
+                                Padding="12,8"/>
+                        <TextBlock FontSize="24" FontWeight="Bold"
+                                   VerticalAlignment="Center">
+                            <TextBlock.Text>
+                                <MultiBinding StringFormat="Payments for {0}">
+                                    <Binding Path="ViewingContractorName"/>
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="16"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center">
+                        <TextBlock VerticalAlignment="Center"
+                                   FontSize="14">
+                            <TextBlock.Text>
+                                <MultiBinding StringFormat="YTD Total: {0}">
+                                    <Binding Path="PaymentsTotalDisplay"/>
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
+                        <Button Content="+ Add Payment"
+                                Command="{Binding AddPaymentCommand}"
+                                Padding="16,8"
+                                Classes="accent"/>
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+
+            <!-- Payment Form (visible when adding) -->
+            <Border DockPanel.Dock="Top"
+                    IsVisible="{Binding IsAddingPayment}"
+                    Background="#2D2D30"
+                    CornerRadius="4"
+                    Padding="16"
+                    Margin="0,0,0,16">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="New Payment"
+                               FontSize="16" FontWeight="SemiBold"/>
+
+                    <!-- Payment Validation Error -->
+                    <Border IsVisible="{Binding PaymentValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                            Background="#FDE8E8"
+                            CornerRadius="4"
+                            Padding="12,8">
+                        <TextBlock Text="{Binding PaymentValidationError}"
+                                   Foreground="#C53030"
+                                   TextWrapping="Wrap"/>
+                    </Border>
+
+                    <Grid ColumnDefinitions="*,16,*,16,*" RowDefinitions="Auto,16,Auto">
+
+                        <!-- Row 0 -->
+                        <StackPanel Grid.Column="0" Grid.Row="0" Spacing="4">
+                            <TextBlock Text="Payment Date" FontSize="12" Foreground="Gray"/>
+                            <DatePicker SelectedDate="{Binding PaymentDate}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2" Grid.Row="0" Spacing="4">
+                            <TextBlock Text="Amount ($)" FontSize="12" Foreground="Gray"/>
+                            <NumericUpDown Value="{Binding PaymentAmount}"
+                                           Minimum="0"
+                                           FormatString="F2"
+                                           Increment="100"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="4" Grid.Row="0" Spacing="4">
+                            <TextBlock Text="Description" FontSize="12" Foreground="Gray"/>
+                            <TextBox Text="{Binding PaymentDescription}"
+                                     Watermark="Payment description"/>
+                        </StackPanel>
+
+                        <!-- Row 1 -->
+                        <StackPanel Grid.Column="0" Grid.Row="2" Spacing="4">
+                            <TextBlock Text="Payment Method" FontSize="12" Foreground="Gray"/>
+                            <ComboBox ItemsSource="{Binding PaymentMethodValues}"
+                                      SelectedItem="{Binding PaymentMethod}"
+                                      HorizontalAlignment="Stretch"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2" Grid.Row="2" Spacing="4">
+                            <TextBlock Text="Check Number" FontSize="12" Foreground="Gray"/>
+                            <TextBox Text="{Binding PaymentCheckNumber}"
+                                     Watermark="Optional"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="4" Grid.Row="2" Spacing="4">
+                            <TextBlock Text="Reference" FontSize="12" Foreground="Gray"/>
+                            <TextBox Text="{Binding PaymentReference}"
+                                     Watermark="Optional"/>
+                        </StackPanel>
+
+                    </Grid>
+
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="12"
+                                HorizontalAlignment="Right"
+                                Margin="0,8,0,0">
+                        <Button Content="Cancel"
+                                Command="{Binding CancelPaymentCommand}"
+                                Padding="24,8"/>
+                        <Button Content="Save Payment"
+                                Command="{Binding SavePaymentCommand}"
+                                Padding="24,8"
+                                Classes="accent"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Payments DataGrid -->
+            <DataGrid ItemsSource="{Binding Payments}"
+                      AutoGenerateColumns="False"
+                      IsReadOnly="True"
+                      CanUserResizeColumns="True"
+                      CanUserSortColumns="True"
+                      GridLinesVisibility="Horizontal"
+                      SelectionMode="Single">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Date"
+                                        Binding="{Binding DateDisplay}"
+                                        Width="110"/>
+                    <DataGridTextColumn Header="Amount"
+                                        Binding="{Binding AmountDisplay}"
+                                        Width="120"/>
+                    <DataGridTextColumn Header="Description"
+                                        Binding="{Binding Description}"
+                                        Width="*"/>
+                    <DataGridTextColumn Header="Method"
+                                        Binding="{Binding PaymentMethod}"
+                                        Width="120"/>
+                    <DataGridTextColumn Header="Check #"
+                                        Binding="{Binding CheckNumber}"
+                                        Width="100"/>
+                    <DataGridTextColumn Header="Reference"
+                                        Binding="{Binding Reference}"
+                                        Width="120"/>
+                    <DataGridTemplateColumn Header="Actions" Width="80">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate x:DataType="vm:ContractorPaymentRow">
+                                <Button Content="Delete"
+                                        Command="{Binding $parent[DataGrid].((vm:ContractorListViewModel)DataContext).DeletePaymentCommand}"
+                                        CommandParameter="{Binding}"
+                                        Padding="8,4"
+                                        FontSize="12"
+                                        Classes="danger"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+
+        </DockPanel>
+
+    </Panel>
+
+</UserControl>

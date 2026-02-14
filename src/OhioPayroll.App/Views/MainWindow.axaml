@@ -27,6 +27,14 @@
             <Setter Property="Background" Value="#3E3E42"/>
             <Setter Property="Foreground" Value="White"/>
         </Style>
+        <Style Selector="Button.nav-active">
+            <Setter Property="Background" Value="#0078D4"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.nav-active /template/ ContentPresenter">
+            <Setter Property="Background" Value="#0078D4"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
         <Style Selector="Separator.nav-sep">
             <Setter Property="Margin" Value="16,8"/>
             <Setter Property="Background" Value="#444"/>
@@ -43,7 +51,7 @@
                 </StackPanel>
 
                 <ScrollViewer>
-                    <StackPanel Spacing="2" Margin="8,0">
+                    <StackPanel Name="NavPanel" Spacing="2" Margin="8,0">
                         <Button Content="Dashboard" Classes="nav-item"
                                 Command="{Binding NavigateToCommand}" CommandParameter="Dashboard"/>
 
@@ -53,6 +61,8 @@
                                    Margin="16,8,0,4" FontWeight="SemiBold"/>
                         <Button Content="Employees" Classes="nav-item"
                                 Command="{Binding NavigateToCommand}" CommandParameter="Employees"/>
+                        <Button Content="Contractors" Classes="nav-item"
+                                Command="{Binding NavigateToCommand}" CommandParameter="Contractors"/>
                         <Button Content="Run Payroll" Classes="nav-item"
                                 Command="{Binding NavigateToCommand}" CommandParameter="Payroll"/>
 
@@ -71,11 +81,13 @@
 
                         <TextBlock Text="COMPLIANCE" FontSize="11" Foreground="#666"
                                    Margin="16,8,0,4" FontWeight="SemiBold"/>
+                        <Button Content="Quarterly" Classes="nav-item"
+                                Command="{Binding NavigateToCommand}" CommandParameter="Quarterly"/>
                         <Button Content="Tax Liability" Classes="nav-item"
                                 Command="{Binding NavigateToCommand}" CommandParameter="TaxLiability"/>
                         <Button Content="Reports" Classes="nav-item"
                                 Command="{Binding NavigateToCommand}" CommandParameter="Reports"/>
-                        <Button Content="Year-End / W-2" Classes="nav-item"
+                        <Button Content="Year-End / W-2 &amp; 1099" Classes="nav-item"
                                 Command="{Binding NavigateToCommand}" CommandParameter="YearEnd"/>
 
                         <Separator Classes="nav-sep"/>

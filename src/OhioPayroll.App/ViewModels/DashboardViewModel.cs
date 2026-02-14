@@ -29,6 +29,25 @@ public partial class DashboardViewModel : ViewModelBase
     [ObservableProperty] private bool _hasTaxLiabilityAlert;
     [ObservableProperty] private string _taxLiabilityAlertMessage = string.Empty;
 
+    // ── Quarterly Tab ─────────────────────────────────────────────────
+    [ObservableProperty] private int _selectedQuarterTab; // 0=YTD, 1=Q1, 2=Q2, 3=Q3, 4=Q4
+
+    [ObservableProperty] private string _quarterLabel = "Year-to-Date";
+    [ObservableProperty] private string _quarterGrossPayDisplay = "$0.00";
+    [ObservableProperty] private string _quarterNetPayDisplay = "$0.00";
+    [ObservableProperty] private string _quarterFederalTaxDisplay = "$0.00";
+    [ObservableProperty] private string _quarterStateTaxDisplay = "$0.00";
+    [ObservableProperty] private string _quarterSsTaxDisplay = "$0.00";
+    [ObservableProperty] private string _quarterMedicareTaxDisplay = "$0.00";
+    [ObservableProperty] private int _quarterPayrollRunCount;
+    [ObservableProperty] private string _quarterTaxOwedDisplay = "$0.00";
+    [ObservableProperty] private string _quarterTaxPaidDisplay = "$0.00";
+    [ObservableProperty] private string _quarterTaxBalanceDisplay = "$0.00";
+    [ObservableProperty] private bool _quarterHasBalance;
+    [ObservableProperty] private string _quarterDueDateDisplay = "N/A";
+    [ObservableProperty] private bool _quarterIsOverdue;
+    [ObservableProperty] private bool _quarterIsSpecificQuarter; // true when Q1-Q4 selected (not YTD)
+
     // ── UI State ────────────────────────────────────────────────────
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private string _statusMessage = string.Empty;
@@ -53,6 +72,14 @@ public partial class DashboardViewModel : ViewModelBase
     {
         await LoadDataAsync();
     }
+
+    [RelayCommand]
+    private void SelectQuarter(string quarter)
+    {
+        SelectedQuarterTab = int.Parse(quarter);
+    }
+
+    partial void OnSelectedQuarterTabChanged(int value) => _ = LoadQuarterDataAsync();
 
     private async Task LoadDataAsync()
     {
@@ -154,6 +181,9 @@ public partial class DashboardViewModel : ViewModelBase
             OnPropertyChanged(nameof(YtdNetPayDisplay));
             OnPropertyChanged(nameof(YtdTotalTaxesDisplay));
 
+            // Load quarterly breakdown
+            await LoadQuarterDataAsync();
+
             StatusMessage = string.Empty;
         }
         catch (Exception ex)
@@ -165,5 +195,107 @@ public partial class DashboardViewModel : ViewModelBase
             IsLoading = false;
         }
     }
+
+    private async Task LoadQuarterDataAsync()
+    {
+        try
+        {
+            int year = CurrentTaxYear > 0 ? CurrentTaxYear : DateTime.Now.Year;
+
+            if (SelectedQuarterTab == 0)
+            {
+                // YTD view — reuse the YTD totals already loaded
+                QuarterLabel = "Year-to-Date";
+                QuarterIsSpecificQuarter = false;
+
+                var ytdRuns = await _db.PayrollRuns
+                    .Where(r => r.Status == PayrollRunStatus.Finalized
+                        && r.PayDate.Year == year)
+                    .ToListAsync();
+
+                QuarterGrossPayDisplay = ytdRuns.Sum(r => r.TotalGrossPay).ToString("C");
+                QuarterNetPayDisplay = ytdRuns.Sum(r => r.TotalNetPay).ToString("C");
+                QuarterFederalTaxDisplay = ytdRuns.Sum(r => r.TotalFederalTax).ToString("C");
+                QuarterStateTaxDisplay = ytdRuns.Sum(r => r.TotalStateTax).ToString("C");
+                QuarterSsTaxDisplay = ytdRuns.Sum(r => r.TotalSocialSecurity).ToString("C");
+                QuarterMedicareTaxDisplay = ytdRuns.Sum(r => r.TotalMedicare).ToString("C");
+                QuarterPayrollRunCount = ytdRuns.Count;
+
+                QuarterTaxOwedDisplay = "$0.00";
+                QuarterTaxPaidDisplay = "$0.00";
+                QuarterTaxBalanceDisplay = "$0.00";
+                QuarterHasBalance = false;
+                QuarterDueDateDisplay = "N/A";
+                QuarterIsOverdue = false;
+            }
+            else
+            {
+                int quarter = SelectedQuarterTab;
+                var (qStart, qEnd) = GetQuarterDates(year, quarter);
+                QuarterLabel = $"Q{quarter} ({qStart:MMM} \u2013 {qEnd:MMM yyyy})";
+                QuarterIsSpecificQuarter = true;
+
+                var runs = await _db.PayrollRuns
+                    .Where(r => r.Status == PayrollRunStatus.Finalized
+                        && r.PayDate >= qStart && r.PayDate <= qEnd)
+                    .ToListAsync();
+
+                QuarterGrossPayDisplay = runs.Sum(r => r.TotalGrossPay).ToString("C");
+                QuarterNetPayDisplay = runs.Sum(r => r.TotalNetPay).ToString("C");
+                QuarterFederalTaxDisplay = runs.Sum(r => r.TotalFederalTax).ToString("C");
+                QuarterStateTaxDisplay = runs.Sum(r => r.TotalStateTax).ToString("C");
+                QuarterSsTaxDisplay = runs.Sum(r => r.TotalSocialSecurity).ToString("C");
+                QuarterMedicareTaxDisplay = runs.Sum(r => r.TotalMedicare).ToString("C");
+                QuarterPayrollRunCount = runs.Count;
+
+                // Tax liability for this quarter
+                var liabilities = await _db.TaxLiabilities
+                    .Where(t => t.TaxYear == year && t.Quarter == quarter)
+                    .ToListAsync();
+
+                var owed = liabilities.Sum(t => t.AmountOwed);
+                var paid = liabilities.Sum(t => t.AmountPaid);
+                QuarterTaxOwedDisplay = owed.ToString("C");
+                QuarterTaxPaidDisplay = paid.ToString("C");
+                QuarterTaxBalanceDisplay = (owed - paid).ToString("C");
+                QuarterHasBalance = owed - paid > 0;
+
+                // 941 due dates
+                QuarterDueDateDisplay = GetForm941DueDate(year, quarter);
+                QuarterIsOverdue = QuarterHasBalance && DateTime.Now > GetForm941DueDateValue(year, quarter);
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error loading quarter data: {ex.Message}";
+        }
+    }
+
+    private static (DateTime start, DateTime end) GetQuarterDates(int year, int quarter) => quarter switch
+    {
+        1 => (new DateTime(year, 1, 1), new DateTime(year, 3, 31)),
+        2 => (new DateTime(year, 4, 1), new DateTime(year, 6, 30)),
+        3 => (new DateTime(year, 7, 1), new DateTime(year, 9, 30)),
+        4 => (new DateTime(year, 10, 1), new DateTime(year, 12, 31)),
+        _ => throw new ArgumentOutOfRangeException(nameof(quarter))
+    };
+
+    private static string GetForm941DueDate(int year, int quarter) => quarter switch
+    {
+        1 => $"April 30, {year}",
+        2 => $"July 31, {year}",
+        3 => $"October 31, {year}",
+        4 => $"January 31, {year + 1}",
+        _ => "N/A"
+    };
+
+    private static DateTime GetForm941DueDateValue(int year, int quarter) => quarter switch
+    {
+        1 => new DateTime(year, 4, 30),
+        2 => new DateTime(year, 7, 31),
+        3 => new DateTime(year, 10, 31),
+        4 => new DateTime(year + 1, 1, 31),
+        _ => DateTime.MaxValue
+    };
 }
 

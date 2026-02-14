@@ -27,5 +27,21 @@
             <Setter Property="Background" Value="#006CBE"/>
             <Setter Property="Foreground" Value="White"/>
         </Style>
+
+        <!-- Danger button style for destructive actions -->
+        <Style Selector="Button.danger">
+            <Setter Property="Background" Value="#C53030"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="CornerRadius" Value="4"/>
+        </Style>
+        <Style Selector="Button.danger:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#E53E3E"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.danger:pressed /template/ ContentPresenter">
+            <Setter Property="Background" Value="#9B2C2C"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
     </Application.Styles>
 </Application>

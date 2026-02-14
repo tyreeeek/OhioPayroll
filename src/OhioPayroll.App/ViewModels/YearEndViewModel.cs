@@ -37,6 +37,18 @@ public class YearEndEmployeeRow
     public string LocalTaxDisplay => LocalTax.ToString("C");
 }
 
+public class YearEndContractorRow
+{
+    public int ContractorId { get; set; }
+    public string ContractorName { get; set; } = string.Empty;
+    public string TinLast4 { get; set; } = string.Empty;
+    public decimal TotalPayments { get; set; }
+    public bool Requires1099 { get; set; }
+    public string TotalPaymentsDisplay => TotalPayments.ToString("C");
+    public string StatusDisplay => Requires1099 ? "1099 Required" : (TotalPayments > 0 ? "Below $600" : "No Payments");
+    public string MaskedTin => $"***-**-{TinLast4}";
+}
+
 public partial class YearEndViewModel : ViewModelBase
 {
     private readonly PayrollDbContext _db;
@@ -46,10 +58,10 @@ public partial class YearEndViewModel : ViewModelBase
     private const decimal SsWageBase = 176100m;
 
     [ObservableProperty]
-    private string _title = "Year-End / W-2";
+    private string _title = "Year-End / W-2 & 1099";
 
     [ObservableProperty]
-    private string _subtitle = "Generate W-2 forms and year-end tax documents.";
+    private string _subtitle = "Generate W-2, W-3, 1099-NEC, and 1096 year-end tax documents.";
 
     [ObservableProperty]
     private int _selectedYear = DateTime.Now.Year;
@@ -82,6 +94,19 @@ public partial class YearEndViewModel : ViewModelBase
     [ObservableProperty]
     private string _totalStateTaxDisplay = "$0.00";
 
+    // Contractor summary values
+    [ObservableProperty]
+    private ObservableCollection<YearEndContractorRow> _contractorRows = new();
+
+    [ObservableProperty]
+    private string _contractorCountDisplay = "0";
+
+    [ObservableProperty]
+    private string _totalContractorPaymentsDisplay = "$0.00";
+
+    [ObservableProperty]
+    private string _form1099CountDisplay = "0";
+
     public List<int> AvailableYears { get; private set; } = new();
 
     public YearEndViewModel(PayrollDbContext db, IEncryptionService encryption)
@@ -95,24 +120,34 @@ public partial class YearEndViewModel : ViewModelBase
     {
         StatusMessage = null;
         _ = LoadEmployeeDataAsync();
+        _ = LoadContractorDataAsync();
     }
 
     private async Task InitializeAsync()
     {
         await LoadAvailableYearsAsync();
         await LoadEmployeeDataAsync();
+        await LoadContractorDataAsync();
     }
 
     private async Task LoadAvailableYearsAsync()
     {
         try
         {
-            var years = await _db.PayrollRuns
+            var payrollYears = await _db.PayrollRuns
                 .AsNoTracking()
                 .Where(r => r.Status == PayrollRunStatus.Finalized)
                 .Select(r => r.PayDate.Year)
                 .Distinct()
                 .ToListAsync();
+
+            var contractorYears = await _db.ContractorPayments
+                .AsNoTracking()
+                .Select(p => p.TaxYear)
+                .Distinct()
+                .ToListAsync();
+
+            var years = payrollYears.Union(contractorYears).ToList();
 
             if (!years.Contains(DateTime.Now.Year))
                 years.Add(DateTime.Now.Year);
@@ -186,6 +221,38 @@ public partial class YearEndViewModel : ViewModelBase
         catch (Exception ex)
         {
             StatusMessage = $"Error loading data: {ex.Message}";
+        }
+    }
+
+    private async Task LoadContractorDataAsync()
+    {
+        try
+        {
+            var year = SelectedYear;
+
+            var contractors = await _db.Contractors
+                .AsNoTracking()
+                .Where(c => c.IsActive || c.Payments.Any(p => p.TaxYear == year))
+                .Include(c => c.Payments.Where(p => p.TaxYear == year))
+                .ToListAsync();
+
+            var contractorRows = contractors.Select(c => new YearEndContractorRow
+            {
+                ContractorId = c.Id,
+                ContractorName = c.Name,
+                TinLast4 = c.TinLast4,
+                TotalPayments = c.Payments.Sum(p => p.Amount),
+                Requires1099 = !c.Is1099Exempt && c.Payments.Sum(p => p.Amount) >= 600
+            }).OrderByDescending(r => r.TotalPayments).ToList();
+
+            ContractorRows = new ObservableCollection<YearEndContractorRow>(contractorRows);
+            ContractorCountDisplay = contractorRows.Count.ToString();
+            TotalContractorPaymentsDisplay = contractorRows.Sum(r => r.TotalPayments).ToString("C");
+            Form1099CountDisplay = contractorRows.Count(r => r.Requires1099).ToString();
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error loading contractor data: {ex.Message}";
         }
     }
 
@@ -269,6 +336,76 @@ public partial class YearEndViewModel : ViewModelBase
     }
 
     [RelayCommand]
+    private async Task Generate1099sAsync()
+    {
+        if (IsGenerating) return;
+
+        IsGenerating = true;
+        StatusMessage = "Generating 1099-NEC forms...";
+
+        try
+        {
+            var form1099DataList = await Build1099NecDataListAsync();
+            var outputDir = GetOutputDirectory();
+            var generatedFiles = new List<string>();
+
+            foreach (var formData in form1099DataList)
+            {
+                var doc = new Form1099NecDocument(formData);
+                var safeName = formData.RecipientName.Replace(" ", "_").Replace(",", "");
+                var fileName = $"1099NEC_{formData.TaxYear}_{safeName}.pdf";
+                var filePath = Path.Combine(outputDir, fileName);
+                doc.GeneratePdf(filePath);
+                generatedFiles.Add(fileName);
+            }
+
+            AppLogger.Information($"Generated {generatedFiles.Count} 1099-NEC form(s) for tax year {SelectedYear}");
+            StatusMessage = $"Generated {generatedFiles.Count} 1099-NEC form(s) in: {outputDir}";
+        }
+        catch (Exception ex)
+        {
+            AppLogger.Error($"Error generating 1099-NECs: {ex.Message}", ex);
+            StatusMessage = $"Error generating 1099-NECs: {ex.Message}";
+        }
+        finally
+        {
+            IsGenerating = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task Generate1096Async()
+    {
+        if (IsGenerating) return;
+
+        IsGenerating = true;
+        StatusMessage = "Generating 1096 form...";
+
+        try
+        {
+            var form1099DataList = await Build1099NecDataListAsync();
+            var form1096Data = Build1096Data(form1099DataList);
+
+            var doc = new Form1096Document(form1096Data);
+            var fileName = $"1096_{SelectedYear}.pdf";
+            var filePath = Path.Combine(GetOutputDirectory(), fileName);
+            doc.GeneratePdf(filePath);
+
+            AppLogger.Information($"Generated 1096 for tax year {SelectedYear}");
+            StatusMessage = $"1096 saved to: {filePath}";
+        }
+        catch (Exception ex)
+        {
+            AppLogger.Error($"Error generating 1096: {ex.Message}", ex);
+            StatusMessage = $"Error generating 1096: {ex.Message}";
+        }
+        finally
+        {
+            IsGenerating = false;
+        }
+    }
+
+    [RelayCommand]
     private async Task GenerateAllAsync()
     {
         if (IsGenerating) return;
@@ -299,8 +436,33 @@ public partial class YearEndViewModel : ViewModelBase
             var w3FilePath = Path.Combine(outputDir, w3FileName);
             w3Doc.GeneratePdf(w3FilePath);
 
-            AppLogger.Information($"Generated {w2Count} W-2(s) and 1 W-3 for tax year {SelectedYear}");
-            StatusMessage = $"Generated {w2Count} W-2(s) and 1 W-3 in: {outputDir}";
+            // Generate 1099-NECs
+            var form1099DataList = await Build1099NecDataListAsync();
+            int nec1099Count = 0;
+            foreach (var formData in form1099DataList)
+            {
+                var necDoc = new Form1099NecDocument(formData);
+                var safeName = formData.RecipientName.Replace(" ", "_").Replace(",", "");
+                var necFileName = $"1099NEC_{formData.TaxYear}_{safeName}.pdf";
+                var necFilePath = Path.Combine(outputDir, necFileName);
+                necDoc.GeneratePdf(necFilePath);
+                nec1099Count++;
+            }
+
+            // Generate 1096
+            int form1096Count = 0;
+            if (form1099DataList.Count > 0)
+            {
+                var form1096Data = Build1096Data(form1099DataList);
+                var form1096Doc = new Form1096Document(form1096Data);
+                var form1096FileName = $"1096_{SelectedYear}.pdf";
+                var form1096FilePath = Path.Combine(outputDir, form1096FileName);
+                form1096Doc.GeneratePdf(form1096FilePath);
+                form1096Count = 1;
+            }
+
+            AppLogger.Information($"Generated {w2Count} W-2(s), 1 W-3, {nec1099Count} 1099-NEC(s), and {form1096Count} 1096 for tax year {SelectedYear}");
+            StatusMessage = $"Generated {w2Count} W-2(s), 1 W-3, {nec1099Count} 1099-NEC(s), and {form1096Count} 1096 in: {outputDir}";
         }
         catch (Exception ex)
         {
@@ -402,6 +564,79 @@ public partial class YearEndViewModel : ViewModelBase
             TotalStateTax = w2DataList.Sum(w => w.Box17StateTax),
             TotalLocalWages = w2DataList.Sum(w => w.Box18LocalWages),
             TotalLocalTax = w2DataList.Sum(w => w.Box19LocalTax),
+            TaxYear = SelectedYear
+        };
+    }
+
+    private async Task<List<Form1099NecData>> Build1099NecDataListAsync()
+    {
+        var year = SelectedYear;
+        var company = await _db.CompanyInfo.AsNoTracking().FirstOrDefaultAsync();
+
+        var contractors = await _db.Contractors
+            .AsNoTracking()
+            .Where(c => !c.Is1099Exempt && c.Payments.Any(p => p.TaxYear == year))
+            .Include(c => c.Payments.Where(p => p.TaxYear == year))
+            .ToListAsync();
+
+        var formList = new List<Form1099NecData>();
+
+        foreach (var contractor in contractors)
+        {
+            var totalPayments = contractor.Payments.Sum(p => p.Amount);
+            if (totalPayments < 600) continue; // IRS threshold for 1099-NEC
+
+            var decryptedTin = _encryption.Decrypt(contractor.EncryptedTin);
+
+            var formData = new Form1099NecData
+            {
+                PayerName = company?.CompanyName ?? "",
+                PayerAddress = company?.Address ?? "",
+                PayerCity = company?.City ?? "",
+                PayerState = company?.State ?? "OH",
+                PayerZip = company?.ZipCode ?? "",
+                PayerTin = company?.Ein ?? "",
+                PayerPhone = company?.Phone,
+                RecipientName = contractor.BusinessName ?? contractor.Name,
+                RecipientAddress = contractor.Address,
+                RecipientCity = contractor.City,
+                RecipientState = contractor.State,
+                RecipientZip = contractor.ZipCode,
+                RecipientTin = decryptedTin,
+                RecipientTinIsEin = contractor.IsEin,
+                Box1_NonemployeeCompensation = totalPayments,
+                Box4_FederalTaxWithheld = 0m, // Typically no federal backup withholding
+                StateCode = "OH",
+                StateName = "Ohio",
+                StatePayerNo = company?.StateWithholdingId ?? "",
+                StateIncome = totalPayments,
+                StateTaxWithheld = 0m, // Typically no state withholding for contractors
+                TaxYear = year,
+                AccountNumber = contractor.Id.ToString()
+            };
+
+            formList.Add(formData);
+        }
+
+        return formList.OrderBy(f => f.RecipientName).ToList();
+    }
+
+    private Form1096Data Build1096Data(List<Form1099NecData> form1099DataList)
+    {
+        var company = form1099DataList.FirstOrDefault();
+
+        return new Form1096Data
+        {
+            FilerName = company?.PayerName ?? "",
+            FilerAddress = company?.PayerAddress ?? "",
+            FilerCity = company?.PayerCity ?? "",
+            FilerState = company?.PayerState ?? "OH",
+            FilerZip = company?.PayerZip ?? "",
+            FilerTin = company?.PayerTin ?? "",
+            ContactPhone = company?.PayerPhone,
+            Box3_TotalForms = form1099DataList.Count,
+            Box4_FederalTaxWithheld = form1099DataList.Sum(f => f.Box4_FederalTaxWithheld),
+            Box5_TotalAmount = form1099DataList.Sum(f => f.Box1_NonemployeeCompensation),
             TaxYear = SelectedYear
         };
     }
