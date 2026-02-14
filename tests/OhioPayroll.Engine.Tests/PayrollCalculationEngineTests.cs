@@ -33,6 +33,18 @@ public class PayrollCalculationEngineTests
             new() { BracketStart = 747_500, BracketEnd = decimal.MaxValue, Rate = 0.37m, BaseAmount = 196_669.50m },
         };
 
+        var hohBrackets = new List<TaxBracket>
+        {
+            new() { BracketStart = 0, BracketEnd = 10_800, Rate = 0.00m, BaseAmount = 0 },
+            new() { BracketStart = 10_800, BracketEnd = 26_200, Rate = 0.10m, BaseAmount = 0 },
+            new() { BracketStart = 26_200, BracketEnd = 66_150, Rate = 0.12m, BaseAmount = 1_540 },
+            new() { BracketStart = 66_150, BracketEnd = 106_525, Rate = 0.22m, BaseAmount = 6_334 },
+            new() { BracketStart = 106_525, BracketEnd = 197_950, Rate = 0.24m, BaseAmount = 15_216.50m },
+            new() { BracketStart = 197_950, BracketEnd = 243_725, Rate = 0.32m, BaseAmount = 37_158.50m },
+            new() { BracketStart = 243_725, BracketEnd = 609_350, Rate = 0.35m, BaseAmount = 51_806.50m },
+            new() { BracketStart = 609_350, BracketEnd = decimal.MaxValue, Rate = 0.37m, BaseAmount = 179_776.25m },
+        };
+
         var ohioBrackets = new List<TaxBracket>
         {
             new() { BracketStart = 0, BracketEnd = 26_050, Rate = 0.0000m, BaseAmount = 0 },
@@ -41,7 +53,7 @@ public class PayrollCalculationEngineTests
         };
 
         return new PayrollCalculationEngine(
-            new FederalTaxCalculator(singleBrackets, marriedBrackets),
+            new FederalTaxCalculator(singleBrackets, marriedBrackets, hohBrackets),
             new OhioStateTaxCalculator(ohioBrackets));
     }
 

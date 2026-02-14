@@ -8,6 +8,7 @@ public class W2Data
 {
     // Employer
     public string EmployerEin { get; set; } = string.Empty;
+    public string StateWithholdingId { get; set; } = string.Empty;
     public string EmployerName { get; set; } = string.Empty;
     public string EmployerAddress { get; set; } = string.Empty;
     public string EmployerCity { get; set; } = string.Empty;
@@ -321,8 +322,9 @@ public class W2Document : IDocument
                     // Data row
                     table.Cell().Border(1).BorderColor(LightBorderColor).Padding(4)
                         .Text("OH").FontSize(9).Bold();
+                    // Box 15: Employer's state withholding account number (NOT the federal EIN)
                     table.Cell().Border(1).BorderColor(LightBorderColor).Padding(4)
-                        .Text(FormatEin(_data.EmployerEin)).FontSize(7);
+                        .Text(_data.StateWithholdingId).FontSize(7);
                     table.Cell().Border(1).BorderColor(LightBorderColor).Padding(4)
                         .Text(FormatCurrency(_data.Box16StateWages)).FontSize(8).Bold();
                     table.Cell().Border(1).BorderColor(LightBorderColor).Padding(4)
@@ -382,7 +384,9 @@ public class W2Document : IDocument
 
     private static string FormatCurrency(decimal value)
     {
-        return value.ToString("$#,##0.00");
+        // IRS W-2 instructions prohibit "$" symbols and comma separators in money boxes.
+        // Use plain numeric format: digits and decimal point only.
+        return value.ToString("0.00");
     }
 
     private static string FormatEin(string ein)

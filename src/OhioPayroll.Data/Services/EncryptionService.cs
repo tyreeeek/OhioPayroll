@@ -7,54 +7,57 @@ namespace OhioPayroll.Data.Services;
 public class EncryptionService : IEncryptionService
 {
     private readonly byte[] _key;
+    private const int NonceSize = 12;
+    private const int TagSize = 16;
 
     public EncryptionService(byte[] key)
     {
-        if (key.Length != 32)
-            throw new ArgumentException("AES-256 requires a 32-byte key.", nameof(key));
-        _key = key;
+        if (key == null || key.Length != 32)
+            throw new ArgumentException("Encryption key must be 32 bytes.", nameof(key));
+        _key = (byte[])key.Clone();
     }
 
-    public string Encrypt(string plaintext)
+    public string Encrypt(string plainText)
     {
-        if (string.IsNullOrEmpty(plaintext))
-            return string.Empty;
+        if (string.IsNullOrEmpty(plainText)) return string.Empty;
 
-        using var aes = Aes.Create();
-        aes.Key = _key;
-        aes.GenerateIV();
+        var plainBytes = Encoding.UTF8.GetBytes(plainText);
+        var nonce = new byte[NonceSize];
+        RandomNumberGenerator.Fill(nonce);
+        var ciphertext = new byte[plainBytes.Length];
+        var tag = new byte[TagSize];
 
-        using var encryptor = aes.CreateEncryptor();
-        var plainBytes = Encoding.UTF8.GetBytes(plaintext);
-        var cipherBytes = encryptor.TransformFinalBlock(plainBytes, 0, plainBytes.Length);
+        using var aes = new AesGcm(_key, TagSize);
+        aes.Encrypt(nonce, plainBytes, ciphertext, tag);
 
-        var result = new byte[aes.IV.Length + cipherBytes.Length];
-        Buffer.BlockCopy(aes.IV, 0, result, 0, aes.IV.Length);
-        Buffer.BlockCopy(cipherBytes, 0, result, aes.IV.Length, cipherBytes.Length);
+        var result = new byte[NonceSize + TagSize + ciphertext.Length];
+        Buffer.BlockCopy(nonce, 0, result, 0, NonceSize);
+        Buffer.BlockCopy(tag, 0, result, NonceSize, TagSize);
+        Buffer.BlockCopy(ciphertext, 0, result, NonceSize + TagSize, ciphertext.Length);
 
         return Convert.ToBase64String(result);
     }
 
-    public string Decrypt(string ciphertext)
+    public string Decrypt(string cipherText)
     {
-        if (string.IsNullOrEmpty(ciphertext))
-            return string.Empty;
+        if (string.IsNullOrEmpty(cipherText)) return string.Empty;
 
-        var fullCipher = Convert.FromBase64String(ciphertext);
+        var fullCipher = Convert.FromBase64String(cipherText);
+        if (fullCipher.Length < NonceSize + TagSize)
+            throw new CryptographicException("Invalid ciphertext.");
 
-        using var aes = Aes.Create();
-        aes.Key = _key;
+        var nonce = new byte[NonceSize];
+        var tag = new byte[TagSize];
+        var cipherBytes = new byte[fullCipher.Length - NonceSize - TagSize];
 
-        var iv = new byte[16];
-        Buffer.BlockCopy(fullCipher, 0, iv, 0, 16);
-        aes.IV = iv;
+        Buffer.BlockCopy(fullCipher, 0, nonce, 0, NonceSize);
+        Buffer.BlockCopy(fullCipher, NonceSize, tag, 0, TagSize);
+        Buffer.BlockCopy(fullCipher, NonceSize + TagSize, cipherBytes, 0, cipherBytes.Length);
 
-        using var decryptor = aes.CreateDecryptor();
-        var cipherBytes = new byte[fullCipher.Length - 16];
-        Buffer.BlockCopy(fullCipher, 16, cipherBytes, 0, cipherBytes.Length);
-        var plainBytes = decryptor.TransformFinalBlock(cipherBytes, 0, cipherBytes.Length);
+        var plainBytes = new byte[cipherBytes.Length];
+        using var aes = new AesGcm(_key, TagSize);
+        aes.Decrypt(nonce, cipherBytes, tag, plainBytes);
 
         return Encoding.UTF8.GetString(plainBytes);
     }
 }
-

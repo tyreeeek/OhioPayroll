@@ -17,6 +17,9 @@ public partial class ReportsViewModel : ViewModelBase
 {
     private readonly PayrollDbContext _db;
 
+    // Social Security wage base - must be updated annually per IRS guidelines
+    private const decimal SsWageBase = 176100m;
+
     [ObservableProperty]
     private string _selectedReportType = "Payroll Summary";
 
@@ -364,7 +367,7 @@ public partial class ReportsViewModel : ViewModelBase
         foreach (var group in employeeGroups)
         {
             var empGross = group.Sum(p => p.GrossPay);
-            taxableSsWages += Math.Min(empGross, 176100m);
+            taxableSsWages += Math.Min(empGross, SsWageBase);
         }
 
         var ssTaxDue = taxableSsWages * 0.124m;
@@ -403,7 +406,7 @@ public partial class ReportsViewModel : ViewModelBase
             Line5a_SsTaxDue = ssTaxDue,
             Line5c_TaxableMedicareWages = taxableMedicareWages,
             Line5c_MedicareTaxDue = medicareTaxDue,
-            Line6_TotalSsAndMedicare = totalSsAndMedicare,
+            Line6_TotalTaxesBeforeAdjustments = totalSsAndMedicare,
             Line10_TotalTaxes = line10,
             Line11_TotalDeposits = deposits,
             Line14_BalanceDueOrOverpayment = line14

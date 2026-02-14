@@ -1,6 +1,5 @@
-using System.Security.Cryptography;
-using System.Text;
 using Avalonia;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using OhioPayroll.Core.Interfaces;
@@ -106,9 +105,17 @@ sealed class Program
         var optionsBuilder = new DbContextOptionsBuilder<PayrollDbContext>();
         optionsBuilder.UseSqlite(connectionString);
 
-        using (var db = new PayrollDbContext(optionsBuilder.Options))
+        try
         {
-            new DatabaseInitializer(db).InitializeAsync().GetAwaiter().GetResult();
+            using (var db = new PayrollDbContext(optionsBuilder.Options))
+            {
+                new DatabaseInitializer(db).InitializeAsync().GetAwaiter().GetResult();
+            }
+        }
+        catch (Exception ex)
+        {
+            AppLogger.Error("Database initialization failed", ex);
+            throw;
         }
 
         // Load tax brackets and build calculation engine
@@ -144,6 +151,16 @@ sealed class Program
                     BaseAmount = t.BaseAmount
                 }).ToList();
 
+            var fedHoh = allTables
+                .Where(t => t.Type == TaxType.Federal && t.FilingStatus == FilingStatus.HeadOfHousehold)
+                .Select(t => new TaxBracket
+                {
+                    BracketStart = t.BracketStart,
+                    BracketEnd = t.BracketEnd,
+                    Rate = t.Rate,
+                    BaseAmount = t.BaseAmount
+                }).ToList();
+
             var ohioBrackets = allTables
                 .Where(t => t.Type == TaxType.Ohio && t.FilingStatus == FilingStatus.Single)
                 .Select(t => new TaxBracket
@@ -154,7 +171,7 @@ sealed class Program
                     BaseAmount = t.BaseAmount
                 }).ToList();
 
-            federalCalc = new FederalTaxCalculator(fedSingle, fedMarried);
+            federalCalc = new FederalTaxCalculator(fedSingle, fedMarried, fedHoh);
             ohioCalc = new OhioStateTaxCalculator(ohioBrackets);
         }
 
@@ -190,10 +207,37 @@ sealed class Program
 
     private static byte[] DeriveEncryptionKey()
     {
-        // Development key derivation from machine identity.
-        // Phase 5 will replace this with DataProtection/DPAPI for production.
-        var material = $"OhioPayroll-{Environment.MachineName}-FieldEncryption";
-        return SHA256.HashData(Encoding.UTF8.GetBytes(material));
+        var appDataDir = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "OhioPayroll");
+        Directory.CreateDirectory(appDataDir);
+        var keyFilePath = Path.Combine(appDataDir, ".enckey");
+
+        // Build a DataProtection provider that persists keys to the app data directory
+        var keysDir = Path.Combine(appDataDir, "dp-keys");
+        var serviceCollection = new ServiceCollection();
+        serviceCollection.AddDataProtection()
+            .SetApplicationName("OhioPayroll")
+            .PersistKeysToFileSystem(new DirectoryInfo(keysDir));
+        using var services = serviceCollection.BuildServiceProvider();
+        var protector = services.GetRequiredService<IDataProtectionProvider>()
+            .CreateProtector("EncryptionKey");
+
+        if (File.Exists(keyFilePath))
+        {
+            var protectedKey = File.ReadAllText(keyFilePath);
+            var keyBytes = Convert.FromBase64String(protector.Unprotect(protectedKey));
+            return keyBytes;
+        }
+        else
+        {
+            var key = new byte[32];
+            using var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
+            rng.GetBytes(key);
+            var protectedKey = protector.Protect(Convert.ToBase64String(key));
+            File.WriteAllText(keyFilePath, protectedKey);
+            return key;
+        }
     }
 }
 

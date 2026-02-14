@@ -18,7 +18,7 @@ public class Form941Data
     public decimal Line5a_SsTaxDue { get; set; }  // 5a * 12.4%
     public decimal Line5c_TaxableMedicareWages { get; set; }
     public decimal Line5c_MedicareTaxDue { get; set; }  // 5c * 2.9%
-    public decimal Line6_TotalSsAndMedicare { get; set; }
+    public decimal Line6_TotalTaxesBeforeAdjustments { get; set; }
     public decimal Line10_TotalTaxes { get; set; }
     public decimal Line11_TotalDeposits { get; set; }
     public decimal Line14_BalanceDueOrOverpayment { get; set; }
@@ -163,13 +163,15 @@ public class Form941WorksheetDocument : IDocument
                 ComposeLineRow(table, "5d", "Taxable wages & tips subject to Additional Medicare Tax withholding",
                     FormatCurrency(0m), true);
 
-                // Line 5e
+                // Line 5e: Sum of 5a through 5d. Lines 5b (social security tips) and
+                // 5d (Additional Medicare Tax) are zero because this application does
+                // not track tip income or Additional Medicare Tax withholding.
                 ComposeLineRow(table, "5e", "Total social security and Medicare taxes (add 5a through 5d)",
                     FormatCurrency(_data.Line5a_SsTaxDue + _data.Line5c_MedicareTaxDue), false);
 
                 // Line 6
                 ComposeLineRow(table, "6", "Total taxes before adjustments (add lines 3 and 5e)",
-                    FormatCurrency(_data.Line6_TotalSsAndMedicare), true);
+                    FormatCurrency(_data.Line6_TotalTaxesBeforeAdjustments), true);
 
                 // Lines 7-9 adjustments
                 ComposeLineRow(table, "7", "Current quarter's adjustment for fractions of cents",

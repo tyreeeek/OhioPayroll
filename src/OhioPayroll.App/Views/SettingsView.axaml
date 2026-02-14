@@ -42,7 +42,7 @@
                 <StackPanel Spacing="8">
                     <TextBlock Text="Company Information" Classes="section-header"/>
 
-                    <Grid ColumnDefinitions="160,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="10">
+                    <Grid ColumnDefinitions="160,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="10">
 
                         <!-- Company Name -->
                         <TextBlock Grid.Row="0" Grid.Column="0" Text="Company Name" Classes="field-label"/>
@@ -52,25 +52,29 @@
                         <TextBlock Grid.Row="1" Grid.Column="0" Text="EIN" Classes="field-label"/>
                         <TextBox   Grid.Row="1" Grid.Column="1" Text="{Binding Ein}" Classes="field-input" Watermark="XX-XXXXXXX"/>
 
+                        <!-- State Withholding ID -->
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="State Withholding ID" Classes="field-label"/>
+                        <TextBox   Grid.Row="2" Grid.Column="1" Text="{Binding StateWithholdingId}" Classes="field-input" Watermark="Ohio employer withholding account number"/>
+
                         <!-- Address -->
-                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Address" Classes="field-label"/>
-                        <TextBox   Grid.Row="2" Grid.Column="1" Text="{Binding Address}" Classes="field-input" Watermark="Street address"/>
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Address" Classes="field-label"/>
+                        <TextBox   Grid.Row="3" Grid.Column="1" Text="{Binding Address}" Classes="field-input" Watermark="Street address"/>
 
                         <!-- City -->
-                        <TextBlock Grid.Row="3" Grid.Column="0" Text="City" Classes="field-label"/>
-                        <TextBox   Grid.Row="3" Grid.Column="1" Text="{Binding City}" Classes="field-input" Watermark="City"/>
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="City" Classes="field-label"/>
+                        <TextBox   Grid.Row="4" Grid.Column="1" Text="{Binding City}" Classes="field-input" Watermark="City"/>
 
                         <!-- State -->
-                        <TextBlock Grid.Row="4" Grid.Column="0" Text="State" Classes="field-label"/>
-                        <TextBox   Grid.Row="4" Grid.Column="1" Text="{Binding State}" Classes="field-input" Watermark="OH" MaxLength="2"/>
+                        <TextBlock Grid.Row="5" Grid.Column="0" Text="State" Classes="field-label"/>
+                        <TextBox   Grid.Row="5" Grid.Column="1" Text="{Binding State}" Classes="field-input" Watermark="OH" MaxLength="2"/>
 
                         <!-- Zip Code -->
-                        <TextBlock Grid.Row="5" Grid.Column="0" Text="Zip Code" Classes="field-label"/>
-                        <TextBox   Grid.Row="5" Grid.Column="1" Text="{Binding ZipCode}" Classes="field-input" Watermark="XXXXX" MaxLength="10"/>
+                        <TextBlock Grid.Row="6" Grid.Column="0" Text="Zip Code" Classes="field-label"/>
+                        <TextBox   Grid.Row="6" Grid.Column="1" Text="{Binding ZipCode}" Classes="field-input" Watermark="XXXXX" MaxLength="10"/>
 
                         <!-- Phone -->
-                        <TextBlock Grid.Row="6" Grid.Column="0" Text="Phone" Classes="field-label"/>
-                        <TextBox   Grid.Row="6" Grid.Column="1" Text="{Binding Phone}" Classes="field-input" Watermark="(XXX) XXX-XXXX"/>
+                        <TextBlock Grid.Row="7" Grid.Column="0" Text="Phone" Classes="field-label"/>
+                        <TextBox   Grid.Row="7" Grid.Column="1" Text="{Binding Phone}" Classes="field-input" Watermark="(XXX) XXX-XXXX"/>
                     </Grid>
                 </StackPanel>
             </Border>

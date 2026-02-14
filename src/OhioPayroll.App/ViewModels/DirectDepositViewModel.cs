@@ -81,7 +81,11 @@ public partial class DirectDepositViewModel : ViewModelBase
         _encryption = encryption;
         _audit = audit;
 
-        _ = LoadPayrollRunsAsync();
+        _ = Task.Run(async () =>
+        {
+            try { await LoadPayrollRunsAsync(); }
+            catch (Exception ex) { AppLogger.Error($"Failed to load payroll runs: {ex.Message}", ex); }
+        });
     }
 
     // --- Load payroll runs ---
@@ -113,7 +117,11 @@ public partial class DirectDepositViewModel : ViewModelBase
     {
         if (value is not null)
         {
-            _ = LoadAchPreviewAsync(value.Id);
+            _ = Task.Run(async () =>
+            {
+                try { await LoadAchPreviewAsync(value.Id); }
+                catch (Exception ex) { AppLogger.Error($"Failed to load ACH preview: {ex.Message}", ex); }
+            });
         }
         else
         {
@@ -157,6 +165,19 @@ public partial class DirectDepositViewModel : ViewModelBase
             {
                 var routing = SafeDecrypt(bankAccount.EncryptedRoutingNumber);
                 var account = SafeDecrypt(bankAccount.EncryptedAccountNumber);
+
+                if (string.IsNullOrEmpty(routing) || routing.Length != 9 || !routing.All(char.IsDigit))
+                {
+                    AppLogger.Warning($"Invalid routing number for employee {paycheck.Employee.FullName}, skipping");
+                    withoutDd++;
+                    continue;
+                }
+                if (string.IsNullOrEmpty(account))
+                {
+                    AppLogger.Warning($"Empty account number for employee {paycheck.Employee.FullName}, skipping");
+                    withoutDd++;
+                    continue;
+                }
 
                 previewRows.Add(new AchPreviewRow
                 {
@@ -259,12 +280,26 @@ public partial class DirectDepositViewModel : ViewModelBase
             {
                 if (bankAccountsByEmployee.TryGetValue(paycheck.EmployeeId, out var bankAccount))
                 {
+                    var routingNumber = SafeDecrypt(bankAccount.EncryptedRoutingNumber);
+                    var accountNumber = SafeDecrypt(bankAccount.EncryptedAccountNumber);
+
+                    if (string.IsNullOrEmpty(routingNumber) || routingNumber.Length != 9 || !routingNumber.All(char.IsDigit))
+                    {
+                        AppLogger.Warning($"Invalid routing number for employee {paycheck.Employee.FullName}, skipping");
+                        continue;
+                    }
+                    if (string.IsNullOrEmpty(accountNumber))
+                    {
+                        AppLogger.Warning($"Empty account number for employee {paycheck.Employee.FullName}, skipping");
+                        continue;
+                    }
+
                     entries.Add(new AchEntry
                     {
                         EmployeeName = paycheck.Employee.FullName,
                         EmployeeId = paycheck.EmployeeId.ToString(),
-                        RoutingNumber = SafeDecrypt(bankAccount.EncryptedRoutingNumber),
-                        AccountNumber = SafeDecrypt(bankAccount.EncryptedAccountNumber),
+                        RoutingNumber = routingNumber,
+                        AccountNumber = accountNumber,
                         AccountType = bankAccount.AccountType,
                         Amount = paycheck.NetPay
                     });
@@ -298,6 +333,11 @@ public partial class DirectDepositViewModel : ViewModelBase
             var filePath = Path.Combine(outputDir, fileName);
             await File.WriteAllTextAsync(filePath, achContent);
 
+            if (!OperatingSystem.IsWindows())
+            {
+                File.SetUnixFileMode(filePath, UnixFileMode.UserRead | UnixFileMode.UserWrite);
+            }
+
             await _audit.LogAsync("GeneratedACH", "PayrollRun", SelectedRun.Id,
                 newValue: $"{entries.Count} entries, total {entries.Sum(e => e.Amount):C}");
 
@@ -317,11 +357,18 @@ public partial class DirectDepositViewModel : ViewModelBase
 
     // --- Helpers ---
 
-    private string SafeDecrypt(string encrypted)
+    private string SafeDecrypt(string? encrypted)
     {
         if (string.IsNullOrEmpty(encrypted)) return string.Empty;
-        try { return _encryption.Decrypt(encrypted); }
-        catch { return string.Empty; }
+        try
+        {
+            return _encryption.Decrypt(encrypted);
+        }
+        catch (Exception ex)
+        {
+            AppLogger.Error($"Decryption failed: {ex.Message}", ex);
+            return string.Empty;
+        }
     }
 
     private static string MaskLast4(string plain)

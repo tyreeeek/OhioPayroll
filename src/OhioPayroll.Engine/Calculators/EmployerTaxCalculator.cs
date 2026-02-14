@@ -16,11 +16,11 @@ public static class EmployerTaxCalculator
 
         decimal futaRemaining = Math.Max(0, FutaWageCap - ytdGrossPrior);
         decimal futaWages = Math.Min(grossPay, futaRemaining);
-        decimal futa = Math.Round(futaWages * DefaultFutaRate, 2);
+        decimal futa = Math.Round(futaWages * DefaultFutaRate, 2, MidpointRounding.AwayFromZero);
 
         decimal sutaRemaining = Math.Max(0, OhioSutaWageCap - ytdGrossPrior);
         decimal sutaWages = Math.Min(grossPay, sutaRemaining);
-        decimal suta = Math.Round(sutaWages * sutaRate, 2);
+        decimal suta = Math.Round(sutaWages * sutaRate, 2, MidpointRounding.AwayFromZero);
 
         return (futa, suta);
     }

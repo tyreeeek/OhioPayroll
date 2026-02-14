@@ -268,6 +268,11 @@ public class CheckDocument : IDocument
             });
 
             // MICR line
+            // NOTE: The current implementation uses Courier as a placeholder font for the
+            // MICR encoding line. True E-13B MICR compliance requires a special E-13B font
+            // (e.g., "MICR E13B" or similar). For production check printing, an E-13B MICR
+            // font must be installed on the system and referenced here instead of Courier.
+            // Banks may reject checks without proper E-13B encoding on the MICR line.
             column.Item().PaddingTop(8).Text(ComposeMicrLine())
                 .FontSize(10).FontFamily("Courier");
         });

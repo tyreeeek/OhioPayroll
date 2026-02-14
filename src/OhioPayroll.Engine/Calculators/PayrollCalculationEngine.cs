@@ -38,8 +38,7 @@ public class PayrollCalculationEngine : IPayrollCalculationEngine
 
         // Step 2: Federal Tax
         decimal federal = _federalCalc.Calculate(
-            grossPay, employee.FederalFilingStatus, frequency,
-            employee.FederalAllowances);
+            grossPay, employee.FederalFilingStatus, frequency);
 
         // Step 3: Ohio State Tax
         decimal ohio = _ohioCalc.Calculate(

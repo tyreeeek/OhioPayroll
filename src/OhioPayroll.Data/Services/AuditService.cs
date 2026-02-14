@@ -13,7 +13,7 @@ public class AuditService : IAuditService
     }
 
     public async Task LogAsync(string action, string entityType, int entityId,
-        string? oldValue = null, string? newValue = null)
+        string? oldValue = null, string? newValue = null, string actor = "System")
     {
         _db.AuditLog.Add(new AuditLogEntry
         {
@@ -22,7 +22,8 @@ public class AuditService : IAuditService
             EntityType = entityType,
             EntityId = entityId,
             OldValue = oldValue,
-            NewValue = newValue
+            NewValue = newValue,
+            Actor = actor
         });
         await _db.SaveChangesAsync();
     }

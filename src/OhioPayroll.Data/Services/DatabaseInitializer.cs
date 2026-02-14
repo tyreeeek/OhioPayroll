@@ -112,6 +112,32 @@ public class DatabaseInitializer
                 BaseAmount = baseAmt
             });
         }
+
+        var hohBrackets = new (decimal start, decimal end, decimal rate, decimal baseAmt)[]
+        {
+            (0, 10_800, 0.00m, 0),
+            (10_800, 26_200, 0.10m, 0),
+            (26_200, 66_150, 0.12m, 1_540),
+            (66_150, 106_525, 0.22m, 6_334),
+            (106_525, 197_950, 0.24m, 15_216.50m),
+            (197_950, 243_725, 0.32m, 37_158.50m),
+            (243_725, 609_350, 0.35m, 51_806.50m),
+            (609_350, decimal.MaxValue, 0.37m, 179_776.25m),
+        };
+
+        foreach (var (start, end, rate, baseAmt) in hohBrackets)
+        {
+            _db.TaxTables.Add(new TaxTable
+            {
+                TaxYear = taxYear,
+                Type = TaxType.Federal,
+                FilingStatus = FilingStatus.HeadOfHousehold,
+                BracketStart = start,
+                BracketEnd = end,
+                Rate = rate,
+                BaseAmount = baseAmt
+            });
+        }
     }
 
     private void SeedOhioTaxTables(int taxYear)

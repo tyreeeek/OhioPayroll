@@ -29,7 +29,7 @@ public class OhioStateTaxCalculator
         decimal taxableWage = Math.Max(0, annualizedWage - exemptionAmount);
 
         decimal annualTax = ApplyBrackets(taxableWage);
-        return Math.Round(annualTax / periods, 2);
+        return Math.Round(annualTax / periods, 2, MidpointRounding.AwayFromZero);
     }
 
     private decimal ApplyBrackets(decimal taxableWage)
@@ -40,13 +40,13 @@ public class OhioStateTaxCalculator
             {
                 decimal taxableInBracket = taxableWage - bracket.BracketStart;
                 if (taxableInBracket < 0) return 0m;
-                return bracket.BaseAmount + Math.Round(taxableInBracket * bracket.Rate, 2);
+                return bracket.BaseAmount + Math.Round(taxableInBracket * bracket.Rate, 2, MidpointRounding.AwayFromZero);
             }
         }
 
         var lastBracket = _brackets[^1];
         decimal taxableAbove = taxableWage - lastBracket.BracketStart;
-        return lastBracket.BaseAmount + Math.Round(taxableAbove * lastBracket.Rate, 2);
+        return lastBracket.BaseAmount + Math.Round(taxableAbove * lastBracket.Rate, 2, MidpointRounding.AwayFromZero);
     }
 }
 

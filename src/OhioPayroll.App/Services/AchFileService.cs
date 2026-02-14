@@ -63,7 +63,7 @@ public class AchFileService
             string receivingDfi = entry.RoutingNumber.Substring(0, 8);
             entryHash += long.Parse(receivingDfi);
 
-            long amountInCents = (long)(entry.Amount * 100);
+            long amountInCents = (long)Math.Round(entry.Amount * 100, MidpointRounding.AwayFromZero);
             totalCreditAmount += amountInCents;
 
             lines.Add(BuildEntryDetail(entry, companyRoutingNumber, sequenceNumber));
@@ -100,7 +100,7 @@ public class AchFileService
                     $"Line {i + 1} is {lines[i].Length} characters, expected {RecordLength}. Content: '{lines[i]}'");
         }
 
-        return string.Join("\n", lines) + "\n";
+        return string.Join("\r\n", lines) + "\r\n";
     }
 
     /// <summary>
@@ -170,7 +170,7 @@ public class AchFileService
         var sb = new StringBuilder(RecordLength);
 
         string transactionCode = entry.AccountType == BankAccountType.Checking ? "22" : "32";
-        long amountInCents = (long)(entry.Amount * 100);
+        long amountInCents = (long)Math.Round(entry.Amount * 100, MidpointRounding.AwayFromZero);
 
         sb.Append('6');                                                          // Pos 1: Record Type
         sb.Append(transactionCode);                                              // Pos 2-3: Transaction Code

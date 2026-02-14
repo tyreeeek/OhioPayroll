@@ -54,7 +54,7 @@ public class AchFileServiceTests
 
         result.Should().NotBeNullOrEmpty();
 
-        var lines = result.TrimEnd('\n').Split('\n');
+        var lines = result.TrimEnd('\r', '\n').Split("\r\n");
 
         // Should have: File Header (1) + Batch Header (1) + Entry (1) + Batch Control (1) + File Control (1) = 5
         // Padded to next multiple of 10 = 10
@@ -89,7 +89,7 @@ public class AchFileServiceTests
             CompanyName, CompanyEin, CompanyRouting, CompanyAccount,
             BankName, PayDate, entries);
 
-        var lines = result.TrimEnd('\n').Split('\n');
+        var lines = result.TrimEnd('\r', '\n').Split("\r\n");
 
         foreach (var line in lines)
         {
@@ -114,7 +114,7 @@ public class AchFileServiceTests
                 CompanyName, CompanyEin, CompanyRouting, CompanyAccount,
                 BankName, PayDate, entries);
 
-            var lines = result.TrimEnd('\n').Split('\n');
+            var lines = result.TrimEnd('\r', '\n').Split("\r\n");
             (lines.Length % 10).Should().Be(0, $"with {count} entries, got {lines.Length} lines");
         }
     }
@@ -126,7 +126,7 @@ public class AchFileServiceTests
     public void FileHeader_HasCorrectRecordTypeAndFormat()
     {
         var result = GenerateWithDefaults();
-        var header = result.TrimEnd('\n').Split('\n')[0];
+        var header = result.TrimEnd('\r', '\n').Split("\r\n")[0];
 
         header[0].Should().Be('1');                               // Record Type
         header.Substring(1, 2).Should().Be("01");                 // Priority Code
@@ -146,7 +146,7 @@ public class AchFileServiceTests
     public void BatchHeader_HasServiceClassCode220()
     {
         var result = GenerateWithDefaults();
-        var batchHeader = result.TrimEnd('\n').Split('\n')[1];
+        var batchHeader = result.TrimEnd('\r', '\n').Split("\r\n")[1];
 
         batchHeader[0].Should().Be('5');                   // Record Type
         batchHeader.Substring(1, 3).Should().Be("220");    // Service Class Code (credits only)
@@ -165,7 +165,7 @@ public class AchFileServiceTests
             CompanyName, CompanyEin, CompanyRouting, CompanyAccount,
             BankName, PayDate, new List<AchEntry> { checkingEntry, savingsEntry });
 
-        var lines = result.TrimEnd('\n').Split('\n');
+        var lines = result.TrimEnd('\r', '\n').Split("\r\n");
 
         // Entry lines are at index 2 and 3
         lines[2].Substring(1, 2).Should().Be("22"); // Checking credit
@@ -183,7 +183,7 @@ public class AchFileServiceTests
             CompanyName, CompanyEin, CompanyRouting, CompanyAccount,
             BankName, PayDate, new List<AchEntry> { entry });
 
-        var entryLine = result.TrimEnd('\n').Split('\n')[2];
+        var entryLine = result.TrimEnd('\r', '\n').Split("\r\n")[2];
         // Amount is at positions 30-39 (0-indexed: 29..38)
         entryLine.Substring(29, 10).Should().Be("0000123456");
     }
@@ -207,7 +207,7 @@ public class AchFileServiceTests
             CompanyName, CompanyEin, CompanyRouting, CompanyAccount,
             BankName, PayDate, entries);
 
-        var lines = result.TrimEnd('\n').Split('\n');
+        var lines = result.TrimEnd('\r', '\n').Split("\r\n");
 
         // Batch control is at index 4 (header + batch header + 2 entries + batch control)
         var batchControl = lines[4];
@@ -241,7 +241,7 @@ public class AchFileServiceTests
             CompanyName, CompanyEin, CompanyRouting, CompanyAccount,
             BankName, PayDate, entries);
 
-        var lines = result.TrimEnd('\n').Split('\n');
+        var lines = result.TrimEnd('\r', '\n').Split("\r\n");
         var batchControl = lines[5]; // header + batch header + 3 entries + batch control
 
         // Entry/Addenda count at positions 5-10 (0-indexed: 4..9)
@@ -306,7 +306,7 @@ public class AchFileServiceTests
             CompanyName, CompanyEin, CompanyRouting, CompanyAccount,
             BankName, PayDate, new List<AchEntry> { entry });
 
-        var entryLine = result.TrimEnd('\n').Split('\n')[2];
+        var entryLine = result.TrimEnd('\r', '\n').Split("\r\n")[2];
         entryLine.Substring(29, 10).Should().Be("0009999999");
     }
 
@@ -347,7 +347,7 @@ public class AchFileServiceTests
     public void BatchHeader_ContainsPPDAndPayroll()
     {
         var result = GenerateWithDefaults();
-        var batchHeader = result.TrimEnd('\n').Split('\n')[1];
+        var batchHeader = result.TrimEnd('\r', '\n').Split("\r\n")[1];
 
         // PPD at positions 51-53 (0-indexed: 50..52)
         batchHeader.Substring(50, 3).Should().Be("PPD");
@@ -363,7 +363,7 @@ public class AchFileServiceTests
     public void FileControl_HasCorrectBatchAndBlockCount()
     {
         var result = GenerateWithDefaults();
-        var lines = result.TrimEnd('\n').Split('\n');
+        var lines = result.TrimEnd('\r', '\n').Split("\r\n");
 
         // Find the file control record (first line starting with '9' that isn't padding)
         var fileControl = lines[4]; // header + batch header + 1 entry + batch control + file control
@@ -384,7 +384,7 @@ public class AchFileServiceTests
     public void EntryDetail_TraceNumberFormat()
     {
         var result = GenerateWithDefaults();
-        var entryLine = result.TrimEnd('\n').Split('\n')[2];
+        var entryLine = result.TrimEnd('\r', '\n').Split("\r\n")[2];
 
         // Trace number at positions 80-94 (0-indexed: 79..93)
         string traceNumber = entryLine.Substring(79, 15);
@@ -401,7 +401,7 @@ public class AchFileServiceTests
     public void PaddingLines_AreAll9s()
     {
         var result = GenerateWithDefaults();
-        var lines = result.TrimEnd('\n').Split('\n');
+        var lines = result.TrimEnd('\r', '\n').Split("\r\n");
 
         // With 1 entry we have 5 real lines + 5 padding lines
         string expectedPadding = new string('9', 94);
@@ -426,7 +426,7 @@ public class AchFileServiceTests
             CompanyName, CompanyEin, CompanyRouting, CompanyAccount,
             BankName, PayDate, entries);
 
-        var lines = result.TrimEnd('\n').Split('\n');
+        var lines = result.TrimEnd('\r', '\n').Split("\r\n");
         lines.Should().HaveCount(10);
 
         // Last line should be file control, not padding
@@ -446,7 +446,7 @@ public class AchFileServiceTests
             CompanyName, CompanyEin, CompanyRouting, CompanyAccount,
             BankName, PayDate, new List<AchEntry> { entry });
 
-        var entryLine = result.TrimEnd('\n').Split('\n')[2];
+        var entryLine = result.TrimEnd('\r', '\n').Split("\r\n")[2];
         entryLine.Substring(29, 10).Should().Be("0000000001");
     }
 
@@ -474,7 +474,7 @@ public class AchFileServiceTests
             "A VERY LONG COMPANY NAME EXCEEDING LIMIT", CompanyEin, CompanyRouting, CompanyAccount,
             BankName, PayDate, entries);
 
-        var batchHeader = result.TrimEnd('\n').Split('\n')[1];
+        var batchHeader = result.TrimEnd('\r', '\n').Split("\r\n")[1];
         // Company name at positions 5-20 (0-indexed: 4..19) = 16 chars
         batchHeader.Substring(4, 16).Should().Be("A VERY LONG COMP");
     }

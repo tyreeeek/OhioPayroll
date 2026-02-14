@@ -23,6 +23,7 @@ public partial class SettingsViewModel : ViewModelBase
     // ── Company Info ────────────────────────────────────────────────
     [ObservableProperty] private string _companyName = string.Empty;
     [ObservableProperty] private string _ein = string.Empty;
+    [ObservableProperty] private string _stateWithholdingId = string.Empty;
     [ObservableProperty] private string _address = string.Empty;
     [ObservableProperty] private string _city = string.Empty;
     [ObservableProperty] private string _state = "OH";
@@ -108,6 +109,7 @@ public partial class SettingsViewModel : ViewModelBase
                 _companyInfoId = company.Id;
                 CompanyName = company.CompanyName;
                 Ein = company.Ein;
+                StateWithholdingId = company.StateWithholdingId;
                 Address = company.Address;
                 City = company.City;
                 State = company.State;
@@ -197,6 +199,7 @@ public partial class SettingsViewModel : ViewModelBase
 
             company.CompanyName = CompanyName;
             company.Ein = Ein;
+            company.StateWithholdingId = StateWithholdingId;
             company.Address = Address;
             company.City = City;
             company.State = State;
@@ -309,6 +312,7 @@ public partial class SettingsViewModel : ViewModelBase
     /// </summary>
     partial void OnCompanyNameChanged(string value) => HasChanges = true;
     partial void OnEinChanged(string value) => HasChanges = true;
+    partial void OnStateWithholdingIdChanged(string value) => HasChanges = true;
     partial void OnAddressChanged(string value) => HasChanges = true;
     partial void OnCityChanged(string value) => HasChanges = true;
     partial void OnStateChanged(string value) => HasChanges = true;

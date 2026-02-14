@@ -19,10 +19,10 @@ public static class FicaCalculator
         if (remainingCap > 0)
         {
             decimal ssWages = Math.Min(grossPay, remainingCap);
-            ss = Math.Round(ssWages * SocialSecurityRate, 2);
+            ss = Math.Round(ssWages * SocialSecurityRate, 2, MidpointRounding.AwayFromZero);
         }
 
-        decimal medicare = Math.Round(grossPay * MedicareRate, 2);
+        decimal medicare = Math.Round(grossPay * MedicareRate, 2, MidpointRounding.AwayFromZero);
         return (ss, medicare);
     }
 

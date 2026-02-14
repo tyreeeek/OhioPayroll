@@ -42,6 +42,9 @@ public partial class YearEndViewModel : ViewModelBase
     private readonly PayrollDbContext _db;
     private readonly IEncryptionService _encryption;
 
+    // Social Security wage base - must be updated annually per IRS guidelines
+    private const decimal SsWageBase = 176100m;
+
     [ObservableProperty]
     private string _title = "Year-End / W-2";
 
@@ -342,12 +345,13 @@ public partial class YearEndViewModel : ViewModelBase
             var w2 = new W2Data
             {
                 EmployerEin = company?.Ein ?? "",
+                StateWithholdingId = company?.StateWithholdingId ?? "",
                 EmployerName = company?.CompanyName ?? "",
                 EmployerAddress = company?.Address ?? "",
                 EmployerCity = company?.City ?? "",
                 EmployerState = company?.State ?? "OH",
                 EmployerZip = company?.ZipCode ?? "",
-                EmployeeSsn = emp.SsnLast4,
+                EmployeeSsn = _encryption.Decrypt(emp.EncryptedSsn),
                 EmployeeFirstName = emp.FirstName,
                 EmployeeLastName = emp.LastName,
                 EmployeeAddress = emp.Address,
@@ -356,7 +360,7 @@ public partial class YearEndViewModel : ViewModelBase
                 EmployeeZip = emp.ZipCode,
                 Box1WagesTips = grossPay,
                 Box2FederalTaxWithheld = paychecks.Sum(p => p.FederalWithholding),
-                Box3SocialSecurityWages = Math.Min(grossPay, 176100m),
+                Box3SocialSecurityWages = Math.Min(grossPay, SsWageBase),
                 Box4SocialSecurityTax = paychecks.Sum(p => p.SocialSecurityTax),
                 Box5MedicareWages = grossPay,
                 Box6MedicareTax = paychecks.Sum(p => p.MedicareTax),
@@ -381,6 +385,7 @@ public partial class YearEndViewModel : ViewModelBase
         return new W3Data
         {
             EmployerEin = company?.EmployerEin ?? "",
+            StateWithholdingId = company?.StateWithholdingId ?? "",
             EmployerName = company?.EmployerName ?? "",
             EmployerAddress = company?.EmployerAddress ?? "",
             EmployerCity = company?.EmployerCity ?? "",

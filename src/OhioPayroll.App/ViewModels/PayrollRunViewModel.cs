@@ -530,131 +530,140 @@ public partial class PayrollRunViewModel : ViewModelBase
         {
             IsLoading = true;
 
-            var settings = await _db.PayrollSettings.FirstOrDefaultAsync();
-            int nextCheckNumber = settings?.NextCheckNumber ?? 1001;
+            using var transaction = await _db.Database.BeginTransactionAsync();
 
-            // Create PayrollRun
-            var run = new PayrollRun
+            try
             {
-                PeriodStart = PeriodStart.DateTime,
-                PeriodEnd = PeriodEnd.DateTime,
-                PayDate = PayDate.DateTime,
-                PayFrequency = SelectedFrequency,
-                Status = PayrollRunStatus.Finalized,
-                TotalGrossPay = TotalGrossPay,
-                TotalNetPay = TotalNetPay,
-                TotalFederalTax = TotalFederalTax,
-                TotalStateTax = TotalStateTax,
-                TotalLocalTax = TotalLocalTax,
-                TotalSocialSecurity = TotalSsTax,
-                TotalMedicare = TotalMedTax,
-                TotalEmployerSocialSecurity = TotalEmployerSs,
-                TotalEmployerMedicare = TotalEmployerMed,
-                TotalEmployerFuta = TotalEmployerFuta,
-                TotalEmployerSuta = TotalEmployerSuta,
-                CreatedAt = DateTime.UtcNow,
-                FinalizedAt = DateTime.UtcNow
-            };
+                var settings = await _db.PayrollSettings.FirstOrDefaultAsync();
+                int nextCheckNumber = settings?.NextCheckNumber ?? 1001;
 
-            _db.PayrollRuns.Add(run);
-            await _db.SaveChangesAsync(); // generates run.Id
-
-            // Create Paychecks and CheckRegisterEntries
-            foreach (var preview in PreviewRows)
-            {
-                var paycheck = new Paycheck
+                // Create PayrollRun
+                var run = new PayrollRun
                 {
-                    PayrollRunId = run.Id,
-                    EmployeeId = preview.EmployeeId,
-                    RegularHours = preview.RegularHours,
-                    OvertimeHours = preview.OvertimeHours,
-                    RegularPay = preview.RegularPay,
-                    OvertimePay = preview.OvertimePay,
-                    GrossPay = preview.GrossPay,
-                    FederalWithholding = preview.FederalTax,
-                    OhioStateWithholding = preview.OhioTax,
-                    SchoolDistrictTax = preview.SchoolDistrictTax,
-                    LocalMunicipalityTax = preview.LocalTax,
-                    SocialSecurityTax = preview.SsTax,
-                    MedicareTax = preview.MedTax,
-                    EmployerSocialSecurity = preview.EmployerSs,
-                    EmployerMedicare = preview.EmployerMed,
-                    EmployerFuta = preview.EmployerFuta,
-                    EmployerSuta = preview.EmployerSuta,
-                    TotalDeductions = preview.TotalDeductions,
-                    NetPay = preview.NetPay,
-                    // YTD snapshots: prior + this paycheck
-                    YtdGrossPay = preview.YtdGrossPrior + preview.GrossPay,
-                    YtdFederalWithholding = preview.YtdFederalPrior + preview.FederalTax,
-                    YtdOhioStateWithholding = preview.YtdOhioPrior + preview.OhioTax,
-                    YtdSchoolDistrictTax = preview.YtdSchoolDistrictPrior + preview.SchoolDistrictTax,
-                    YtdLocalTax = preview.YtdLocalPrior + preview.LocalTax,
-                    YtdSocialSecurity = preview.YtdSsPrior + preview.SsTax,
-                    YtdMedicare = preview.YtdMedPrior + preview.MedTax,
-                    YtdNetPay = preview.YtdNetPrior + preview.NetPay,
-                    PaymentMethod = PaymentMethod.Check,
-                    CheckNumber = nextCheckNumber,
-                    CreatedAt = DateTime.UtcNow
+                    PeriodStart = PeriodStart.DateTime,
+                    PeriodEnd = PeriodEnd.DateTime,
+                    PayDate = PayDate.DateTime,
+                    PayFrequency = SelectedFrequency,
+                    Status = PayrollRunStatus.Finalized,
+                    TotalGrossPay = TotalGrossPay,
+                    TotalNetPay = TotalNetPay,
+                    TotalFederalTax = TotalFederalTax,
+                    TotalStateTax = TotalStateTax,
+                    TotalLocalTax = TotalLocalTax,
+                    TotalSocialSecurity = TotalSsTax,
+                    TotalMedicare = TotalMedTax,
+                    TotalEmployerSocialSecurity = TotalEmployerSs,
+                    TotalEmployerMedicare = TotalEmployerMed,
+                    TotalEmployerFuta = TotalEmployerFuta,
+                    TotalEmployerSuta = TotalEmployerSuta,
+                    CreatedAt = DateTime.UtcNow,
+                    FinalizedAt = DateTime.UtcNow
                 };
 
-                _db.Paychecks.Add(paycheck);
-                await _db.SaveChangesAsync(); // generates paycheck.Id
+                _db.PayrollRuns.Add(run);
 
-                // Create check register entry
-                var checkEntry = new CheckRegisterEntry
+                // Create Paychecks and CheckRegisterEntries
+                foreach (var preview in PreviewRows)
                 {
-                    CheckNumber = nextCheckNumber,
-                    PaycheckId = paycheck.Id,
-                    Status = CheckStatus.Issued,
-                    Amount = paycheck.NetPay,
-                    IssuedDate = PayDate.DateTime,
-                    CreatedAt = DateTime.UtcNow
-                };
+                    var paycheck = new Paycheck
+                    {
+                        PayrollRun = run,
+                        EmployeeId = preview.EmployeeId,
+                        RegularHours = preview.RegularHours,
+                        OvertimeHours = preview.OvertimeHours,
+                        RegularPay = preview.RegularPay,
+                        OvertimePay = preview.OvertimePay,
+                        GrossPay = preview.GrossPay,
+                        FederalWithholding = preview.FederalTax,
+                        OhioStateWithholding = preview.OhioTax,
+                        SchoolDistrictTax = preview.SchoolDistrictTax,
+                        LocalMunicipalityTax = preview.LocalTax,
+                        SocialSecurityTax = preview.SsTax,
+                        MedicareTax = preview.MedTax,
+                        EmployerSocialSecurity = preview.EmployerSs,
+                        EmployerMedicare = preview.EmployerMed,
+                        EmployerFuta = preview.EmployerFuta,
+                        EmployerSuta = preview.EmployerSuta,
+                        TotalDeductions = preview.TotalDeductions,
+                        NetPay = preview.NetPay,
+                        // YTD snapshots: prior + this paycheck
+                        YtdGrossPay = preview.YtdGrossPrior + preview.GrossPay,
+                        YtdFederalWithholding = preview.YtdFederalPrior + preview.FederalTax,
+                        YtdOhioStateWithholding = preview.YtdOhioPrior + preview.OhioTax,
+                        YtdSchoolDistrictTax = preview.YtdSchoolDistrictPrior + preview.SchoolDistrictTax,
+                        YtdLocalTax = preview.YtdLocalPrior + preview.LocalTax,
+                        YtdSocialSecurity = preview.YtdSsPrior + preview.SsTax,
+                        YtdMedicare = preview.YtdMedPrior + preview.MedTax,
+                        YtdNetPay = preview.YtdNetPrior + preview.NetPay,
+                        PaymentMethod = PaymentMethod.Check,
+                        CheckNumber = nextCheckNumber,
+                        CreatedAt = DateTime.UtcNow
+                    };
 
-                _db.CheckRegister.Add(checkEntry);
-                nextCheckNumber++;
+                    _db.Paychecks.Add(paycheck);
+
+                    // Create check register entry
+                    var checkEntry = new CheckRegisterEntry
+                    {
+                        CheckNumber = nextCheckNumber,
+                        Paycheck = paycheck,
+                        Status = CheckStatus.Issued,
+                        Amount = paycheck.NetPay,
+                        IssuedDate = PayDate.DateTime,
+                        CreatedAt = DateTime.UtcNow
+                    };
+
+                    _db.CheckRegister.Add(checkEntry);
+                    nextCheckNumber++;
+                }
+
+                // Create tax liabilities for this payroll run
+                int quarter = GetQuarter(PayDate.DateTime);
+                int taxYear = PayDate.Year;
+
+                CreateTaxLiability(TaxType.Federal, taxYear, quarter, TotalFederalTax);
+                CreateTaxLiability(TaxType.Ohio, taxYear, quarter, TotalStateTax);
+                CreateTaxLiability(TaxType.Local, taxYear, quarter, TotalLocalTax);
+                CreateTaxLiability(TaxType.SchoolDistrict, taxYear, quarter, TotalSchoolDistrictTax);
+                CreateTaxLiability(TaxType.FICA_SS, taxYear, quarter, TotalSsTax + TotalEmployerSs);
+                CreateTaxLiability(TaxType.FICA_Med, taxYear, quarter, TotalMedTax + TotalEmployerMed);
+                CreateTaxLiability(TaxType.FUTA, taxYear, quarter, TotalEmployerFuta);
+                CreateTaxLiability(TaxType.SUTA, taxYear, quarter, TotalEmployerSuta);
+
+                // Update next check number in settings
+                if (settings is not null)
+                {
+                    settings.NextCheckNumber = nextCheckNumber;
+                    settings.UpdatedAt = DateTime.UtcNow;
+                }
+
+                await _db.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                // Audit log (outside transaction - non-critical)
+                await _audit.LogAsync(
+                    "Finalized",
+                    "PayrollRun",
+                    run.Id,
+                    newValue: $"Employees: {EmployeeCount}, Gross: {TotalGrossPay:C}, Net: {TotalNetPay:C}");
+
+                AppLogger.Information($"Payroll run #{run.Id} finalized: {EmployeeCount} employees, Gross: {TotalGrossPay:C}, Net: {TotalNetPay:C}");
+
+                FinalizedRunId = run.Id;
+                IsFinalized = true;
+                FinalizedMessage = $"Payroll run #{run.Id} has been finalized successfully.\n\n" +
+                    $"Employees paid: {EmployeeCount}\n" +
+                    $"Total gross pay: {TotalGrossPay:C}\n" +
+                    $"Total net pay: {TotalNetPay:C}\n" +
+                    $"Check numbers: {nextCheckNumber - EmployeeCount} - {nextCheckNumber - 1}";
+
+                CurrentStep = 4;
             }
-
-            // Create tax liabilities for this payroll run
-            int quarter = GetQuarter(PayDate.DateTime);
-            int taxYear = PayDate.Year;
-
-            CreateTaxLiability(TaxType.Federal, taxYear, quarter, TotalFederalTax);
-            CreateTaxLiability(TaxType.Ohio, taxYear, quarter, TotalStateTax);
-            CreateTaxLiability(TaxType.Local, taxYear, quarter, TotalLocalTax);
-            CreateTaxLiability(TaxType.SchoolDistrict, taxYear, quarter, TotalSchoolDistrictTax);
-            CreateTaxLiability(TaxType.FICA_SS, taxYear, quarter, TotalSsTax + TotalEmployerSs);
-            CreateTaxLiability(TaxType.FICA_Med, taxYear, quarter, TotalMedTax + TotalEmployerMed);
-            CreateTaxLiability(TaxType.FUTA, taxYear, quarter, TotalEmployerFuta);
-            CreateTaxLiability(TaxType.SUTA, taxYear, quarter, TotalEmployerSuta);
-
-            // Update next check number in settings
-            if (settings is not null)
+            catch
             {
-                settings.NextCheckNumber = nextCheckNumber;
-                settings.UpdatedAt = DateTime.UtcNow;
+                // Transaction will auto-rollback on dispose if not committed
+                throw;
             }
-
-            await _db.SaveChangesAsync();
-
-            // Audit log
-            await _audit.LogAsync(
-                "Finalized",
-                "PayrollRun",
-                run.Id,
-                newValue: $"Employees: {EmployeeCount}, Gross: {TotalGrossPay:C}, Net: {TotalNetPay:C}");
-
-            AppLogger.Information($"Payroll run #{run.Id} finalized: {EmployeeCount} employees, Gross: {TotalGrossPay:C}, Net: {TotalNetPay:C}");
-
-            FinalizedRunId = run.Id;
-            IsFinalized = true;
-            FinalizedMessage = $"Payroll run #{run.Id} has been finalized successfully.\n\n" +
-                $"Employees paid: {EmployeeCount}\n" +
-                $"Total gross pay: {TotalGrossPay:C}\n" +
-                $"Total net pay: {TotalNetPay:C}\n" +
-                $"Check numbers: {nextCheckNumber - EmployeeCount} - {nextCheckNumber - 1}";
-
-            CurrentStep = 4;
         }
         catch (Exception ex)
         {

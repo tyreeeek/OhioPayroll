@@ -13,6 +13,11 @@ public class TaxLiabilityConfiguration : IEntityTypeConfiguration<TaxLiability>
         builder.Property(t => t.AmountPaid).HasPrecision(18, 2);
         builder.Property(t => t.PaymentReference).HasMaxLength(100);
         builder.HasIndex(t => new { t.TaxYear, t.Quarter, t.TaxType });
+        builder.ToTable(t =>
+        {
+            t.HasCheckConstraint("CK_TaxLiability_Quarter", "[Quarter] >= 1 AND [Quarter] <= 4");
+            t.HasCheckConstraint("CK_TaxLiability_PeriodDates", "[PeriodEnd] >= [PeriodStart]");
+        });
     }
 }
 

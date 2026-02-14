@@ -8,6 +8,7 @@ public class W3Data
 {
     // Employer info
     public string EmployerEin { get; set; } = string.Empty;
+    public string StateWithholdingId { get; set; } = string.Empty;
     public string EmployerName { get; set; } = string.Empty;
     public string EmployerAddress { get; set; } = string.Empty;
     public string EmployerCity { get; set; } = string.Empty;
@@ -200,6 +201,13 @@ public class W3Document : IDocument
                 ComposeTableBoxLabel(table, "6  Medicare tax withheld");
                 ComposeTableBoxValue(table, _data.TotalMedicareTax);
 
+                // Boxes 7-14 are intentionally zero. This application does not track
+                // social security tips, allocated tips, dependent care benefits,
+                // nonqualified plans, deferred compensation, third-party sick pay,
+                // or payer-withheld income tax. These boxes are reported as zero
+                // because the corresponding benefit/compensation types are not
+                // supported by this payroll system.
+
                 // Row: Box 7 + Box 8
                 ComposeTableBoxLabel(table, "7  Social security tips");
                 ComposeTableBoxValue(table, 0m);
@@ -264,8 +272,9 @@ public class W3Document : IDocument
                 // Data row
                 table.Cell().Border(1).BorderColor(LightBorderColor).Padding(4)
                     .Text("OH").FontSize(9).Bold();
+                // Box 15: Employer's state withholding account number (NOT the federal EIN)
                 table.Cell().Border(1).BorderColor(LightBorderColor).Padding(4)
-                    .Text(FormatEin(_data.EmployerEin)).FontSize(7);
+                    .Text(_data.StateWithholdingId).FontSize(7);
                 table.Cell().Border(1).BorderColor(LightBorderColor).Padding(4)
                     .Text(FormatCurrency(_data.TotalStateWages)).FontSize(8).Bold();
                 table.Cell().Border(1).BorderColor(LightBorderColor).Padding(4)
@@ -344,7 +353,9 @@ public class W3Document : IDocument
 
     private static string FormatCurrency(decimal value)
     {
-        return value.ToString("$#,##0.00");
+        // IRS W-3 instructions prohibit "$" symbols and comma separators in money boxes.
+        // Use plain numeric format: digits and decimal point only.
+        return value.ToString("0.00");
     }
 
     private static string FormatEin(string ein)

@@ -9,5 +9,6 @@ public class AuditLogEntry
     public int EntityId { get; set; }
     public string? OldValue { get; set; }
     public string? NewValue { get; set; }
+    public string Actor { get; set; } = "System";
 }
 
