@@ -1,0 +1,31 @@
+language: "en-US"
+reviews:
+  profile: "assertive"
+  request_changes_workflow: true
+  high_level_summary: true
+  poem: false
+  review_status: true
+  path_filters: []
+  path_instructions:
+    - path: "src/OhioPayroll.Engine/**"
+      instructions: |
+        Review tax calculation logic carefully. Verify bracket boundaries,
+        rates, and rounding. Flag any potential precision issues with decimal math.
+        Ensure SS wage cap and FUTA/SUTA cap crossing logic is correct.
+    - path: "src/OhioPayroll.Data/**"
+      instructions: |
+        Review encryption implementation for security best practices.
+        Check for SQL injection risks, proper key management, and audit trail completeness.
+    - path: "src/OhioPayroll.App/Services/AchFileService.cs"
+      instructions: |
+        NACHA/ACH files have strict formatting requirements. Every line must be exactly
+        94 characters. Verify routing number validation, hash calculations, and block padding.
+    - path: "src/OhioPayroll.App/Documents/**"
+      instructions: |
+        Review PDF document generation for correctness of tax form field mappings,
+        especially W-2 box assignments and check MICR line formatting.
+  auto_review:
+    enabled: true
+    drafts: false
+chat:
+  auto_reply: true
