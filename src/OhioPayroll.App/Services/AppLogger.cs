@@ -36,3 +36,4 @@ public static class AppLogger
             _logger?.Error(message);
     }
 }
+

@@ -60,3 +60,4 @@ public class Paycheck
     public PayrollRun PayrollRun { get; set; } = null!;
     public Employee Employee { get; set; } = null!;
 }
+

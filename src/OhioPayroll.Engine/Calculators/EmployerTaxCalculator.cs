@@ -25,3 +25,4 @@ public static class EmployerTaxCalculator
         return (futa, suta);
     }
 }
+

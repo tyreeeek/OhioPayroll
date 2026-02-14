@@ -7,3 +7,4 @@ public enum CheckStatus
     Cleared,
     Voided
 }
+

@@ -18,3 +18,4 @@ public class EmployeeBankAccountConfiguration : IEntityTypeConfiguration<Employe
             .OnDelete(DeleteBehavior.Restrict);
     }
 }
+

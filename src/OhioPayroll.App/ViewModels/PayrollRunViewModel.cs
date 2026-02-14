@@ -721,3 +721,4 @@ public partial class PayrollRunViewModel : ViewModelBase
         EmployeeCount = 0;
     }
 }
+

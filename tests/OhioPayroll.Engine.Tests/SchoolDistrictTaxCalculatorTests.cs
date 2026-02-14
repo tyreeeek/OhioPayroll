@@ -24,3 +24,4 @@ public class SchoolDistrictTaxCalculatorTests
         SchoolDistrictTaxCalculator.Calculate(0m, 0.0175m).Should().Be(0m);
     }
 }
+

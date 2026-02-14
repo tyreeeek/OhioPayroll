@@ -17,3 +17,4 @@ public class CheckRegisterEntry
 
     public Paycheck Paycheck { get; set; } = null!;
 }
+

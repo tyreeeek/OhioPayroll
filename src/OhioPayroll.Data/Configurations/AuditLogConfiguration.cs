@@ -15,3 +15,4 @@ public class AuditLogConfiguration : IEntityTypeConfiguration<AuditLogEntry>
         builder.HasIndex(a => new { a.EntityType, a.EntityId });
     }
 }
+

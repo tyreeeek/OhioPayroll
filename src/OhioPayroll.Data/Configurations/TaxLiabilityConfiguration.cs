@@ -15,3 +15,4 @@ public class TaxLiabilityConfiguration : IEntityTypeConfiguration<TaxLiability>
         builder.HasIndex(t => new { t.TaxYear, t.Quarter, t.TaxType });
     }
 }
+

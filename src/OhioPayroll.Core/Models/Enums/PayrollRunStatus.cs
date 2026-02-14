@@ -6,3 +6,4 @@ public enum PayrollRunStatus
     Finalized,
     Voided
 }
+

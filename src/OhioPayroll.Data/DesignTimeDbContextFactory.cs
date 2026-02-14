@@ -13,3 +13,4 @@ public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<PayrollDbC
         return new PayrollDbContext(optionsBuilder.Options);
     }
 }
+

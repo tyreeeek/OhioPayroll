@@ -392,3 +392,4 @@ public class W2Document : IDocument
         return ein;
     }
 }
+

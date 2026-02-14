@@ -65,3 +65,4 @@ public class PaycheckConfiguration : IEntityTypeConfiguration<Paycheck>
         builder.HasIndex(p => p.CheckNumber);
     }
 }
+

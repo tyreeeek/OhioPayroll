@@ -9,3 +9,4 @@ public partial class PayrollRunView : UserControl
         InitializeComponent();
     }
 }
+

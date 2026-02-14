@@ -556,3 +556,4 @@ public partial class CheckPrintingViewModel : ViewModelBase
         return string.Concat(name.Select(c => invalid.Contains(c) ? '_' : c));
     }
 }
+

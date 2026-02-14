@@ -30,3 +30,4 @@ public class SsnMaskConverter : IValueConverter
         throw new NotSupportedException("SsnMaskConverter does not support ConvertBack.");
     }
 }
+

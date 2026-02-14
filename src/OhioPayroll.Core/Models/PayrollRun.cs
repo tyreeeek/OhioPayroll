@@ -26,3 +26,4 @@ public class PayrollRun
 
     public ICollection<Paycheck> Paychecks { get; set; } = new List<Paycheck>();
 }
+

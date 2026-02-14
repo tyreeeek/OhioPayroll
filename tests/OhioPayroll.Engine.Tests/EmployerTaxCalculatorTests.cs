@@ -63,3 +63,4 @@ public class EmployerTaxCalculatorTests
         suta.Should().Be(100.00m);   // 2000 * 0.05
     }
 }
+

@@ -7,3 +7,4 @@ public record TaxBracket
     public decimal Rate { get; init; }
     public decimal BaseAmount { get; init; }
 }
+

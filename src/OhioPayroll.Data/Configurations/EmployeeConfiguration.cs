@@ -26,3 +26,4 @@ public class EmployeeConfiguration : IEntityTypeConfiguration<Employee>
         builder.Ignore(e => e.FullName);
     }
 }
+

@@ -24,3 +24,4 @@ public class LocalTaxCalculatorTests
         LocalMunicipalityTaxCalculator.Calculate(0m, 0.025m).Should().Be(0m);
     }
 }
+

@@ -228,3 +228,4 @@ public class YtdEmployeeReportDocument : IDocument
         return value.ToString("$#,##0.00");
     }
 }
+

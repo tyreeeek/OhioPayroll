@@ -18,3 +18,4 @@ public class PayrollSettingsConfiguration : IEntityTypeConfiguration<PayrollSett
         builder.Property(s => s.CheckOffsetY).HasPrecision(8, 2);
     }
 }
+

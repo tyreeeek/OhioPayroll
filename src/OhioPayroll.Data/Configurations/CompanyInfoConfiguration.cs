@@ -18,3 +18,4 @@ public class CompanyInfoConfiguration : IEntityTypeConfiguration<CompanyInfo>
         builder.Property(c => c.Phone).HasMaxLength(20);
     }
 }
+

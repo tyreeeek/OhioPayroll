@@ -10,3 +10,4 @@ public class AuditLogEntry
     public string? OldValue { get; set; }
     public string? NewValue { get; set; }
 }
+

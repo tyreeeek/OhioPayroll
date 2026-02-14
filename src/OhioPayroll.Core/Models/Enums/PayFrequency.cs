@@ -7,3 +7,4 @@ public enum PayFrequency
     SemiMonthly = 24,
     Monthly = 12
 }
+

@@ -163,3 +163,4 @@ public class PayrollCalculationEngineTests
         result.EmployeeTaxes.MedicareTax.Should().Be(14.50m); // Always full
     }
 }
+

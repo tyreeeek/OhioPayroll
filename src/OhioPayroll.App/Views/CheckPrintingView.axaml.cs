@@ -9,3 +9,4 @@ public partial class CheckPrintingView : UserControl
         InitializeComponent();
     }
 }
+

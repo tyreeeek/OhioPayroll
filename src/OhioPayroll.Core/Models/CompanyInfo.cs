@@ -12,3 +12,4 @@ public class CompanyInfo
     public string? Phone { get; set; }
     public DateTime UpdatedAt { get; set; }
 }
+

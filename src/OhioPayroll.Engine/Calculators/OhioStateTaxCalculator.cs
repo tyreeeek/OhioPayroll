@@ -49,3 +49,4 @@ public class OhioStateTaxCalculator
         return lastBracket.BaseAmount + Math.Round(taxableAbove * lastBracket.Rate, 2);
     }
 }
+

@@ -222,3 +222,4 @@ public class CheckRegisterReportDocument : IDocument
         return value.ToString("$#,##0.00");
     }
 }
+

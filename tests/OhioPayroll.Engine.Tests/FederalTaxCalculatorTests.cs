@@ -125,3 +125,4 @@ public class FederalTaxCalculatorTests
         mwsTax.Should().Be(singleTax);
     }
 }
+

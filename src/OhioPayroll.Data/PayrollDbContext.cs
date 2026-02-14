@@ -25,3 +25,4 @@ public class PayrollDbContext : DbContext
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(PayrollDbContext).Assembly);
     }
 }
+

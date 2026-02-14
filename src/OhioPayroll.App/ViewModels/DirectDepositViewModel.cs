@@ -343,3 +343,4 @@ public partial class DirectDepositViewModel : ViewModelBase
         IsStatusError = true;
     }
 }
+

@@ -59,3 +59,4 @@ public class FederalTaxCalculator
         return lastBracket.BaseAmount + Math.Round(taxableAbove * lastBracket.Rate, 2);
     }
 }
+

@@ -18,3 +18,4 @@ public interface IPayrollCalculationEngine
         decimal localTaxRate,
         decimal? customSutaRate = null);
 }
+

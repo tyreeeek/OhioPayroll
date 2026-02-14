@@ -8,3 +8,4 @@ public static class SchoolDistrictTaxCalculator
         return Math.Round(grossPay * rate, 2);
     }
 }
+

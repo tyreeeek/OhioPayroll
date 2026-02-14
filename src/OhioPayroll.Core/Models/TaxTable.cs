@@ -14,3 +14,4 @@ public class TaxTable
     public decimal BaseAmount { get; set; }
     public string? DistrictCode { get; set; }
 }
+

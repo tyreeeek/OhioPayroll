@@ -479,3 +479,4 @@ public class AchFileServiceTests
         batchHeader.Substring(4, 16).Should().Be("A VERY LONG COMP");
     }
 }
+

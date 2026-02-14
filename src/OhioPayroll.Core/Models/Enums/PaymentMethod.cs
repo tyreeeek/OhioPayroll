@@ -6,3 +6,4 @@ public enum PaymentMethod
     DirectDeposit,
     Manual
 }
+

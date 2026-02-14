@@ -33,3 +33,4 @@ public class CurrencyConverter : IValueConverter
         return 0m;
     }
 }
+

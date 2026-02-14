@@ -69,3 +69,4 @@ public class FicaCalculatorTests
         medicare.Should().Be(0m);
     }
 }
+

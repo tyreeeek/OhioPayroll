@@ -8,3 +8,4 @@ public static class LocalMunicipalityTaxCalculator
         return Math.Round(grossPay * rate, 2);
     }
 }
+

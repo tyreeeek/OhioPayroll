@@ -305,3 +305,4 @@ public class PayrollSummaryDocument : IDocument
         return value.ToString("$#,##0.00");
     }
 }
+

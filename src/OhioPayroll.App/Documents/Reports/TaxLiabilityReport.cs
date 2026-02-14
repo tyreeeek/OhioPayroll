@@ -228,3 +228,4 @@ public class TaxLiabilityReportDocument : IDocument
         return value.ToString("$#,##0.00");
     }
 }
+

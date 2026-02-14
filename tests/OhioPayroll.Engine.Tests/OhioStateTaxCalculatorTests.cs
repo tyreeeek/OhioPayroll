@@ -79,3 +79,4 @@ public class OhioStateTaxCalculatorTests
         r1.Should().Be(r2);
     }
 }
+

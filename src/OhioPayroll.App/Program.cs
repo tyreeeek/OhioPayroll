@@ -196,3 +196,4 @@ sealed class Program
         return SHA256.HashData(Encoding.UTF8.GetBytes(material));
     }
 }
+

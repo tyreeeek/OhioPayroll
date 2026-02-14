@@ -31,3 +31,4 @@ public record EmployerTaxBreakdown
     public decimal Suta { get; init; }
     public decimal Total => SocialSecurity + Medicare + Futa + Suta;
 }
+

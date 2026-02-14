@@ -20,3 +20,4 @@ public class CheckRegisterConfiguration : IEntityTypeConfiguration<CheckRegister
             .OnDelete(DeleteBehavior.Restrict);
     }
 }
+

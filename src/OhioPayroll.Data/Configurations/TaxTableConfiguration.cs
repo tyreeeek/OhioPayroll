@@ -17,3 +17,4 @@ public class TaxTableConfiguration : IEntityTypeConfiguration<TaxTable>
         builder.HasIndex(t => new { t.TaxYear, t.Type, t.FilingStatus });
     }
 }
+

@@ -87,3 +87,4 @@ public class GrossPayCalculatorTests
         regular.Should().Be(574.88m);
     }
 }
+

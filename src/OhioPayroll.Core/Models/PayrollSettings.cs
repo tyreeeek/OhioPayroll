@@ -17,3 +17,4 @@ public class PayrollSettings
     public decimal CheckOffsetY { get; set; }
     public DateTime UpdatedAt { get; set; }
 }
+

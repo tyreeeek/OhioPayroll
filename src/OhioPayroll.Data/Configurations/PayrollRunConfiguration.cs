@@ -24,3 +24,4 @@ public class PayrollRunConfiguration : IEntityTypeConfiguration<PayrollRun>
         builder.HasIndex(p => p.Status);
     }
 }
+

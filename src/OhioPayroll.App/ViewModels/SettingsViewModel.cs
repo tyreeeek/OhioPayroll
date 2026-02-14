@@ -325,3 +325,4 @@ public partial class SettingsViewModel : ViewModelBase
     partial void OnCheckOffsetXChanged(decimal value) => HasChanges = true;
     partial void OnCheckOffsetYChanged(decimal value) => HasChanges = true;
 }
+

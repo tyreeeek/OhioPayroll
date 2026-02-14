@@ -14,3 +14,4 @@ public class CompanyBankAccountConfiguration : IEntityTypeConfiguration<CompanyB
         builder.Property(b => b.EncryptedAccountNumber).IsRequired();
     }
 }
+
