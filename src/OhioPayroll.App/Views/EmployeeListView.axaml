@@ -1,0 +1,300 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:OhioPayroll.App.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
+             x:Class="OhioPayroll.App.Views.EmployeeListView"
+             x:DataType="vm:EmployeeListViewModel">
+
+    <!-- ============================================================ -->
+    <!-- List Panel - Visible when NOT editing                        -->
+    <!-- ============================================================ -->
+    <Panel>
+        <DockPanel IsVisible="{Binding !IsEditing}">
+
+            <!-- Header -->
+            <Border DockPanel.Dock="Top" Padding="0,0,0,16">
+                <DockPanel>
+                    <TextBlock Text="Employees"
+                               FontSize="24" FontWeight="Bold"
+                               VerticalAlignment="Center"/>
+                    <Button Content="+ Add Employee"
+                            Command="{Binding AddEmployeeCommand}"
+                            HorizontalAlignment="Right"
+                            Padding="16,8"
+                            Classes="accent"/>
+                </DockPanel>
+            </Border>
+
+            <!-- Search / Filter Bar -->
+            <Border DockPanel.Dock="Top" Padding="0,0,0,12">
+                <StackPanel Orientation="Horizontal" Spacing="16">
+                    <TextBox Text="{Binding SearchText}"
+                             Watermark="Search by name or SSN last 4..."
+                             Width="300"/>
+                    <CheckBox Content="Show Inactive"
+                              IsChecked="{Binding ShowInactive}"
+                              VerticalAlignment="Center"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Employee DataGrid -->
+            <DataGrid ItemsSource="{Binding Employees}"
+                      SelectedItem="{Binding SelectedEmployee}"
+                      AutoGenerateColumns="False"
+                      IsReadOnly="True"
+                      CanUserResizeColumns="True"
+                      CanUserSortColumns="True"
+                      GridLinesVisibility="Horizontal"
+                      SelectionMode="Single">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Name"
+                                        Binding="{Binding FullName}"
+                                        Width="*"/>
+                    <DataGridTextColumn Header="SSN"
+                                        Binding="{Binding MaskedSsn}"
+                                        Width="120"/>
+                    <DataGridTextColumn Header="Pay Type"
+                                        Binding="{Binding PayType}"
+                                        Width="90"/>
+                    <DataGridTextColumn Header="Rate / Salary"
+                                        Binding="{Binding DisplayRate}"
+                                        Width="130"/>
+                    <DataGridTextColumn Header="Hire Date"
+                                        Binding="{Binding HireDate, StringFormat=\{0:MM/dd/yyyy\}}"
+                                        Width="110"/>
+                    <DataGridTextColumn Header="Status"
+                                        Binding="{Binding StatusText}"
+                                        Width="80"/>
+                    <DataGridTemplateColumn Header="Actions" Width="170">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate x:DataType="vm:EmployeeRowViewModel">
+                                <StackPanel Orientation="Horizontal"
+                                            Spacing="4"
+                                            VerticalAlignment="Center"
+                                            HorizontalAlignment="Center">
+                                    <Button Content="Edit"
+                                            Command="{Binding $parent[DataGrid].((vm:EmployeeListViewModel)DataContext).EditEmployeeCommand}"
+                                            Padding="8,4"
+                                            FontSize="12"/>
+                                    <Button Content="Deactivate"
+                                            Command="{Binding $parent[DataGrid].((vm:EmployeeListViewModel)DataContext).DeactivateEmployeeCommand}"
+                                            Padding="8,4"
+                                            FontSize="12"
+                                            IsVisible="{Binding IsActive}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+
+        </DockPanel>
+
+        <!-- ============================================================ -->
+        <!-- Form Panel - Visible when editing                            -->
+        <!-- ============================================================ -->
+        <ScrollViewer IsVisible="{Binding IsEditing}">
+            <DockPanel Margin="0,0,0,24">
+
+                <!-- Form Header -->
+                <Border DockPanel.Dock="Top" Padding="0,0,0,16">
+                    <TextBlock Text="{Binding FormTitle}"
+                               FontSize="24" FontWeight="Bold"/>
+                </Border>
+
+                <!-- Validation Error -->
+                <Border DockPanel.Dock="Top"
+                        IsVisible="{Binding ValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                        Background="#FDE8E8"
+                        CornerRadius="4"
+                        Padding="12,8"
+                        Margin="0,0,0,12">
+                    <TextBlock Text="{Binding ValidationError}"
+                               Foreground="#C53030"
+                               TextWrapping="Wrap"/>
+                </Border>
+
+                <!-- Action Buttons -->
+                <Border DockPanel.Dock="Bottom" Padding="0,16,0,0">
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="12"
+                                HorizontalAlignment="Right">
+                        <Button Content="Cancel"
+                                Command="{Binding CancelEditCommand}"
+                                Padding="24,8"/>
+                        <Button Content="Save Employee"
+                                Command="{Binding SaveEmployeeCommand}"
+                                Padding="24,8"
+                                Classes="accent"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Form Body - Two Column Grid -->
+                <Grid ColumnDefinitions="*,24,*" RowDefinitions="Auto">
+
+                    <!-- Left Column -->
+                    <StackPanel Grid.Column="0" Spacing="16">
+
+                        <!-- Personal Information -->
+                        <TextBlock Text="Personal Information"
+                                   FontSize="16" FontWeight="SemiBold"
+                                   Margin="0,0,0,4"/>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="First Name" FontSize="12" Foreground="Gray"/>
+                            <TextBox Text="{Binding FirstName}"
+                                     Watermark="First name"/>
+                        </StackPanel>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Last Name" FontSize="12" Foreground="Gray"/>
+                            <TextBox Text="{Binding LastName}"
+                                     Watermark="Last name"/>
+                        </StackPanel>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Social Security Number" FontSize="12" Foreground="Gray"/>
+                            <TextBox Text="{Binding Ssn}"
+                                     Watermark="000-00-0000"
+                                     PasswordChar="*"/>
+                        </StackPanel>
+
+                        <!-- Pay Configuration -->
+                        <TextBlock Text="Pay Configuration"
+                                   FontSize="16" FontWeight="SemiBold"
+                                   Margin="0,12,0,4"/>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Pay Type" FontSize="12" Foreground="Gray"/>
+                            <ComboBox ItemsSource="{Binding PayTypeValues}"
+                                      SelectedItem="{Binding PayType}"
+                                      HorizontalAlignment="Stretch"/>
+                        </StackPanel>
+
+                        <StackPanel Spacing="4"
+                                    IsVisible="{Binding IsHourly}">
+                            <TextBlock Text="Hourly Rate ($)" FontSize="12" Foreground="Gray"/>
+                            <NumericUpDown Value="{Binding HourlyRate}"
+                                           Minimum="0"
+                                           FormatString="F2"
+                                           Increment="0.25"/>
+                        </StackPanel>
+
+                        <StackPanel Spacing="4"
+                                    IsVisible="{Binding IsSalary}">
+                            <TextBlock Text="Annual Salary ($)" FontSize="12" Foreground="Gray"/>
+                            <NumericUpDown Value="{Binding AnnualSalary}"
+                                           Minimum="0"
+                                           FormatString="F2"
+                                           Increment="1000"/>
+                        </StackPanel>
+
+                        <!-- Hire Date -->
+                        <TextBlock Text="Employment"
+                                   FontSize="16" FontWeight="SemiBold"
+                                   Margin="0,12,0,4"/>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Hire Date" FontSize="12" Foreground="Gray"/>
+                            <DatePicker SelectedDate="{Binding HireDate}"/>
+                        </StackPanel>
+
+                    </StackPanel>
+
+                    <!-- Right Column -->
+                    <StackPanel Grid.Column="2" Spacing="16">
+
+                        <!-- Tax Information -->
+                        <TextBlock Text="Tax Information"
+                                   FontSize="16" FontWeight="SemiBold"
+                                   Margin="0,0,0,4"/>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Federal Filing Status" FontSize="12" Foreground="Gray"/>
+                            <ComboBox ItemsSource="{Binding FilingStatusValues}"
+                                      SelectedItem="{Binding FederalFilingStatus}"
+                                      HorizontalAlignment="Stretch"/>
+                        </StackPanel>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Ohio Filing Status" FontSize="12" Foreground="Gray"/>
+                            <ComboBox ItemsSource="{Binding FilingStatusValues}"
+                                      SelectedItem="{Binding OhioFilingStatus}"
+                                      HorizontalAlignment="Stretch"/>
+                        </StackPanel>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Federal Allowances" FontSize="12" Foreground="Gray"/>
+                            <NumericUpDown Value="{Binding FederalAllowances}"
+                                           Minimum="0"
+                                           Maximum="99"
+                                           Increment="1"
+                                           FormatString="F0"/>
+                        </StackPanel>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Ohio Exemptions" FontSize="12" Foreground="Gray"/>
+                            <NumericUpDown Value="{Binding OhioExemptions}"
+                                           Minimum="0"
+                                           Maximum="99"
+                                           Increment="1"
+                                           FormatString="F0"/>
+                        </StackPanel>
+
+                        <!-- Location -->
+                        <TextBlock Text="Location"
+                                   FontSize="16" FontWeight="SemiBold"
+                                   Margin="0,12,0,4"/>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="School District Code" FontSize="12" Foreground="Gray"/>
+                            <TextBox Text="{Binding SchoolDistrictCode}"
+                                     Watermark="e.g. 0401"/>
+                        </StackPanel>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Municipality Code" FontSize="12" Foreground="Gray"/>
+                            <TextBox Text="{Binding MunicipalityCode}"
+                                     Watermark="e.g. COLS"/>
+                        </StackPanel>
+
+                        <!-- Address -->
+                        <TextBlock Text="Address"
+                                   FontSize="16" FontWeight="SemiBold"
+                                   Margin="0,12,0,4"/>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Street Address" FontSize="12" Foreground="Gray"/>
+                            <TextBox Text="{Binding Address}"
+                                     Watermark="Street address"/>
+                        </StackPanel>
+
+                        <Grid ColumnDefinitions="*,8,80,8,100">
+                            <StackPanel Grid.Column="0" Spacing="4">
+                                <TextBlock Text="City" FontSize="12" Foreground="Gray"/>
+                                <TextBox Text="{Binding City}"
+                                         Watermark="City"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Spacing="4">
+                                <TextBlock Text="State" FontSize="12" Foreground="Gray"/>
+                                <TextBox Text="{Binding State}"
+                                         Watermark="OH"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="4" Spacing="4">
+                                <TextBlock Text="ZIP Code" FontSize="12" Foreground="Gray"/>
+                                <TextBox Text="{Binding ZipCode}"
+                                         Watermark="00000"/>
+                            </StackPanel>
+                        </Grid>
+
+                    </StackPanel>
+
+                </Grid>
+
+            </DockPanel>
+        </ScrollViewer>
+    </Panel>
+
+</UserControl>

@@ -1,0 +1,191 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:OhioPayroll.App.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="800"
+             x:Class="OhioPayroll.App.Views.YearEndView"
+             x:DataType="vm:YearEndViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="Border.summary-card">
+            <Setter Property="Background" Value="#2D2D30"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="20,16"/>
+            <Setter Property="BorderBrush" Value="#444"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="MinWidth" Value="160"/>
+            <Setter Property="MinHeight" Value="90"/>
+        </Style>
+        <Style Selector="TextBlock.card-header">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="#999"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+        <Style Selector="TextBlock.card-value">
+            <Setter Property="FontSize" Value="24"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+    </UserControl.Styles>
+
+    <DockPanel>
+
+        <!-- Page Header -->
+        <Border DockPanel.Dock="Top" Padding="8,8,8,0">
+            <StackPanel Spacing="4">
+                <TextBlock Text="{Binding Title}" FontSize="24" FontWeight="Bold"/>
+                <TextBlock Text="{Binding Subtitle}" FontSize="14" Foreground="#888"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Summary Cards -->
+        <Border DockPanel.Dock="Top" Padding="8,16,8,0">
+            <WrapPanel Orientation="Horizontal" HorizontalAlignment="Left">
+
+                <Border Classes="summary-card" Margin="0,0,12,12">
+                    <StackPanel>
+                        <TextBlock Text="EMPLOYEES" Classes="card-header"/>
+                        <TextBlock Text="{Binding EmployeeCountDisplay}" Classes="card-value"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="summary-card" Margin="0,0,12,12">
+                    <StackPanel>
+                        <TextBlock Text="TOTAL WAGES" Classes="card-header"/>
+                        <TextBlock Text="{Binding TotalWagesDisplay}" Classes="card-value"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="summary-card" Margin="0,0,12,12">
+                    <StackPanel>
+                        <TextBlock Text="FEDERAL TAX" Classes="card-header"/>
+                        <TextBlock Text="{Binding TotalFederalTaxDisplay}" Classes="card-value"
+                                   Foreground="#F87171"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="summary-card" Margin="0,0,12,12">
+                    <StackPanel>
+                        <TextBlock Text="SS TAX" Classes="card-header"/>
+                        <TextBlock Text="{Binding TotalSsTaxDisplay}" Classes="card-value"
+                                   Foreground="#FBBF24"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="summary-card" Margin="0,0,12,12">
+                    <StackPanel>
+                        <TextBlock Text="MEDICARE TAX" Classes="card-header"/>
+                        <TextBlock Text="{Binding TotalMedicareTaxDisplay}" Classes="card-value"
+                                   Foreground="#60A5FA"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="summary-card" Margin="0,0,12,12">
+                    <StackPanel>
+                        <TextBlock Text="STATE TAX" Classes="card-header"/>
+                        <TextBlock Text="{Binding TotalStateTaxDisplay}" Classes="card-value"
+                                   Foreground="#A78BFA"/>
+                    </StackPanel>
+                </Border>
+
+            </WrapPanel>
+        </Border>
+
+        <!-- Year Selector and Action Buttons -->
+        <Border DockPanel.Dock="Top" Padding="8,12,8,12">
+            <StackPanel Orientation="Horizontal" Spacing="16">
+
+                <StackPanel Spacing="4">
+                    <TextBlock Text="Tax Year" FontSize="12" Foreground="Gray"/>
+                    <ComboBox ItemsSource="{Binding AvailableYears}"
+                              SelectedItem="{Binding SelectedYear}"
+                              MinWidth="120"/>
+                </StackPanel>
+
+                <Button Content="Generate All W-2s"
+                        Command="{Binding GenerateW2sCommand}"
+                        IsEnabled="{Binding !IsGenerating}"
+                        VerticalAlignment="Bottom"
+                        Padding="16,8"
+                        Classes="accent"/>
+
+                <Button Content="Generate W-3"
+                        Command="{Binding GenerateW3Command}"
+                        IsEnabled="{Binding !IsGenerating}"
+                        VerticalAlignment="Bottom"
+                        Padding="16,8"
+                        Background="#3E3E42"
+                        Foreground="#CCC"
+                        CornerRadius="4"/>
+
+                <Button Content="Generate All"
+                        Command="{Binding GenerateAllCommand}"
+                        IsEnabled="{Binding !IsGenerating}"
+                        VerticalAlignment="Bottom"
+                        Padding="16,8"
+                        Background="#3E3E42"
+                        Foreground="#CCC"
+                        CornerRadius="4"/>
+
+            </StackPanel>
+        </Border>
+
+        <!-- Status Message -->
+        <Border DockPanel.Dock="Bottom" Padding="8,0,8,8"
+                IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+            <Border Background="#2D2D30" CornerRadius="6" Padding="16,12"
+                    BorderBrush="#444" BorderThickness="1">
+                <TextBlock Text="{Binding StatusMessage}"
+                           FontSize="13" Foreground="#4ADE80"
+                           TextWrapping="Wrap"/>
+            </Border>
+        </Border>
+
+        <!-- Generating indicator -->
+        <Border DockPanel.Dock="Bottom" Padding="8,0,8,4"
+                IsVisible="{Binding IsGenerating}">
+            <TextBlock Text="Generating documents, please wait..."
+                       FontSize="13" Foreground="#999"/>
+        </Border>
+
+        <!-- Employee DataGrid -->
+        <DataGrid ItemsSource="{Binding EmployeeRows}"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  CanUserResizeColumns="True"
+                  CanUserSortColumns="True"
+                  GridLinesVisibility="Horizontal"
+                  SelectionMode="Single"
+                  Margin="8,0,8,8">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Employee"
+                                    Binding="{Binding EmployeeName}"
+                                    Width="200"/>
+                <DataGridTextColumn Header="SSN Last 4"
+                                    Binding="{Binding SsnLast4}"
+                                    Width="80"/>
+                <DataGridTextColumn Header="Total Wages"
+                                    Binding="{Binding TotalWagesDisplay}"
+                                    Width="120"/>
+                <DataGridTextColumn Header="Federal Tax"
+                                    Binding="{Binding FederalTaxDisplay}"
+                                    Width="110"/>
+                <DataGridTextColumn Header="State Tax"
+                                    Binding="{Binding StateTaxDisplay}"
+                                    Width="110"/>
+                <DataGridTextColumn Header="SS Tax"
+                                    Binding="{Binding SsTaxDisplay}"
+                                    Width="100"/>
+                <DataGridTextColumn Header="Medicare Tax"
+                                    Binding="{Binding MedicareTaxDisplay}"
+                                    Width="100"/>
+                <DataGridTextColumn Header="Local Tax"
+                                    Binding="{Binding LocalTaxDisplay}"
+                                    Width="*"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+    </DockPanel>
+</UserControl>

@@ -1,0 +1,198 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:OhioPayroll.App.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="800"
+             x:Class="OhioPayroll.App.Views.CheckPrintingView"
+             x:DataType="vm:CheckPrintingViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="Border.section-card">
+            <Setter Property="Background" Value="#2D2D30"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="20,16"/>
+            <Setter Property="BorderBrush" Value="#444"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Margin" Value="0,0,0,16"/>
+        </Style>
+        <Style Selector="TextBlock.section-header">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+        </Style>
+        <Style Selector="Button.action-btn">
+            <Setter Property="Padding" Value="16,8"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="MinWidth" Value="160"/>
+        </Style>
+        <Style Selector="Button.void-btn">
+            <Setter Property="Background" Value="#F87171"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="16,8"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="MinWidth" Value="140"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="BorderBrush" Value="#DC2626"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+        <Style Selector="Button.void-btn:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#EF4444"/>
+        </Style>
+        <Style Selector="Button.void-btn:disabled">
+            <Setter Property="Opacity" Value="0.4"/>
+        </Style>
+    </UserControl.Styles>
+
+    <ScrollViewer>
+        <StackPanel Spacing="8" Margin="8">
+
+            <!-- Page Header -->
+            <StackPanel Spacing="4" Margin="0,0,0,8">
+                <TextBlock Text="{Binding Title}" FontSize="24" FontWeight="Bold"/>
+                <TextBlock Text="{Binding Subtitle}" FontSize="14" Foreground="#888"/>
+            </StackPanel>
+
+            <!-- Payroll Run Selection -->
+            <Border Classes="section-card">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Select Payroll Run"
+                               Classes="section-header"/>
+                    <ComboBox ItemsSource="{Binding PayrollRunRows}"
+                              SelectedItem="{Binding SelectedRun}"
+                              HorizontalAlignment="Stretch"
+                              PlaceholderText="Choose a finalized payroll run..."
+                              MaxDropDownHeight="300">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:PayrollRunRow">
+                                <TextBlock Text="{Binding Display}"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </StackPanel>
+            </Border>
+
+            <!-- Paychecks Grid -->
+            <Border Classes="section-card">
+                <DockPanel>
+                    <TextBlock Text="Paychecks"
+                               Classes="section-header"
+                               DockPanel.Dock="Top"/>
+
+                    <DataGrid ItemsSource="{Binding PaycheckRows}"
+                              SelectedItem="{Binding SelectedPaycheckRow}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              CanUserResizeColumns="True"
+                              CanUserSortColumns="True"
+                              GridLinesVisibility="Horizontal"
+                              SelectionMode="Single"
+                              MinHeight="150"
+                              MaxHeight="400">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Employee"
+                                                Binding="{Binding EmployeeName}"
+                                                Width="*"/>
+                            <DataGridTextColumn Header="Check #"
+                                                Binding="{Binding CheckNumber}"
+                                                Width="100"/>
+                            <DataGridTextColumn Header="Gross Pay"
+                                                Binding="{Binding GrossPay, StringFormat='{}{0:C}'}"
+                                                Width="120"/>
+                            <DataGridTextColumn Header="Net Pay"
+                                                Binding="{Binding NetPay, StringFormat='{}{0:C}'}"
+                                                Width="120"/>
+                            <DataGridTextColumn Header="Status"
+                                                Binding="{Binding Status}"
+                                                Width="80"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </Border>
+
+            <!-- Action Buttons -->
+            <Border Classes="section-card">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Actions"
+                               Classes="section-header"/>
+
+                    <WrapPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                        <Button Content="Print All Checks"
+                                Command="{Binding PrintChecksCommand}"
+                                Classes="action-btn accent"
+                                Margin="0,0,12,8"/>
+                        <Button Content="Print All Paystubs"
+                                Command="{Binding PrintPaystubsCommand}"
+                                Classes="action-btn accent"
+                                Margin="0,0,12,8"/>
+                        <Button Content="Print Calibration Page"
+                                Command="{Binding PrintCalibrationCommand}"
+                                Classes="action-btn"
+                                Margin="0,0,12,8"/>
+
+                        <!-- Separator -->
+                        <Border Width="1" Background="#444" Margin="4,0,12,8" Height="30"
+                                VerticalAlignment="Center"/>
+
+                        <Button Content="Void Selected Check"
+                                Command="{Binding VoidPaycheckCommand}"
+                                IsEnabled="{Binding CanVoidSelectedPaycheck}"
+                                Classes="void-btn"
+                                Margin="0,0,12,8"/>
+                    </WrapPanel>
+
+                    <!-- Busy indicator -->
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="8"
+                                IsVisible="{Binding IsBusy}">
+                        <ProgressBar IsIndeterminate="True"
+                                     Width="120"
+                                     Height="4"/>
+                        <TextBlock Text="Generating..."
+                                   Foreground="#888"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Status Message - Error -->
+            <Border Classes="section-card"
+                    IsVisible="{Binding IsStatusError}">
+                <StackPanel Spacing="4">
+                    <TextBlock Text="Status"
+                               Classes="section-header"/>
+                    <Border CornerRadius="4"
+                            Padding="12,8"
+                            Background="#4C2020">
+                        <TextBlock Text="{Binding StatusMessage}"
+                                   TextWrapping="Wrap"
+                                   FontSize="13"
+                                   Foreground="#FF6B6B"/>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+            <!-- Status Message - Success -->
+            <Border Classes="section-card"
+                    IsVisible="{Binding !IsStatusError}">
+                <StackPanel Spacing="4"
+                            IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                    <TextBlock Text="Status"
+                               Classes="section-header"/>
+                    <Border CornerRadius="4"
+                            Padding="12,8"
+                            Background="#1C3A2A">
+                        <TextBlock Text="{Binding StatusMessage}"
+                                   TextWrapping="Wrap"
+                                   FontSize="13"
+                                   Foreground="#6BCB77"/>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
+    </ScrollViewer>
+
+</UserControl>

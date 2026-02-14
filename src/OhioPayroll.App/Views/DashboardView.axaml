@@ -1,0 +1,141 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:OhioPayroll.App.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="700"
+             x:Class="OhioPayroll.App.Views.DashboardView"
+             x:DataType="vm:DashboardViewModel">
+
+    <UserControl.Styles>
+        <!-- Info card border -->
+        <Style Selector="Border.info-card">
+            <Setter Property="Background" Value="#2D2D30"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="20,16"/>
+            <Setter Property="BorderBrush" Value="#444"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="MinWidth" Value="220"/>
+            <Setter Property="MinHeight" Value="100"/>
+        </Style>
+        <Style Selector="TextBlock.card-header">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="#999"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+        <Style Selector="TextBlock.card-value">
+            <Setter Property="FontSize" Value="28"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="TextBlock.card-sub">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="#777"/>
+            <Setter Property="Margin" Value="0,4,0,0"/>
+        </Style>
+    </UserControl.Styles>
+
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+        <StackPanel Spacing="24" Margin="8">
+
+            <!-- ── Welcome Header ──────────────────────────────────── -->
+            <StackPanel Spacing="4">
+                <TextBlock FontSize="26" FontWeight="Bold">
+                    <TextBlock.Text>
+                        <MultiBinding StringFormat="Welcome to {0}">
+                            <Binding Path="CompanyName"/>
+                        </MultiBinding>
+                    </TextBlock.Text>
+                </TextBlock>
+                <TextBlock Text="Payroll Dashboard" FontSize="14" Foreground="#888"/>
+            </StackPanel>
+
+            <!-- ── Refresh Button ──────────────────────────────────── -->
+            <StackPanel Orientation="Horizontal" Spacing="12">
+                <Button Content="Refresh"
+                        Command="{Binding RefreshCommand}"
+                        Padding="16,6"
+                        FontSize="13"
+                        Background="#3E3E42"
+                        Foreground="#CCC"
+                        CornerRadius="4"/>
+                <TextBlock Text="{Binding StatusMessage}"
+                           VerticalAlignment="Center"
+                           FontSize="13"
+                           Foreground="#89B4FA"/>
+            </StackPanel>
+
+            <!-- ── Info Cards ──────────────────────────────────────── -->
+            <WrapPanel Orientation="Horizontal" HorizontalAlignment="Left">
+
+                <!-- Active Employees -->
+                <Border Classes="info-card" Margin="0,0,12,12">
+                    <StackPanel>
+                        <TextBlock Text="ACTIVE EMPLOYEES" Classes="card-header"/>
+                        <TextBlock Text="{Binding ActiveEmployeeCount}" Classes="card-value"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Last Payroll Run -->
+                <Border Classes="info-card" Margin="0,0,12,12">
+                    <StackPanel>
+                        <TextBlock Text="LAST PAYROLL RUN" Classes="card-header"/>
+                        <TextBlock Text="{Binding LastPayrollGrossDisplay}" Classes="card-value"/>
+                        <TextBlock Text="{Binding LastPayrollDateDisplay}" Classes="card-sub"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- YTD Gross Pay -->
+                <Border Classes="info-card" Margin="0,0,12,12">
+                    <StackPanel>
+                        <TextBlock Text="YTD GROSS PAY" Classes="card-header"/>
+                        <TextBlock Text="{Binding YtdGrossPayDisplay}" Classes="card-value"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- YTD Net Pay -->
+                <Border Classes="info-card" Margin="0,0,12,12">
+                    <StackPanel>
+                        <TextBlock Text="YTD NET PAY" Classes="card-header"/>
+                        <TextBlock Text="{Binding YtdNetPayDisplay}" Classes="card-value"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- YTD Total Taxes -->
+                <Border Classes="info-card" Margin="0,0,12,12">
+                    <StackPanel>
+                        <TextBlock Text="YTD TOTAL TAXES" Classes="card-header"/>
+                        <TextBlock Text="{Binding YtdTotalTaxesDisplay}" Classes="card-value"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Current Tax Year -->
+                <Border Classes="info-card" Margin="0,0,12,12">
+                    <StackPanel>
+                        <TextBlock Text="CURRENT TAX YEAR" Classes="card-header"/>
+                        <TextBlock Text="{Binding CurrentTaxYear}" Classes="card-value"/>
+                    </StackPanel>
+                </Border>
+
+            </WrapPanel>
+
+            <!-- ── Alerts Section ──────────────────────────────────── -->
+            <Border IsVisible="{Binding HasTaxTableAlert}"
+                    Background="#4A2A00"
+                    CornerRadius="8"
+                    Padding="20,16"
+                    BorderBrush="#D97706"
+                    BorderThickness="1">
+                <StackPanel Spacing="6">
+                    <TextBlock Text="Alert" FontSize="16" FontWeight="SemiBold" Foreground="#FBBF24"/>
+                    <TextBlock Text="{Binding TaxTableAlertMessage}"
+                               FontSize="14"
+                               Foreground="#FDE68A"
+                               TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

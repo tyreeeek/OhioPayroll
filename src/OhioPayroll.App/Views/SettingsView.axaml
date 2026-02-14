@@ -1,0 +1,229 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:OhioPayroll.App.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:enums="using:OhioPayroll.Core.Models.Enums"
+             mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="900"
+             x:Class="OhioPayroll.App.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="TextBlock.section-header">
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,0,0,16"/>
+        </Style>
+        <Style Selector="TextBlock.field-label">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+        <Style Selector="TextBox.field-input">
+            <Setter Property="MinWidth" Value="300"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+        </Style>
+        <Style Selector="NumericUpDown.field-input">
+            <Setter Property="MinWidth" Value="300"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+        </Style>
+    </UserControl.Styles>
+
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+        <StackPanel Spacing="24" Margin="8">
+
+            <!-- Page Title -->
+            <TextBlock Text="Settings" FontSize="26" FontWeight="Bold" Margin="0,0,0,8"/>
+
+            <!-- ══════════════════════════════════════════════════════════
+                 Company Information
+                 ══════════════════════════════════════════════════════════ -->
+            <Border Background="#2D2D30" CornerRadius="8" Padding="24" BorderBrush="#444" BorderThickness="1">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Company Information" Classes="section-header"/>
+
+                    <Grid ColumnDefinitions="160,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="10">
+
+                        <!-- Company Name -->
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Company Name" Classes="field-label"/>
+                        <TextBox   Grid.Row="0" Grid.Column="1" Text="{Binding CompanyName}" Classes="field-input" Watermark="Enter company name"/>
+
+                        <!-- EIN -->
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="EIN" Classes="field-label"/>
+                        <TextBox   Grid.Row="1" Grid.Column="1" Text="{Binding Ein}" Classes="field-input" Watermark="XX-XXXXXXX"/>
+
+                        <!-- Address -->
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Address" Classes="field-label"/>
+                        <TextBox   Grid.Row="2" Grid.Column="1" Text="{Binding Address}" Classes="field-input" Watermark="Street address"/>
+
+                        <!-- City -->
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="City" Classes="field-label"/>
+                        <TextBox   Grid.Row="3" Grid.Column="1" Text="{Binding City}" Classes="field-input" Watermark="City"/>
+
+                        <!-- State -->
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="State" Classes="field-label"/>
+                        <TextBox   Grid.Row="4" Grid.Column="1" Text="{Binding State}" Classes="field-input" Watermark="OH" MaxLength="2"/>
+
+                        <!-- Zip Code -->
+                        <TextBlock Grid.Row="5" Grid.Column="0" Text="Zip Code" Classes="field-label"/>
+                        <TextBox   Grid.Row="5" Grid.Column="1" Text="{Binding ZipCode}" Classes="field-input" Watermark="XXXXX" MaxLength="10"/>
+
+                        <!-- Phone -->
+                        <TextBlock Grid.Row="6" Grid.Column="0" Text="Phone" Classes="field-label"/>
+                        <TextBox   Grid.Row="6" Grid.Column="1" Text="{Binding Phone}" Classes="field-input" Watermark="(XXX) XXX-XXXX"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- ══════════════════════════════════════════════════════════
+                 Payroll Settings
+                 ══════════════════════════════════════════════════════════ -->
+            <Border Background="#2D2D30" CornerRadius="8" Padding="24" BorderBrush="#444" BorderThickness="1">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Payroll Settings" Classes="section-header"/>
+
+                    <Grid ColumnDefinitions="180,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="10">
+
+                        <!-- Pay Frequency -->
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Pay Frequency" Classes="field-label"/>
+                        <ComboBox  Grid.Row="0" Grid.Column="1"
+                                   ItemsSource="{Binding AvailablePayFrequencies}"
+                                   SelectedItem="{Binding PayFrequency}"
+                                   MinWidth="300"/>
+
+                        <!-- Current Tax Year -->
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Current Tax Year" Classes="field-label"/>
+                        <NumericUpDown Grid.Row="1" Grid.Column="1"
+                                       Value="{Binding CurrentTaxYear}"
+                                       Minimum="2020" Maximum="2099"
+                                       FormatString="0"
+                                       Classes="field-input"/>
+
+                        <!-- Local Tax Rate -->
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Local Tax Rate (%)" Classes="field-label"/>
+                        <NumericUpDown Grid.Row="2" Grid.Column="1"
+                                       Value="{Binding LocalTaxRate}"
+                                       Minimum="0" Maximum="1"
+                                       Increment="0.001"
+                                       FormatString="P3"
+                                       Classes="field-input"/>
+
+                        <!-- School District Rate -->
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="School District Rate (%)" Classes="field-label"/>
+                        <NumericUpDown Grid.Row="3" Grid.Column="1"
+                                       Value="{Binding SchoolDistrictRate}"
+                                       Minimum="0" Maximum="1"
+                                       Increment="0.001"
+                                       FormatString="P3"
+                                       Classes="field-input"/>
+
+                        <!-- School District Code -->
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="School District Code" Classes="field-label"/>
+                        <TextBox   Grid.Row="4" Grid.Column="1"
+                                   Text="{Binding SchoolDistrictCode}"
+                                   Classes="field-input" Watermark="e.g., 0401"/>
+
+                        <!-- SUTA Rate -->
+                        <TextBlock Grid.Row="5" Grid.Column="0" Text="SUTA Rate (%)" Classes="field-label"/>
+                        <NumericUpDown Grid.Row="5" Grid.Column="1"
+                                       Value="{Binding SutaRate}"
+                                       Minimum="0" Maximum="1"
+                                       Increment="0.001"
+                                       FormatString="P3"
+                                       Classes="field-input"/>
+
+                        <!-- Backup Directory -->
+                        <TextBlock Grid.Row="6" Grid.Column="0" Text="Backup Directory" Classes="field-label"/>
+                        <TextBox   Grid.Row="6" Grid.Column="1"
+                                   Text="{Binding BackupDirectory}"
+                                   Classes="field-input" Watermark="C:\Backups\Payroll"/>
+
+                        <!-- Next Check Number -->
+                        <TextBlock Grid.Row="7" Grid.Column="0" Text="Next Check Number" Classes="field-label"/>
+                        <NumericUpDown Grid.Row="7" Grid.Column="1"
+                                       Value="{Binding NextCheckNumber}"
+                                       Minimum="1" Maximum="999999"
+                                       FormatString="0"
+                                       Classes="field-input"/>
+
+                        <!-- Check Offset X -->
+                        <TextBlock Grid.Row="8" Grid.Column="0" Text="Check Offset X" Classes="field-label"/>
+                        <NumericUpDown Grid.Row="8" Grid.Column="1"
+                                       Value="{Binding CheckOffsetX}"
+                                       Increment="0.1"
+                                       FormatString="0.0"
+                                       Classes="field-input"/>
+
+                        <!-- Check Offset Y -->
+                        <TextBlock Grid.Row="9" Grid.Column="0" Text="Check Offset Y" Classes="field-label"/>
+                        <NumericUpDown Grid.Row="9" Grid.Column="1"
+                                       Value="{Binding CheckOffsetY}"
+                                       Increment="0.1"
+                                       FormatString="0.0"
+                                       Classes="field-input"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- ══════════════════════════════════════════════════════════
+                 Backup & Restore
+                 ══════════════════════════════════════════════════════════ -->
+            <Border Background="#2D2D30" CornerRadius="8" Padding="24" BorderBrush="#444" BorderThickness="1">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Backup &amp; Restore" Classes="section-header"/>
+
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="Last Backup:" Classes="field-label" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding LastBackupDisplay}"
+                                   VerticalAlignment="Center"
+                                   FontSize="14"
+                                   Foreground="#89B4FA"/>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,8,0,0">
+                        <Button Content="Backup Now"
+                                Command="{Binding BackupNowCommand}"
+                                Padding="24,10"
+                                FontSize="14"
+                                FontWeight="SemiBold"
+                                Background="#0078D4"
+                                Foreground="White"
+                                CornerRadius="4"/>
+
+                        <Button Content="Open Backup Folder"
+                                Command="{Binding OpenBackupFolderCommand}"
+                                Padding="24,10"
+                                FontSize="14"
+                                FontWeight="SemiBold"
+                                Background="#3E3E42"
+                                Foreground="White"
+                                CornerRadius="4"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- ══════════════════════════════════════════════════════════
+                 Save Button & Status
+                 ══════════════════════════════════════════════════════════ -->
+            <StackPanel Orientation="Horizontal" Spacing="16" HorizontalAlignment="Left">
+                <Button Content="Save Settings"
+                        Command="{Binding SaveCommand}"
+                        IsEnabled="{Binding HasChanges}"
+                        Padding="24,10"
+                        FontSize="14"
+                        FontWeight="SemiBold"
+                        Background="#0078D4"
+                        Foreground="White"
+                        CornerRadius="4"/>
+
+                <TextBlock Text="{Binding StatusMessage}"
+                           VerticalAlignment="Center"
+                           FontSize="14"
+                           Foreground="#89B4FA"/>
+            </StackPanel>
+
+            <!-- Bottom spacer -->
+            <Border Height="16"/>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

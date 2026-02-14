@@ -1,0 +1,94 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:OhioPayroll.App.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1280" d:DesignHeight="800"
+        x:Class="OhioPayroll.App.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="Ohio Payroll"
+        Width="1280" Height="800"
+        WindowStartupLocation="CenterScreen"
+        Background="#1E1E1E">
+
+    <Window.Styles>
+        <Style Selector="Button.nav-item">
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Padding" Value="16,10"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#CCCCCC"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+        <Style Selector="Button.nav-item:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#3E3E42"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Separator.nav-sep">
+            <Setter Property="Margin" Value="16,8"/>
+            <Setter Property="Background" Value="#444"/>
+        </Style>
+    </Window.Styles>
+
+    <DockPanel>
+        <!-- Sidebar navigation -->
+        <Border DockPanel.Dock="Left" Width="220" Background="#2D2D30" Padding="0,0,0,16">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Top" Margin="16,20,16,16">
+                    <TextBlock Text="Ohio Payroll" FontSize="20" FontWeight="Bold" Foreground="White"/>
+                    <TextBlock Text="Desktop Edition" FontSize="11" Foreground="#888" Margin="0,2,0,0"/>
+                </StackPanel>
+
+                <ScrollViewer>
+                    <StackPanel Spacing="2" Margin="8,0">
+                        <Button Content="Dashboard" Classes="nav-item"
+                                Command="{Binding NavigateToCommand}" CommandParameter="Dashboard"/>
+
+                        <Separator Classes="nav-sep"/>
+
+                        <TextBlock Text="PAYROLL" FontSize="11" Foreground="#666"
+                                   Margin="16,8,0,4" FontWeight="SemiBold"/>
+                        <Button Content="Employees" Classes="nav-item"
+                                Command="{Binding NavigateToCommand}" CommandParameter="Employees"/>
+                        <Button Content="Run Payroll" Classes="nav-item"
+                                Command="{Binding NavigateToCommand}" CommandParameter="Payroll"/>
+
+                        <Separator Classes="nav-sep"/>
+
+                        <TextBlock Text="PAYMENTS" FontSize="11" Foreground="#666"
+                                   Margin="16,8,0,4" FontWeight="SemiBold"/>
+                        <Button Content="Bank Accounts" Classes="nav-item"
+                                Command="{Binding NavigateToCommand}" CommandParameter="BankAccounts"/>
+                        <Button Content="Print Checks" Classes="nav-item"
+                                Command="{Binding NavigateToCommand}" CommandParameter="CheckPrinting"/>
+                        <Button Content="Direct Deposit" Classes="nav-item"
+                                Command="{Binding NavigateToCommand}" CommandParameter="DirectDeposit"/>
+
+                        <Separator Classes="nav-sep"/>
+
+                        <TextBlock Text="COMPLIANCE" FontSize="11" Foreground="#666"
+                                   Margin="16,8,0,4" FontWeight="SemiBold"/>
+                        <Button Content="Tax Liability" Classes="nav-item"
+                                Command="{Binding NavigateToCommand}" CommandParameter="TaxLiability"/>
+                        <Button Content="Reports" Classes="nav-item"
+                                Command="{Binding NavigateToCommand}" CommandParameter="Reports"/>
+                        <Button Content="Year-End / W-2" Classes="nav-item"
+                                Command="{Binding NavigateToCommand}" CommandParameter="YearEnd"/>
+
+                        <Separator Classes="nav-sep"/>
+
+                        <Button Content="Settings" Classes="nav-item"
+                                Command="{Binding NavigateToCommand}" CommandParameter="Settings"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </DockPanel>
+        </Border>
+
+        <!-- Main content area -->
+        <ContentControl Content="{Binding CurrentViewModel}" Margin="16"/>
+    </DockPanel>
+
+</Window>

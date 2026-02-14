@@ -1,0 +1,222 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:OhioPayroll.App.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="800"
+             x:Class="OhioPayroll.App.Views.DirectDepositView"
+             x:DataType="vm:DirectDepositViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="Border.section-card">
+            <Setter Property="Background" Value="#2D2D30"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="20,16"/>
+            <Setter Property="BorderBrush" Value="#444"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Margin" Value="0,0,0,16"/>
+        </Style>
+        <Style Selector="TextBlock.section-header">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+        </Style>
+        <Style Selector="Border.info-card">
+            <Setter Property="Background" Value="#383838"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="16,12"/>
+            <Setter Property="MinWidth" Value="180"/>
+        </Style>
+    </UserControl.Styles>
+
+    <ScrollViewer>
+        <StackPanel Spacing="8" Margin="8">
+
+            <!-- Page Header -->
+            <StackPanel Spacing="4" Margin="0,0,0,8">
+                <TextBlock Text="{Binding Title}" FontSize="24" FontWeight="Bold"/>
+                <TextBlock Text="{Binding Subtitle}" FontSize="14" Foreground="#888"/>
+            </StackPanel>
+
+            <!-- Payroll Run Selection -->
+            <Border Classes="section-card">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Select Payroll Run"
+                               Classes="section-header"/>
+                    <ComboBox ItemsSource="{Binding PayrollRunRows}"
+                              SelectedItem="{Binding SelectedRun}"
+                              HorizontalAlignment="Stretch"
+                              PlaceholderText="Choose a finalized payroll run..."
+                              MaxDropDownHeight="300">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:PayrollRunRow">
+                                <TextBlock Text="{Binding Display}"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </StackPanel>
+            </Border>
+
+            <!-- Summary Info Cards -->
+            <Border Classes="section-card">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Summary"
+                               Classes="section-header"/>
+                    <WrapPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                        <!-- DD Employee Count -->
+                        <Border Classes="info-card" Margin="0,0,12,8">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Employees with DD"
+                                           FontSize="11"
+                                           Foreground="#888"/>
+                                <TextBlock Text="{Binding DdEmployeeCount}"
+                                           FontSize="22"
+                                           FontWeight="Bold"
+                                           Foreground="#6BCB77"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Total Amount -->
+                        <Border Classes="info-card" Margin="0,0,12,8">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Total DD Amount"
+                                           FontSize="11"
+                                           Foreground="#888"/>
+                                <TextBlock Text="{Binding DdTotalAmount, StringFormat='{}{0:C}'}"
+                                           FontSize="22"
+                                           FontWeight="Bold"
+                                           Foreground="#4FC3F7"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Missing DD Count -->
+                        <Border Classes="info-card" Margin="0,0,12,8">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Missing DD Setup"
+                                           FontSize="11"
+                                           Foreground="#888"/>
+                                <TextBlock Text="{Binding MissingDdCount}"
+                                           FontSize="22"
+                                           FontWeight="Bold"
+                                           Foreground="#FF6B6B"/>
+                            </StackPanel>
+                        </Border>
+                    </WrapPanel>
+
+                    <!-- Warning for missing DD -->
+                    <Border CornerRadius="4"
+                            Padding="12,8"
+                            Background="#4C3A20"
+                            IsVisible="{Binding MissingDdWarning, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                        <TextBlock Text="{Binding MissingDdWarning}"
+                                   TextWrapping="Wrap"
+                                   FontSize="12"
+                                   Foreground="#FFB74D"/>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+            <!-- ACH Preview Grid -->
+            <Border Classes="section-card">
+                <DockPanel>
+                    <TextBlock Text="ACH Entries Preview"
+                               Classes="section-header"
+                               DockPanel.Dock="Top"/>
+
+                    <DataGrid ItemsSource="{Binding AchPreviewRows}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              CanUserResizeColumns="True"
+                              CanUserSortColumns="True"
+                              GridLinesVisibility="Horizontal"
+                              SelectionMode="Single"
+                              MinHeight="150"
+                              MaxHeight="400">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Employee"
+                                                Binding="{Binding EmployeeName}"
+                                                Width="*"/>
+                            <DataGridTextColumn Header="Routing #"
+                                                Binding="{Binding RoutingLast4}"
+                                                Width="120"/>
+                            <DataGridTextColumn Header="Account #"
+                                                Binding="{Binding AccountLast4}"
+                                                Width="120"/>
+                            <DataGridTextColumn Header="Type"
+                                                Binding="{Binding AccountType}"
+                                                Width="100"/>
+                            <DataGridTextColumn Header="Amount"
+                                                Binding="{Binding Amount, StringFormat='{}{0:C}'}"
+                                                Width="120"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </Border>
+
+            <!-- Action Button -->
+            <Border Classes="section-card">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Generate"
+                               Classes="section-header"/>
+
+                    <Button Content="Generate ACH File"
+                            Command="{Binding GenerateAchFileCommand}"
+                            Padding="16,8"
+                            FontSize="13"
+                            MinWidth="180"
+                            Classes="accent"/>
+
+                    <!-- Busy indicator -->
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="8"
+                                IsVisible="{Binding IsBusy}">
+                        <ProgressBar IsIndeterminate="True"
+                                     Width="120"
+                                     Height="4"/>
+                        <TextBlock Text="Generating ACH file..."
+                                   Foreground="#888"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Status Message - Error -->
+            <Border Classes="section-card"
+                    IsVisible="{Binding IsStatusError}">
+                <StackPanel Spacing="4">
+                    <TextBlock Text="Status"
+                               Classes="section-header"/>
+                    <Border CornerRadius="4"
+                            Padding="12,8"
+                            Background="#4C2020">
+                        <TextBlock Text="{Binding StatusMessage}"
+                                   TextWrapping="Wrap"
+                                   FontSize="13"
+                                   Foreground="#FF6B6B"/>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+            <!-- Status Message - Success -->
+            <Border Classes="section-card"
+                    IsVisible="{Binding !IsStatusError}">
+                <StackPanel Spacing="4"
+                            IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                    <TextBlock Text="Status"
+                               Classes="section-header"/>
+                    <Border CornerRadius="4"
+                            Padding="12,8"
+                            Background="#1C3A2A">
+                        <TextBlock Text="{Binding StatusMessage}"
+                                   TextWrapping="Wrap"
+                                   FontSize="13"
+                                   Foreground="#6BCB77"/>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
+    </ScrollViewer>
+
+</UserControl>

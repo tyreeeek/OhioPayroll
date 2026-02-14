@@ -1,0 +1,240 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:OhioPayroll.App.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="800"
+             x:Class="OhioPayroll.App.Views.TaxLiabilityView"
+             x:DataType="vm:TaxLiabilityViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="Border.summary-card">
+            <Setter Property="Background" Value="#2D2D30"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="20,16"/>
+            <Setter Property="BorderBrush" Value="#444"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="MinWidth" Value="220"/>
+            <Setter Property="MinHeight" Value="90"/>
+        </Style>
+        <Style Selector="TextBlock.card-header">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="#999"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+        <Style Selector="TextBlock.card-value">
+            <Setter Property="FontSize" Value="28"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Panel>
+        <!-- ============================================================ -->
+        <!-- Main Content                                                 -->
+        <!-- ============================================================ -->
+        <DockPanel IsVisible="{Binding !IsPaymentDialogOpen}">
+
+            <!-- Page Header -->
+            <Border DockPanel.Dock="Top" Padding="8,8,8,0">
+                <StackPanel Spacing="4">
+                    <TextBlock Text="{Binding Title}" FontSize="24" FontWeight="Bold"/>
+                    <TextBlock Text="{Binding Subtitle}" FontSize="14" Foreground="#888"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Summary Cards -->
+            <Border DockPanel.Dock="Top" Padding="8,16,8,0">
+                <WrapPanel Orientation="Horizontal" HorizontalAlignment="Left">
+
+                    <Border Classes="summary-card" Margin="0,0,12,12">
+                        <StackPanel>
+                            <TextBlock Text="TOTAL OWED" Classes="card-header"/>
+                            <TextBlock Text="{Binding TotalOwedDisplay}" Classes="card-value"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Classes="summary-card" Margin="0,0,12,12">
+                        <StackPanel>
+                            <TextBlock Text="TOTAL PAID" Classes="card-header"/>
+                            <TextBlock Text="{Binding TotalPaidDisplay}" Classes="card-value"
+                                       Foreground="#4ADE80"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Classes="summary-card" Margin="0,0,12,12">
+                        <StackPanel>
+                            <TextBlock Text="BALANCE DUE" Classes="card-header"/>
+                            <TextBlock Text="{Binding BalanceDueDisplay}" Classes="card-value"
+                                       Foreground="#F87171"/>
+                        </StackPanel>
+                    </Border>
+
+                </WrapPanel>
+            </Border>
+
+            <!-- Filter Row -->
+            <Border DockPanel.Dock="Top" Padding="8,12,8,12">
+                <StackPanel Orientation="Horizontal" Spacing="16">
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Year" FontSize="12" Foreground="Gray"/>
+                        <ComboBox ItemsSource="{Binding YearOptions}"
+                                  SelectedItem="{Binding FilterYear}"
+                                  MinWidth="100"/>
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Quarter" FontSize="12" Foreground="Gray"/>
+                        <ComboBox ItemsSource="{Binding QuarterOptions}"
+                                  SelectedItem="{Binding FilterQuarter}"
+                                  MinWidth="100"/>
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Status" FontSize="12" Foreground="Gray"/>
+                        <ComboBox ItemsSource="{Binding StatusOptions}"
+                                  SelectedItem="{Binding FilterStatus}"
+                                  MinWidth="120"/>
+                    </StackPanel>
+
+                    <Button Content="Refresh"
+                            Command="{Binding LoadLiabilitiesCommand}"
+                            VerticalAlignment="Bottom"
+                            Padding="16,6"
+                            Margin="0,0,0,0"
+                            Background="#3E3E42"
+                            Foreground="#CCC"
+                            CornerRadius="4"/>
+
+                </StackPanel>
+            </Border>
+
+            <!-- Action Buttons -->
+            <Border DockPanel.Dock="Top" Padding="8,0,8,8">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button Content="Mark as Paid"
+                            Command="{Binding MarkAsPaidCommand}"
+                            Padding="16,6"
+                            Classes="accent"/>
+                    <Button Content="Record Partial Payment"
+                            Command="{Binding RecordPartialPaymentCommand}"
+                            Padding="16,6"
+                            Background="#3E3E42"
+                            Foreground="#CCC"
+                            CornerRadius="4"/>
+                </StackPanel>
+            </Border>
+
+            <!-- DataGrid -->
+            <DataGrid ItemsSource="{Binding Liabilities}"
+                      SelectedItem="{Binding SelectedLiability}"
+                      AutoGenerateColumns="False"
+                      IsReadOnly="True"
+                      CanUserResizeColumns="True"
+                      CanUserSortColumns="True"
+                      GridLinesVisibility="Horizontal"
+                      SelectionMode="Single"
+                      Margin="8,0,8,8">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Tax Type"
+                                        Binding="{Binding TaxTypeDisplay}"
+                                        Width="120"/>
+                    <DataGridTextColumn Header="Year"
+                                        Binding="{Binding TaxYear}"
+                                        Width="70"/>
+                    <DataGridTextColumn Header="Qtr"
+                                        Binding="{Binding QuarterDisplay}"
+                                        Width="55"/>
+                    <DataGridTextColumn Header="Period"
+                                        Binding="{Binding PeriodDisplay}"
+                                        Width="200"/>
+                    <DataGridTextColumn Header="Amount Owed"
+                                        Binding="{Binding AmountOwed, StringFormat=\{0:C\}}"
+                                        Width="110"/>
+                    <DataGridTextColumn Header="Amount Paid"
+                                        Binding="{Binding AmountPaid, StringFormat=\{0:C\}}"
+                                        Width="110"/>
+                    <DataGridTextColumn Header="Balance"
+                                        Binding="{Binding Balance, StringFormat=\{0:C\}}"
+                                        Width="100"/>
+                    <DataGridTextColumn Header="Status"
+                                        Binding="{Binding StatusDisplay}"
+                                        Width="80"/>
+                    <DataGridTextColumn Header="Payment Date"
+                                        Binding="{Binding PaymentDateDisplay}"
+                                        Width="110"/>
+                    <DataGridTextColumn Header="Reference"
+                                        Binding="{Binding PaymentReference}"
+                                        Width="*"/>
+                </DataGrid.Columns>
+            </DataGrid>
+
+        </DockPanel>
+
+        <!-- ============================================================ -->
+        <!-- Payment Dialog Overlay                                       -->
+        <!-- ============================================================ -->
+        <Border IsVisible="{Binding IsPaymentDialogOpen}"
+                Background="#80000000"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch">
+            <Border Background="#2D2D30"
+                    CornerRadius="8"
+                    Padding="24"
+                    BorderBrush="#555"
+                    BorderThickness="1"
+                    MaxWidth="450"
+                    MaxHeight="400"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+                <StackPanel Spacing="16">
+
+                    <TextBlock Text="{Binding PaymentDialogTitle}"
+                               FontSize="20" FontWeight="Bold"/>
+
+                    <!-- Validation Error -->
+                    <Border IsVisible="{Binding ValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                            Background="#FDE8E8"
+                            CornerRadius="4"
+                            Padding="12,8">
+                        <TextBlock Text="{Binding ValidationError}"
+                                   Foreground="#C53030"
+                                   TextWrapping="Wrap"/>
+                    </Border>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Payment Amount ($)" FontSize="12" Foreground="Gray"/>
+                        <NumericUpDown Value="{Binding PaymentAmount}"
+                                       Minimum="0"
+                                       FormatString="F2"
+                                       Increment="100"
+                                       IsReadOnly="{Binding !IsPartialPayment}"/>
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Payment Reference (check #, EFT confirmation, etc.)" FontSize="12" Foreground="Gray"/>
+                        <TextBox Text="{Binding PaymentReference}"
+                                 Watermark="Enter reference number"/>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="12"
+                                HorizontalAlignment="Right"
+                                Margin="0,8,0,0">
+                        <Button Content="Cancel"
+                                Command="{Binding CancelPaymentCommand}"
+                                Padding="24,8"/>
+                        <Button Content="Confirm Payment"
+                                Command="{Binding ConfirmPaymentCommand}"
+                                Padding="24,8"
+                                Classes="accent"/>
+                    </StackPanel>
+
+                </StackPanel>
+            </Border>
+        </Border>
+    </Panel>
+
+</UserControl>

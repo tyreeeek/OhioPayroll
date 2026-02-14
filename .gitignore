@@ -1,0 +1,46 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+*.cache
+*.dll
+*.exe
+*.pdb
+
+## IDE
+.vs/
+.vscode/
+.idea/
+*.swp
+*~
+
+## Build
+publish/
+artifacts/
+
+## NuGet
+*.nupkg
+packages/
+
+## OS
+.DS_Store
+Thumbs.db
+
+## Application data
+*.db
+*.db-shm
+*.db-wal
+payroll_backup_*.db
+
+## Secrets
+appsettings.*.json
+!appsettings.json
+
+## MICR font (licensed, not committed)
+*.ttf
+*.otf
+
+## Logs
+logs/
+*.log

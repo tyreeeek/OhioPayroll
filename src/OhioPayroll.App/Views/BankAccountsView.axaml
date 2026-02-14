@@ -1,0 +1,325 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:OhioPayroll.App.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="800"
+             x:Class="OhioPayroll.App.Views.BankAccountsView"
+             x:DataType="vm:BankAccountsViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="Border.section-card">
+            <Setter Property="Background" Value="#2D2D30"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="20,16"/>
+            <Setter Property="BorderBrush" Value="#444"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Margin" Value="0,0,0,16"/>
+        </Style>
+        <Style Selector="TextBlock.section-header">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Panel>
+        <!-- ============================================================ -->
+        <!-- Main list view - visible when NOT editing                    -->
+        <!-- ============================================================ -->
+        <ScrollViewer IsVisible="{Binding !IsEditingCompany}"
+                      x:Name="MainScrollViewer">
+            <StackPanel IsVisible="{Binding !IsEditingEmployee}" Spacing="8" Margin="8">
+
+                <!-- Page Header -->
+                <StackPanel Spacing="4" Margin="0,0,0,8">
+                    <TextBlock Text="{Binding Title}" FontSize="24" FontWeight="Bold"/>
+                    <TextBlock Text="{Binding Subtitle}" FontSize="14" Foreground="#888"/>
+                </StackPanel>
+
+                <!-- ── Company Bank Accounts Section ──────────────────── -->
+                <Border Classes="section-card">
+                    <DockPanel>
+                        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,12">
+                            <TextBlock Text="Company Bank Accounts"
+                                       Classes="section-header"
+                                       VerticalAlignment="Center"/>
+                            <StackPanel Orientation="Horizontal" Spacing="8"
+                                        HorizontalAlignment="Right">
+                                <Button Content="+ Add Account"
+                                        Command="{Binding AddCompanyAccountCommand}"
+                                        Padding="12,6"
+                                        Classes="accent"/>
+                            </StackPanel>
+                        </DockPanel>
+
+                        <DataGrid ItemsSource="{Binding CompanyAccounts}"
+                                  SelectedItem="{Binding SelectedCompanyAccount}"
+                                  AutoGenerateColumns="False"
+                                  IsReadOnly="True"
+                                  CanUserResizeColumns="True"
+                                  CanUserSortColumns="True"
+                                  GridLinesVisibility="Horizontal"
+                                  SelectionMode="Single"
+                                  MinHeight="120"
+                                  MaxHeight="300">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Bank Name"
+                                                    Binding="{Binding BankName}"
+                                                    Width="*"/>
+                                <DataGridTextColumn Header="Routing #"
+                                                    Binding="{Binding MaskedRouting}"
+                                                    Width="120"/>
+                                <DataGridTextColumn Header="Account #"
+                                                    Binding="{Binding MaskedAccount}"
+                                                    Width="120"/>
+                                <DataGridTextColumn Header="Default For"
+                                                    Binding="{Binding DefaultDisplay}"
+                                                    Width="120"/>
+                                <DataGridTemplateColumn Header="Actions" Width="180">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate x:DataType="vm:CompanyBankAccountRow">
+                                            <StackPanel Orientation="Horizontal"
+                                                        Spacing="4"
+                                                        VerticalAlignment="Center"
+                                                        HorizontalAlignment="Center">
+                                                <Button Content="Edit"
+                                                        Command="{Binding $parent[DataGrid].((vm:BankAccountsViewModel)DataContext).EditCompanyAccountCommand}"
+                                                        Padding="8,4"
+                                                        FontSize="12"/>
+                                                <Button Content="Delete"
+                                                        Command="{Binding $parent[DataGrid].((vm:BankAccountsViewModel)DataContext).DeleteCompanyAccountCommand}"
+                                                        Padding="8,4"
+                                                        FontSize="12"
+                                                        Foreground="#EF4444"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </DockPanel>
+                </Border>
+
+                <!-- ── Employee Bank Accounts Section ─────────────────── -->
+                <Border Classes="section-card">
+                    <DockPanel>
+                        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,12">
+                            <TextBlock Text="Employee Bank Accounts"
+                                       Classes="section-header"
+                                       VerticalAlignment="Center"/>
+                            <StackPanel Orientation="Horizontal" Spacing="8"
+                                        HorizontalAlignment="Right">
+                                <Button Content="+ Add Account"
+                                        Command="{Binding AddEmployeeAccountCommand}"
+                                        Padding="12,6"
+                                        Classes="accent"/>
+                            </StackPanel>
+                        </DockPanel>
+
+                        <DataGrid ItemsSource="{Binding EmployeeAccounts}"
+                                  SelectedItem="{Binding SelectedEmployeeAccount}"
+                                  AutoGenerateColumns="False"
+                                  IsReadOnly="True"
+                                  CanUserResizeColumns="True"
+                                  CanUserSortColumns="True"
+                                  GridLinesVisibility="Horizontal"
+                                  SelectionMode="Single"
+                                  MinHeight="120"
+                                  MaxHeight="350">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Employee"
+                                                    Binding="{Binding EmployeeName}"
+                                                    Width="*"/>
+                                <DataGridTextColumn Header="Routing #"
+                                                    Binding="{Binding MaskedRouting}"
+                                                    Width="120"/>
+                                <DataGridTextColumn Header="Account #"
+                                                    Binding="{Binding MaskedAccount}"
+                                                    Width="120"/>
+                                <DataGridTextColumn Header="Type"
+                                                    Binding="{Binding AccountTypeDisplay}"
+                                                    Width="100"/>
+                                <DataGridTextColumn Header="Status"
+                                                    Binding="{Binding StatusText}"
+                                                    Width="80"/>
+                                <DataGridTemplateColumn Header="Actions" Width="180">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate x:DataType="vm:EmployeeBankAccountRow">
+                                            <StackPanel Orientation="Horizontal"
+                                                        Spacing="4"
+                                                        VerticalAlignment="Center"
+                                                        HorizontalAlignment="Center">
+                                                <Button Content="Edit"
+                                                        Command="{Binding $parent[DataGrid].((vm:BankAccountsViewModel)DataContext).EditEmployeeAccountCommand}"
+                                                        Padding="8,4"
+                                                        FontSize="12"/>
+                                                <Button Content="Delete"
+                                                        Command="{Binding $parent[DataGrid].((vm:BankAccountsViewModel)DataContext).DeleteEmployeeAccountCommand}"
+                                                        Padding="8,4"
+                                                        FontSize="12"
+                                                        Foreground="#EF4444"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </DockPanel>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- ============================================================ -->
+        <!-- Company Bank Account Form Overlay                            -->
+        <!-- ============================================================ -->
+        <ScrollViewer IsVisible="{Binding IsEditingCompany}">
+            <DockPanel Margin="8,8,8,24">
+
+                <!-- Form Header -->
+                <Border DockPanel.Dock="Top" Padding="0,0,0,16">
+                    <TextBlock Text="{Binding CompanyFormTitle}"
+                               FontSize="24" FontWeight="Bold"/>
+                </Border>
+
+                <!-- Validation Error -->
+                <Border DockPanel.Dock="Top"
+                        IsVisible="{Binding ValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                        Background="#FDE8E8"
+                        CornerRadius="4"
+                        Padding="12,8"
+                        Margin="0,0,0,12">
+                    <TextBlock Text="{Binding ValidationError}"
+                               Foreground="#C53030"
+                               TextWrapping="Wrap"/>
+                </Border>
+
+                <!-- Action Buttons -->
+                <Border DockPanel.Dock="Bottom" Padding="0,16,0,0">
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="12"
+                                HorizontalAlignment="Right">
+                        <Button Content="Cancel"
+                                Command="{Binding CancelCompanyEditCommand}"
+                                Padding="24,8"/>
+                        <Button Content="Save Account"
+                                Command="{Binding SaveCompanyAccountCommand}"
+                                Padding="24,8"
+                                Classes="accent"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Form Fields -->
+                <StackPanel Spacing="16" MaxWidth="500">
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Bank Name" FontSize="12" Foreground="Gray"/>
+                        <TextBox Text="{Binding CompanyBankName}"
+                                 Watermark="Enter bank name"/>
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Routing Number (9 digits)" FontSize="12" Foreground="Gray"/>
+                        <TextBox Text="{Binding CompanyRoutingNumber}"
+                                 Watermark="000000000"/>
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Account Number" FontSize="12" Foreground="Gray"/>
+                        <TextBox Text="{Binding CompanyAccountNumber}"
+                                 Watermark="Enter account number"/>
+                    </StackPanel>
+
+                    <CheckBox Content="Default for Check Printing"
+                              IsChecked="{Binding CompanyIsDefaultForChecks}"/>
+
+                    <CheckBox Content="Default for ACH / Direct Deposit"
+                              IsChecked="{Binding CompanyIsDefaultForAch}"/>
+
+                </StackPanel>
+
+            </DockPanel>
+        </ScrollViewer>
+
+        <!-- ============================================================ -->
+        <!-- Employee Bank Account Form Overlay                           -->
+        <!-- ============================================================ -->
+        <ScrollViewer IsVisible="{Binding IsEditingEmployee}">
+            <DockPanel Margin="8,8,8,24">
+
+                <!-- Form Header -->
+                <Border DockPanel.Dock="Top" Padding="0,0,0,16">
+                    <TextBlock Text="{Binding EmployeeFormTitle}"
+                               FontSize="24" FontWeight="Bold"/>
+                </Border>
+
+                <!-- Validation Error -->
+                <Border DockPanel.Dock="Top"
+                        IsVisible="{Binding ValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                        Background="#FDE8E8"
+                        CornerRadius="4"
+                        Padding="12,8"
+                        Margin="0,0,0,12">
+                    <TextBlock Text="{Binding ValidationError}"
+                               Foreground="#C53030"
+                               TextWrapping="Wrap"/>
+                </Border>
+
+                <!-- Action Buttons -->
+                <Border DockPanel.Dock="Bottom" Padding="0,16,0,0">
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="12"
+                                HorizontalAlignment="Right">
+                        <Button Content="Cancel"
+                                Command="{Binding CancelEmployeeEditCommand}"
+                                Padding="24,8"/>
+                        <Button Content="Save Account"
+                                Command="{Binding SaveEmployeeAccountCommand}"
+                                Padding="24,8"
+                                Classes="accent"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Form Fields -->
+                <StackPanel Spacing="16" MaxWidth="500">
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Employee" FontSize="12" Foreground="Gray"/>
+                        <ComboBox ItemsSource="{Binding EmployeeOptions}"
+                                  SelectedValue="{Binding SelectedEmployeeId}"
+                                  SelectedValueBinding="{Binding Id}"
+                                  HorizontalAlignment="Stretch"
+                                  PlaceholderText="Select an employee"/>
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Routing Number (9 digits)" FontSize="12" Foreground="Gray"/>
+                        <TextBox Text="{Binding EmployeeRoutingNumber}"
+                                 Watermark="000000000"/>
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Account Number" FontSize="12" Foreground="Gray"/>
+                        <TextBox Text="{Binding EmployeeAccountNumber}"
+                                 Watermark="Enter account number"/>
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Account Type" FontSize="12" Foreground="Gray"/>
+                        <ComboBox ItemsSource="{Binding AccountTypeValues}"
+                                  SelectedItem="{Binding EmployeeAccountType}"
+                                  HorizontalAlignment="Stretch"/>
+                    </StackPanel>
+
+                    <CheckBox Content="Active"
+                              IsChecked="{Binding EmployeeIsActive}"/>
+
+                </StackPanel>
+
+            </DockPanel>
+        </ScrollViewer>
+    </Panel>
+
+</UserControl>
