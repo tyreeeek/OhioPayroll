@@ -15,83 +15,87 @@
         ExtendClientAreaTitleBarHeightHint="-1">
 
     <Window.Styles>
-        <!-- Professional Navigation Items -->
+        <!-- Nav Item — Clean minimal -->
         <Style Selector="Button.nav-item">
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
             <Setter Property="HorizontalContentAlignment" Value="Left"/>
-            <Setter Property="Padding" Value="16,12"/>
+            <Setter Property="Padding" Value="14,10"/>
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="FontWeight" Value="500"/>
-            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="400"/>
+            <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Margin" Value="0,2"/>
+            <Setter Property="Margin" Value="0,1"/>
         </Style>
-
         <Style Selector="Button.nav-item:pointerover">
-            <Setter Property="Background" Value="{StaticResource SurfaceHoverBrush}"/>
+            <Setter Property="Background" Value="#F1F5F9"/>
             <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
         </Style>
-
         <Style Selector="Button.nav-active">
-            <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
-            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="{StaticResource PrimaryLightBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}"/>
             <Setter Property="FontWeight" Value="600"/>
         </Style>
 
+        <!-- Section Labels -->
         <Style Selector="TextBlock.nav-section">
             <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}"/>
-            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontSize" Value="10"/>
             <Setter Property="FontWeight" Value="700"/>
-            <Setter Property="Margin" Value="16,20,0,8"/>
-            <Setter Property="LetterSpacing" Value="0.8"/>
+            <Setter Property="Margin" Value="14,18,0,6"/>
+            <Setter Property="LetterSpacing" Value="1.2"/>
         </Style>
 
-        <!-- Custom chrome button styles -->
+        <!-- Window chrome buttons -->
         <Style Selector="Button.chrome-btn">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}"/>
             <Setter Property="Width" Value="46"/>
-            <Setter Property="Height" Value="40"/>
+            <Setter Property="Height" Value="36"/>
             <Setter Property="CornerRadius" Value="0"/>
             <Setter Property="Padding" Value="0"/>
         </Style>
         <Style Selector="Button.chrome-btn:pointerover">
-            <Setter Property="Background" Value="{StaticResource SurfaceHoverBrush}"/>
+            <Setter Property="Background" Value="#F1F5F9"/>
             <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
         </Style>
         <Style Selector="Button.close-btn:pointerover">
-            <Setter Property="Background" Value="#E81123"/>
+            <Setter Property="Background" Value="#DC2626"/>
             <Setter Property="Foreground" Value="White"/>
         </Style>
     </Window.Styles>
 
-    <Grid RowDefinitions="40,*" ColumnDefinitions="220,*">
+    <Grid RowDefinitions="36,*" ColumnDefinitions="240,*">
 
         <!-- ===== TITLE BAR (Row 0) ===== -->
 
-        <!-- Left title bar: app name on sidebar background -->
+        <!-- Left: logo area -->
         <Border Grid.Row="0" Grid.Column="0"
                 Background="{StaticResource SidebarBrush}"
-                BorderThickness="0,0,1,1" BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="0,0,1,0" BorderBrush="{StaticResource BorderBrush}"
                 PointerPressed="TitleBar_PointerPressed">
-            <TextBlock Text="Ohio Payroll" FontSize="14" FontWeight="700"
-                       Foreground="{StaticResource TextPrimaryBrush}"
-                       VerticalAlignment="Center" Margin="20,0"/>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="18,0" Spacing="10">
+                <Border Background="{StaticResource PrimaryBrush}" CornerRadius="6" Width="24" Height="24">
+                    <TextBlock Text="O" FontSize="13" FontWeight="Bold" Foreground="White"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <TextBlock Text="Ohio Payroll" FontSize="13" FontWeight="600"
+                           Foreground="{StaticResource TextPrimaryBrush}"
+                           VerticalAlignment="Center"/>
+            </StackPanel>
         </Border>
 
-        <!-- Right title bar: draggable area + window control buttons -->
+        <!-- Right: drag + window controls -->
         <Border Grid.Row="0" Grid.Column="1"
                 Background="{StaticResource BackgroundBrush}"
-                BorderThickness="0,0,0,1" BorderBrush="{StaticResource BorderBrush}"
                 PointerPressed="TitleBar_PointerPressed">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                <Button Classes="chrome-btn" FontSize="16" Content="—" Click="MinimizeClick"/>
-                <Button Classes="chrome-btn" FontSize="13" Content="□" Click="MaximizeClick"/>
-                <Button Classes="chrome-btn close-btn" FontSize="14" Content="✕" Click="CloseClick"/>
+                <Button Classes="chrome-btn" FontSize="14" Content="—" Click="MinimizeClick"/>
+                <Button Classes="chrome-btn" FontSize="12" Content="□" Click="MaximizeClick"/>
+                <Button Classes="chrome-btn close-btn" FontSize="13" Content="✕" Click="CloseClick"/>
             </StackPanel>
         </Border>
 
@@ -100,56 +104,141 @@
                 Background="{StaticResource SidebarBrush}"
                 BorderThickness="0,0,1,0" BorderBrush="{StaticResource BorderBrush}">
             <DockPanel>
-                <!-- Theme Toggle at bottom -->
-                <Border DockPanel.Dock="Bottom" Padding="16" BorderThickness="0,1,0,0"
-                        BorderBrush="{StaticResource BorderBrush}">
-                    <Button Classes="ghost" HorizontalAlignment="Stretch"
-                            HorizontalContentAlignment="Left"
-                            Click="ToggleTheme">
-                        <StackPanel Orientation="Horizontal" Spacing="12">
-                            <TextBlock Text="◐" FontSize="16"/>
-                            <TextBlock Text="Toggle Theme" FontSize="14"/>
-                        </StackPanel>
-                    </Button>
+                <!-- Bottom: Theme Toggle + Version -->
+                <Border DockPanel.Dock="Bottom" Padding="14,12"
+                        BorderThickness="0,1,0,0" BorderBrush="{StaticResource BorderBrush}">
+                    <StackPanel Spacing="6">
+                        <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                                Background="Transparent" BorderThickness="0"
+                                Padding="10,8" CornerRadius="6" Cursor="Hand"
+                                Click="ToggleTheme">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="◐" FontSize="14" Foreground="{StaticResource TextMutedBrush}"/>
+                                <TextBlock Text="Toggle Theme" FontSize="12"
+                                           Foreground="{StaticResource TextSecondaryBrush}"/>
+                            </StackPanel>
+                        </Button>
+                        <TextBlock Text="v2.7.0" FontSize="10"
+                                   Foreground="{StaticResource TextMutedBrush}" Margin="10,0,0,0"/>
+                    </StackPanel>
                 </Border>
 
-                <!-- Navigation Menu -->
+                <!-- Navigation -->
                 <ScrollViewer>
-                    <StackPanel Name="NavPanel" Margin="12,8,12,16">
-                        <Button Content="Dashboard" Classes="nav-item"
-                                Command="{Binding NavigateToCommand}" CommandParameter="Dashboard"/>
+                    <StackPanel Name="NavPanel" Margin="10,6,10,12">
+
+                        <Button Classes="nav-item"
+                                Command="{Binding NavigateToCommand}" CommandParameter="Dashboard">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="⊞" FontSize="15" Width="20" TextAlignment="Center"/>
+                                <TextBlock Text="Dashboard"/>
+                            </StackPanel>
+                        </Button>
 
                         <TextBlock Text="PAYROLL" Classes="nav-section"/>
-                        <Button Content="Employees" Classes="nav-item"
-                                Command="{Binding NavigateToCommand}" CommandParameter="Employees"/>
-                        <Button Content="Contractors" Classes="nav-item"
-                                Command="{Binding NavigateToCommand}" CommandParameter="Contractors"/>
-                        <Button Content="Run Payroll" Classes="nav-item"
-                                Command="{Binding NavigateToCommand}" CommandParameter="Payroll"/>
-                        <Button Content="Contractor Payroll" Classes="nav-item"
-                                Command="{Binding NavigateToCommand}" CommandParameter="ContractorPayroll"/>
+
+                        <Button Classes="nav-item"
+                                Command="{Binding NavigateToCommand}" CommandParameter="Employees">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="♦" FontSize="13" Width="20" TextAlignment="Center"/>
+                                <TextBlock Text="Employees"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Classes="nav-item"
+                                Command="{Binding NavigateToCommand}" CommandParameter="Contractors">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="◆" FontSize="13" Width="20" TextAlignment="Center"/>
+                                <TextBlock Text="Contractors"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Classes="nav-item"
+                                Command="{Binding NavigateToCommand}" CommandParameter="Payroll">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="$" FontSize="14" FontWeight="Bold" Width="20" TextAlignment="Center"/>
+                                <TextBlock Text="Run Payroll"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Classes="nav-item"
+                                Command="{Binding NavigateToCommand}" CommandParameter="ContractorPayroll">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="¢" FontSize="14" FontWeight="Bold" Width="20" TextAlignment="Center"/>
+                                <TextBlock Text="Contractor Payroll"/>
+                            </StackPanel>
+                        </Button>
 
                         <TextBlock Text="PAYMENTS" Classes="nav-section"/>
-                        <Button Content="Bank Accounts" Classes="nav-item"
-                                Command="{Binding NavigateToCommand}" CommandParameter="BankAccounts"/>
-                        <Button Content="Print Checks" Classes="nav-item"
-                                Command="{Binding NavigateToCommand}" CommandParameter="CheckPrinting"/>
-                        <Button Content="Direct Deposit" Classes="nav-item"
-                                Command="{Binding NavigateToCommand}" CommandParameter="DirectDeposit"/>
+
+                        <Button Classes="nav-item"
+                                Command="{Binding NavigateToCommand}" CommandParameter="BankAccounts">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="▣" FontSize="14" Width="20" TextAlignment="Center"/>
+                                <TextBlock Text="Bank Accounts"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Classes="nav-item"
+                                Command="{Binding NavigateToCommand}" CommandParameter="CheckPrinting">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="⎙" FontSize="15" Width="20" TextAlignment="Center"/>
+                                <TextBlock Text="Print Checks"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Classes="nav-item"
+                                Command="{Binding NavigateToCommand}" CommandParameter="DirectDeposit">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="⇄" FontSize="15" Width="20" TextAlignment="Center"/>
+                                <TextBlock Text="Direct Deposit"/>
+                            </StackPanel>
+                        </Button>
 
                         <TextBlock Text="COMPLIANCE" Classes="nav-section"/>
-                        <Button Content="Quarterly Reports" Classes="nav-item"
-                                Command="{Binding NavigateToCommand}" CommandParameter="Quarterly"/>
-                        <Button Content="Tax Liability" Classes="nav-item"
-                                Command="{Binding NavigateToCommand}" CommandParameter="TaxLiability"/>
-                        <Button Content="Reports" Classes="nav-item"
-                                Command="{Binding NavigateToCommand}" CommandParameter="Reports"/>
-                        <Button Content="Year-End / W-2 &amp; 1099" Classes="nav-item"
-                                Command="{Binding NavigateToCommand}" CommandParameter="YearEnd"/>
+
+                        <Button Classes="nav-item"
+                                Command="{Binding NavigateToCommand}" CommandParameter="Quarterly">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="▦" FontSize="14" Width="20" TextAlignment="Center"/>
+                                <TextBlock Text="Quarterly Reports"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Classes="nav-item"
+                                Command="{Binding NavigateToCommand}" CommandParameter="TaxLiability">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="▤" FontSize="14" Width="20" TextAlignment="Center"/>
+                                <TextBlock Text="Tax Liability"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Classes="nav-item"
+                                Command="{Binding NavigateToCommand}" CommandParameter="Reports">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="☰" FontSize="15" Width="20" TextAlignment="Center"/>
+                                <TextBlock Text="Reports"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Classes="nav-item"
+                                Command="{Binding NavigateToCommand}" CommandParameter="YearEnd">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="✦" FontSize="13" Width="20" TextAlignment="Center"/>
+                                <TextBlock Text="Year-End / W-2 &amp; 1099"/>
+                            </StackPanel>
+                        </Button>
 
                         <TextBlock Text="SYSTEM" Classes="nav-section"/>
-                        <Button Content="Settings" Classes="nav-item"
-                                Command="{Binding NavigateToCommand}" CommandParameter="Settings"/>
+
+                        <Button Classes="nav-item"
+                                Command="{Binding NavigateToCommand}" CommandParameter="Settings">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="⚙" FontSize="15" Width="20" TextAlignment="Center"/>
+                                <TextBlock Text="Settings"/>
+                            </StackPanel>
+                        </Button>
+
                     </StackPanel>
                 </ScrollViewer>
             </DockPanel>
@@ -157,7 +246,7 @@
 
         <!-- ===== MAIN CONTENT (Row 1, Column 1) ===== -->
         <Border Grid.Row="1" Grid.Column="1"
-                Background="{StaticResource BackgroundBrush}" Padding="40,32">
+                Background="{StaticResource BackgroundBrush}" Padding="36,28">
             <ContentControl Content="{Binding CurrentViewModel}"/>
         </Border>
 

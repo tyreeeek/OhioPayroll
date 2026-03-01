@@ -66,20 +66,20 @@ public class CheckDocument : IDocument
 
             page.Content().Column(column =>
             {
-                // Top third: Employee voucher stub
-                column.Item().Height(SectionHeight, Unit.Inch).Element(c => ComposeVoucherStub(c, "EMPLOYEE COPY"));
+                // Top third: Employee voucher stub — auto-sized
+                column.Item().Element(c => ComposeVoucherStub(c, "EMPLOYEE COPY"));
 
                 // Perforation line
                 column.Item().PaddingVertical(2).LineHorizontal(0.5f).LineColor("#AAAAAA");
 
-                // Middle third: The actual check
-                column.Item().Height(SectionHeight, Unit.Inch).Element(ComposeCheckSection);
+                // Middle third: The actual check — auto-sized
+                column.Item().Element(ComposeCheckSection);
 
                 // Perforation line
                 column.Item().PaddingVertical(2).LineHorizontal(0.5f).LineColor("#AAAAAA");
 
                 // Bottom third: Company voucher stub
-                column.Item().Height(SectionHeight, Unit.Inch).Element(c => ComposeVoucherStub(c, "COMPANY COPY"));
+                column.Item().Element(c => ComposeVoucherStub(c, "COMPANY COPY"));
             });
         });
     }

@@ -92,8 +92,11 @@ public class ContractorPaystubDocument
 
                     page.Content().Column(column =>
                     {
-                        // Check portion (top) — 5 inches to fit all content
-                        column.Item().Height(5f, Unit.Inch).Element(c => ComposeCheck(c, payment, checkEntry, contractor, company, bankAccount));
+                        // Check portion (top) — no fixed height, auto-sized
+                        column.Item().Element(c => ComposeCheck(c, payment, checkEntry, contractor, company, bankAccount));
+
+                        // Perforation line
+                        column.Item().PaddingVertical(2).LineHorizontal(0.5f).LineColor("#AAAAAA");
 
                         // Stub portion (bottom)
                         column.Item().Element(c => ComposeCheckStub(c, payment, contractor, company));

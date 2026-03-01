@@ -53,17 +53,17 @@ public class ContractorCheckDocument
 
                 page.Content().Column(column =>
                 {
-                    // Top voucher stub (company copy)
-                    column.Item().Height(3.5f, Unit.Inch).Element(c => ComposeStub(c, payment, contractor, company));
+                    // Top voucher stub (company copy) — auto-sized
+                    column.Item().Element(c => ComposeStub(c, payment, contractor, company));
 
                     // Perforation line
-                    column.Item().PaddingVertical(1).LineHorizontal(0.5f).LineColor("#AAAAAA");
+                    column.Item().PaddingVertical(2).LineHorizontal(0.5f).LineColor("#AAAAAA");
 
-                    // Check portion — compact layout to fit 3.5"
-                    column.Item().Height(3.5f, Unit.Inch).Element(c => ComposeCheck(c, payment, checkEntry, contractor, company, bankAccount));
+                    // Check portion — auto-sized
+                    column.Item().Element(c => ComposeCheck(c, payment, checkEntry, contractor, company, bankAccount));
 
                     // Perforation line
-                    column.Item().PaddingVertical(1).LineHorizontal(0.5f).LineColor("#AAAAAA");
+                    column.Item().PaddingVertical(2).LineHorizontal(0.5f).LineColor("#AAAAAA");
 
                     // Bottom voucher stub (contractor copy)
                     column.Item().Element(c => ComposeStub(c, payment, contractor, company));
