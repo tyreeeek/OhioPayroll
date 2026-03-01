@@ -9,7 +9,10 @@
         Title="Ohio Payroll"
         Icon="/Assets/ohio-payroll.ico"
         Width="1400" Height="900"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        ExtendClientAreaTitleBarHeightHint="-1">
 
     <Window.Styles>
         <!-- Professional Navigation Items -->
@@ -45,26 +48,59 @@
             <Setter Property="Margin" Value="16,20,0,8"/>
             <Setter Property="LetterSpacing" Value="0.8"/>
         </Style>
+
+        <!-- Custom chrome button styles -->
+        <Style Selector="Button.chrome-btn">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="Width" Value="46"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="CornerRadius" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+        </Style>
+        <Style Selector="Button.chrome-btn:pointerover">
+            <Setter Property="Background" Value="{StaticResource SurfaceHoverBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        </Style>
+        <Style Selector="Button.close-btn:pointerover">
+            <Setter Property="Background" Value="#E81123"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
     </Window.Styles>
 
-    <Grid ColumnDefinitions="240,*">
-        <!-- Professional Sidebar -->
-        <Border Grid.Column="0" Background="{StaticResource SidebarBrush}"
+    <Grid RowDefinitions="40,*" ColumnDefinitions="220,*">
+
+        <!-- ===== TITLE BAR (Row 0) ===== -->
+
+        <!-- Left title bar: app name on sidebar background -->
+        <Border Grid.Row="0" Grid.Column="0"
+                Background="{StaticResource SidebarBrush}"
+                BorderThickness="0,0,1,1" BorderBrush="{StaticResource BorderBrush}"
+                PointerPressed="TitleBar_PointerPressed">
+            <TextBlock Text="Ohio Payroll" FontSize="14" FontWeight="700"
+                       Foreground="{StaticResource TextPrimaryBrush}"
+                       VerticalAlignment="Center" Margin="20,0"/>
+        </Border>
+
+        <!-- Right title bar: draggable area + window control buttons -->
+        <Border Grid.Row="0" Grid.Column="1"
+                Background="{StaticResource BackgroundBrush}"
+                BorderThickness="0,0,0,1" BorderBrush="{StaticResource BorderBrush}"
+                PointerPressed="TitleBar_PointerPressed">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                <Button Classes="chrome-btn" FontSize="16" Content="—" Click="MinimizeClick"/>
+                <Button Classes="chrome-btn" FontSize="13" Content="□" Click="MaximizeClick"/>
+                <Button Classes="chrome-btn close-btn" FontSize="14" Content="✕" Click="CloseClick"/>
+            </StackPanel>
+        </Border>
+
+        <!-- ===== SIDEBAR (Row 1, Column 0) ===== -->
+        <Border Grid.Row="1" Grid.Column="0"
+                Background="{StaticResource SidebarBrush}"
                 BorderThickness="0,0,1,0" BorderBrush="{StaticResource BorderBrush}">
             <DockPanel>
-                <!-- App Branding -->
-                <Border DockPanel.Dock="Top" Padding="20,32,20,24">
-                    <StackPanel Spacing="4">
-                        <TextBlock Text="Ohio Payroll" FontSize="20" FontWeight="700"
-                                   Foreground="{StaticResource TextPrimaryBrush}"
-                                   LetterSpacing="-0.5"/>
-                        <TextBlock Text="Professional Edition" FontSize="12"
-                                   Foreground="{StaticResource TextMutedBrush}"
-                                   FontWeight="500"/>
-                    </StackPanel>
-                </Border>
-
-                <!-- Theme Toggle -->
+                <!-- Theme Toggle at bottom -->
                 <Border DockPanel.Dock="Bottom" Padding="16" BorderThickness="0,1,0,0"
                         BorderBrush="{StaticResource BorderBrush}">
                     <Button Classes="ghost" HorizontalAlignment="Stretch"
@@ -119,10 +155,12 @@
             </DockPanel>
         </Border>
 
-        <!-- Main Content Area -->
-        <Border Grid.Column="1" Background="{StaticResource BackgroundBrush}" Padding="40,32">
+        <!-- ===== MAIN CONTENT (Row 1, Column 1) ===== -->
+        <Border Grid.Row="1" Grid.Column="1"
+                Background="{StaticResource BackgroundBrush}" Padding="40,32">
             <ContentControl Content="{Binding CurrentViewModel}"/>
         </Border>
+
     </Grid>
 
 </Window>

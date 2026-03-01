@@ -207,12 +207,20 @@
                     </StackPanel>
                 </Border>
 
-                <!-- Status Message -->
-                <Border IsVisible="{Binding StatusMessage, Converter={StaticResource StringNotEmptyConverter}}"
-                        Background="{StaticResource DangerBrush}" CornerRadius="6" Padding="16" Opacity="0.15">
+                <!-- Error Message -->
+                <Border IsVisible="{Binding IsError}"
+                        Background="#FFEBEE" BorderBrush="#EF5350" BorderThickness="1"
+                        CornerRadius="6" Padding="16" Margin="0,4,0,0">
                     <TextBlock Text="{Binding StatusMessage}"
-                               Foreground="{StaticResource DangerBrush}"
-                               TextWrapping="Wrap"/>
+                               Foreground="#C62828" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                </Border>
+
+                <!-- Success/Info Message -->
+                <Border IsVisible="{Binding IsSuccess}"
+                        Background="#E8F5E9" BorderBrush="#66BB6A" BorderThickness="1"
+                        CornerRadius="6" Padding="16" Margin="0,4,0,0">
+                    <TextBlock Text="{Binding StatusMessage}"
+                               Foreground="#2E7D32" FontWeight="SemiBold" TextWrapping="Wrap"/>
                 </Border>
 
             </StackPanel>

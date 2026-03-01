@@ -3,7 +3,7 @@
              x:Class="OhioPayroll.App.App"
              xmlns:local="using:OhioPayroll.App"
              xmlns:converters="using:OhioPayroll.App.Converters"
-             RequestedThemeVariant="Dark">
+             RequestedThemeVariant="Light">
 
     <Application.Resources>
         <converters:BoolToOpacityConverter x:Key="BoolToOpacityConverter"/>

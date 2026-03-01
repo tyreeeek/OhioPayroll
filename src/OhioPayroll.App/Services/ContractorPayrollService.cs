@@ -60,7 +60,23 @@ public class ContractorPayrollService
                     // 2. Validate lock date (if configured)
                     var settings = await _db.PayrollSettings.FirstOrDefaultAsync();
                     if (settings == null)
-                        return (false, "Payroll settings not initialized. Configure in Settings first.");
+                    {
+                        // Auto-initialize with safe defaults so payroll can proceed
+                        settings = new PayrollSettings
+                        {
+                            PayFrequency = PayFrequency.BiWeekly,
+                            CurrentTaxYear = DateTime.Now.Year,
+                            SutaRate = 0.027m,
+                            NextCheckNumber = 1001,
+                            BackupDirectory = System.IO.Path.Combine(
+                                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                                "OhioPayroll", "Backups"),
+                            UpdatedAt = DateTime.UtcNow
+                        };
+                        _db.PayrollSettings.Add(settings);
+                        await _db.SaveChangesAsync();
+                        AppLogger.Information("PayrollSettings not found — auto-initialized with defaults for contractor payroll");
+                    }
 
                     if (settings.ContractorPayrollLockDate.HasValue &&
                         run.PeriodEnd < settings.ContractorPayrollLockDate.Value)

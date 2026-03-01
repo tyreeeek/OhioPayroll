@@ -3,29 +3,29 @@
 
     <Style>
         <Style.Resources>
-            <!-- LIGHT MODE COLORS -->
-            <Color x:Key="Light_Primary">#0066FF</Color>
-            <Color x:Key="Light_PrimaryHover">#0052CC</Color>
-            <Color x:Key="Light_PrimaryActive">#0043A8</Color>
+            <!-- LIGHT MODE COLORS — Modern SaaS Palette -->
+            <Color x:Key="Light_Primary">#4F46E5</Color>
+            <Color x:Key="Light_PrimaryHover">#4338CA</Color>
+            <Color x:Key="Light_PrimaryActive">#3730A3</Color>
 
-            <Color x:Key="Light_Success">#00C853</Color>
-            <Color x:Key="Light_SuccessHover">#00A344</Color>
+            <Color x:Key="Light_Success">#10B981</Color>
+            <Color x:Key="Light_SuccessHover">#059669</Color>
 
-            <Color x:Key="Light_Danger">#FF3B30</Color>
-            <Color x:Key="Light_DangerHover">#E52D22</Color>
+            <Color x:Key="Light_Danger">#EF4444</Color>
+            <Color x:Key="Light_DangerHover">#DC2626</Color>
 
-            <Color x:Key="Light_Warning">#FF9500</Color>
-            <Color x:Key="Light_WarningHover">#E08100</Color>
+            <Color x:Key="Light_Warning">#F59E0B</Color>
+            <Color x:Key="Light_WarningHover">#D97706</Color>
 
-            <Color x:Key="Light_Background">#F8F9FA</Color>
+            <Color x:Key="Light_Background">#FFFFFF</Color>
             <Color x:Key="Light_Surface">#FFFFFF</Color>
-            <Color x:Key="Light_SurfaceHover">#F5F6F7</Color>
-            <Color x:Key="Light_Border">#E1E4E8</Color>
-            <Color x:Key="Light_Sidebar">#FAFBFC</Color>
+            <Color x:Key="Light_SurfaceHover">#F7F8FA</Color>
+            <Color x:Key="Light_Border">#E5E7EB</Color>
+            <Color x:Key="Light_Sidebar">#F9FAFB</Color>
 
-            <Color x:Key="Light_TextPrimary">#1A1F36</Color>
-            <Color x:Key="Light_TextSecondary">#4E5D78</Color>
-            <Color x:Key="Light_TextMuted">#8792A2</Color>
+            <Color x:Key="Light_TextPrimary">#111827</Color>
+            <Color x:Key="Light_TextSecondary">#6B7280</Color>
+            <Color x:Key="Light_TextMuted">#9CA3AF</Color>
 
             <!-- DARK MODE COLORS -->
             <Color x:Key="Dark_Primary">#3B82F6</Color>
@@ -82,8 +82,8 @@
             </LinearGradientBrush>
 
             <LinearGradientBrush x:Key="AccentGradient" StartPoint="0%,0%" EndPoint="100%,100%">
-                <GradientStop Color="#0066FF" Offset="0"/>
-                <GradientStop Color="#00C6FF" Offset="1"/>
+                <GradientStop Color="#4F46E5" Offset="0"/>
+                <GradientStop Color="#7C3AED" Offset="1"/>
             </LinearGradientBrush>
         </Style.Resources>
     </Style>

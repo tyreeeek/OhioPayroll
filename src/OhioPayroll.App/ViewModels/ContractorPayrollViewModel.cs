@@ -31,7 +31,13 @@ public partial class ContractorPayrollViewModel : ViewModelBase
     [ObservableProperty] private ObservableCollection<ContractorPaymentEntryRow> _paymentEntries = new();
     [ObservableProperty] private decimal _totalAmount;
     [ObservableProperty] private string _statusMessage = string.Empty;
+    [ObservableProperty] private bool _isError;
+    [ObservableProperty] private bool _isSuccess;
     [ObservableProperty] private bool _isProcessing;
+
+    private void SetError(string msg)   { StatusMessage = msg; IsError = true;  IsSuccess = false; }
+    private void SetSuccess(string msg) { StatusMessage = msg; IsError = false; IsSuccess = true; }
+    private void ClearStatus()          { StatusMessage = string.Empty; IsError = false; IsSuccess = false; }
     [ObservableProperty] private ContractorPayrollRun? _currentRun;
 
     public PayFrequency[] PayFrequencyValues { get; } = Enum.GetValues<PayFrequency>();
@@ -78,21 +84,21 @@ public partial class ContractorPayrollViewModel : ViewModelBase
         try
         {
             IsProcessing = true;
-            StatusMessage = string.Empty;
+            ClearStatus();
 
             if (CurrentStep == 1)
             {
                 // Validate period dates
                 if (PeriodEnd <= PeriodStart)
                 {
-                    StatusMessage = "Period end date must be after period start date";
+                    SetError("Period end date must be after period start date");
                     IsProcessing = false;
                     return;
                 }
 
                 if (PayDate < PeriodEnd)
                 {
-                    StatusMessage = "Pay date must be after period end date";
+                    SetError("Pay date must be after period end date");
                     IsProcessing = false;
                     return;
                 }
@@ -100,7 +106,7 @@ public partial class ContractorPayrollViewModel : ViewModelBase
                 // Prevent far-future pay dates
                 if (PayDate > DateTime.Today.AddDays(60))
                 {
-                    StatusMessage = "Pay date cannot be more than 60 days in the future";
+                    SetError("Pay date cannot be more than 60 days in the future");
                     IsProcessing = false;
                     return;
                 }
@@ -116,7 +122,7 @@ public partial class ContractorPayrollViewModel : ViewModelBase
                 {
                     // Load existing draft for editing
                     CurrentRun = existingDraft;
-                    StatusMessage = $"Editing existing draft payroll run #{CurrentRun.Id} from {CurrentRun.CreatedAt:g}";
+                    SetSuccess($"Editing existing draft payroll run #{CurrentRun.Id} from {CurrentRun.CreatedAt:g}");
                     AppLogger.Information($"Loading existing draft contractor payroll run #{CurrentRun.Id} for editing");
                 }
                 else
@@ -127,13 +133,13 @@ public partial class ContractorPayrollViewModel : ViewModelBase
 
                     if (!result.success)
                     {
-                        StatusMessage = result.error;
+                        SetError(result.error);
                         IsProcessing = false;
                         return;
                     }
 
                     CurrentRun = result.run;
-                    StatusMessage = $"Created new draft payroll run #{CurrentRun.Id}";
+                    SetSuccess($"Created new draft payroll run #{CurrentRun!.Id}");
                 }
 
                 // Load active contractors with valid rates
@@ -169,7 +175,7 @@ public partial class ContractorPayrollViewModel : ViewModelBase
                         CurrentRun = null;
                     }
 
-                    StatusMessage = "No active contractors with valid rates found for payroll processing";
+                    SetError("No active contractors with hourly or daily rates found. Add contractors with Hourly or Daily rate type in the Contractors section.");
                     CurrentStep = 1; // Go back to step 1
                     IsProcessing = false;
                     return;
@@ -181,7 +187,7 @@ public partial class ContractorPayrollViewModel : ViewModelBase
                 var invalidEntries = PaymentEntries.Where(e => e.HoursOrDays > 0 && !e.HasValidEntry).ToList();
                 if (invalidEntries.Any())
                 {
-                    StatusMessage = "Please ensure all entries with hours/days are valid";
+                    SetError("Please ensure all entries with hours/days are valid");
                     IsProcessing = false;
                     return;
                 }
@@ -190,7 +196,7 @@ public partial class ContractorPayrollViewModel : ViewModelBase
                 var activeEntries = PaymentEntries.Where(e => e.HoursOrDays > 0).ToList();
                 if (!activeEntries.Any())
                 {
-                    StatusMessage = "Please enter hours or days worked for at least one contractor";
+                    SetError("Please enter hours or days worked for at least one contractor");
                     IsProcessing = false;
                     return;
                 }
@@ -207,7 +213,7 @@ public partial class ContractorPayrollViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Error: {ex.Message}";
+            SetError($"Error: {ex.Message}");
             AppLogger.Error($"Error in contractor payroll NextStep: {ex.Message}", ex);
         }
         finally
@@ -222,7 +228,7 @@ public partial class ContractorPayrollViewModel : ViewModelBase
         if (CurrentStep > 1)
         {
             CurrentStep--;
-            StatusMessage = string.Empty;
+            ClearStatus();
         }
     }
 
@@ -234,12 +240,12 @@ public partial class ContractorPayrollViewModel : ViewModelBase
         try
         {
             IsProcessing = true;
-            StatusMessage = "Finalizing payroll...";
+            SetSuccess("Finalizing payroll...");
             AppLogger.Information($"CurrentRun is {(CurrentRun == null ? "NULL" : $"ID: {CurrentRun.Id}")}");
 
             if (CurrentRun == null)
             {
-                StatusMessage = "Error: No payroll run created";
+                SetError("Error: No payroll run created");
                 AppLogger.Error("FinalizePayroll failed: CurrentRun is null");
                 IsProcessing = false;
                 return;
@@ -263,7 +269,7 @@ public partial class ContractorPayrollViewModel : ViewModelBase
 
             if (!activeEntries.Any())
             {
-                StatusMessage = "No contractors with hours/days entered. Cannot finalize empty payroll.";
+                SetError("No contractors with hours/days entered. Cannot finalize empty payroll.");
                 AppLogger.Warning("Finalization blocked: No active payment entries");
                 IsProcessing = false;
                 return;
@@ -302,20 +308,20 @@ public partial class ContractorPayrollViewModel : ViewModelBase
 
             if (!result.success)
             {
-                StatusMessage = $"Finalization failed: {result.error}";
+                SetError($"Finalization failed: {result.error}");
                 AppLogger.Error($"Payroll finalization failed: {result.error}");
                 IsProcessing = false;
                 return;
             }
 
-            StatusMessage = "Payroll finalized successfully!";
+            SetSuccess("Payroll finalized successfully!");
             CurrentStep = 4;
 
             AppLogger.Information($"Contractor payroll finalized: {payments.Count} payments, Total: {TotalAmount:C}");
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Error finalizing payroll: {ex.Message}";
+            SetError($"Error finalizing payroll: {ex.Message}");
             AppLogger.Error($"Error finalizing contractor payroll: {ex.Message}", ex);
         }
         finally
@@ -338,7 +344,7 @@ public partial class ContractorPayrollViewModel : ViewModelBase
             if (CurrentRun == null) return;
 
             IsProcessing = true;
-            StatusMessage = "Generating paystubs...";
+            SetSuccess("Generating paystubs...");
 
             // Load payments WITH tracking so we can update HasPaystub flag
             var payments = await _db.ContractorPayments
@@ -347,7 +353,7 @@ public partial class ContractorPayrollViewModel : ViewModelBase
 
             if (!payments.Any())
             {
-                StatusMessage = "No payments found to generate paystubs.";
+                SetError("No payments found to generate paystubs.");
                 IsProcessing = false;
                 return;
             }
@@ -405,12 +411,12 @@ public partial class ContractorPayrollViewModel : ViewModelBase
 
             if (errors.Any())
             {
-                StatusMessage = $"Generated {successCount} paystub(s). {errors.Count} failed:\n{string.Join("\n", errors)}";
+                SetError($"Generated {successCount} paystub(s). {errors.Count} failed:\n{string.Join("\n", errors)}");
                 AppLogger.Warning($"Generated {successCount} contractor paystubs with {errors.Count} errors for payroll run {CurrentRun.Id}");
             }
             else
             {
-                StatusMessage = $"Generated {successCount} paystubs. Saved to Documents\\OhioPayroll\\Contractor Paystubs";
+                SetSuccess($"Generated {successCount} paystub(s). Saved to Documents\\OhioPayroll\\Contractor Paystubs");
                 AppLogger.Information($"Generated {successCount} contractor paystubs for payroll run {CurrentRun.Id}");
             }
 
@@ -424,7 +430,7 @@ public partial class ContractorPayrollViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Error generating paystubs: {ex.Message}";
+            SetError($"Error generating paystubs: {ex.Message}");
             AppLogger.Error($"Error generating contractor paystubs: {ex.Message}", ex);
         }
         finally
@@ -441,7 +447,7 @@ public partial class ContractorPayrollViewModel : ViewModelBase
             if (CurrentRun == null) return;
 
             IsProcessing = true;
-            StatusMessage = "Generating checks...";
+            SetSuccess("Generating checks...");
 
             // CRITICAL: Remove AsNoTracking() so entity changes are tracked and persisted
             var checkEntries = await _db.CheckRegister
@@ -453,7 +459,7 @@ public partial class ContractorPayrollViewModel : ViewModelBase
 
             if (!checkEntries.Any())
             {
-                StatusMessage = "No checks found to generate. All contractors may be paid via ACH.";
+                SetError("No checks found to generate. All contractors may be paid via ACH.");
                 IsProcessing = false;
                 return;
             }
@@ -507,12 +513,12 @@ public partial class ContractorPayrollViewModel : ViewModelBase
 
             if (errors.Any())
             {
-                StatusMessage = $"Generated {successCount} check(s). {errors.Count} failed:\n{string.Join("\n", errors)}";
+                SetError($"Generated {successCount} check(s). {errors.Count} failed:\n{string.Join("\n", errors)}");
                 AppLogger.Warning($"Generated {successCount} contractor checks with {errors.Count} errors for payroll run {CurrentRun.Id}");
             }
             else
             {
-                StatusMessage = $"Generated {successCount} checks. Saved to Documents\\OhioPayroll\\Contractor Checks";
+                SetSuccess($"Generated {successCount} check(s). Saved to Documents\\OhioPayroll\\Contractor Checks");
                 AppLogger.Information($"Generated {successCount} contractor checks for payroll run {CurrentRun.Id}");
             }
 
@@ -526,7 +532,7 @@ public partial class ContractorPayrollViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Error generating checks: {ex.Message}";
+            SetError($"Error generating checks: {ex.Message}");
             AppLogger.Error($"Error generating contractor checks: {ex.Message}", ex);
         }
         finally

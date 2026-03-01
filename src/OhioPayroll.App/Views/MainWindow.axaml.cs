@@ -2,6 +2,8 @@ using System;
 using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Styling;
 using OhioPayroll.App.ViewModels;
 
@@ -10,7 +12,7 @@ namespace OhioPayroll.App.Views;
 public partial class MainWindow : Window
 {
     private MainWindowViewModel? _currentViewModel;
-    private bool _isDarkTheme = true; // Start with dark theme (matches App.axaml RequestedThemeVariant="Dark")
+    private bool _isDarkTheme = false; // Default: light/white theme
 
     public MainWindow()
     {
@@ -34,7 +36,27 @@ public partial class MainWindow : Window
         };
     }
 
-    private void ToggleTheme(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    // ===== Custom Window Chrome Handlers =====
+
+    private void TitleBar_PointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+            BeginMoveDrag(e);
+    }
+
+    private void MinimizeClick(object? sender, RoutedEventArgs e)
+        => WindowState = WindowState.Minimized;
+
+    private void MaximizeClick(object? sender, RoutedEventArgs e)
+        => WindowState = WindowState == WindowState.Maximized
+            ? WindowState.Normal : WindowState.Maximized;
+
+    private void CloseClick(object? sender, RoutedEventArgs e)
+        => Close();
+
+    // ===== Theme =====
+
+    private void ToggleTheme(object? sender, RoutedEventArgs e)
     {
         _isDarkTheme = !_isDarkTheme;
         ApplyTheme();
