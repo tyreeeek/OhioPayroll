@@ -64,13 +64,13 @@
                                     Width="40" Height="40" CornerRadius="20"
                                     Background="{StaticResource PrimaryBrush}">
                                 <TextBlock Text="1" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                           Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold" FontSize="16"/>
+                                           Foreground="White" FontWeight="Bold" FontSize="16"/>
                             </Border>
                             <Border IsVisible="{Binding !IsStep1}"
                                     Width="40" Height="40" CornerRadius="20"
                                     Background="{StaticResource SuccessBrush}">
                                 <TextBlock Text="✓" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                           Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold" FontSize="18"/>
+                                           Foreground="White" FontWeight="Bold" FontSize="18"/>
                             </Border>
                         </Panel>
                     </Border>
@@ -87,19 +87,19 @@
                                 Width="40" Height="40" CornerRadius="20"
                                 Background="{StaticResource PrimaryBrush}">
                             <TextBlock Text="2" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                       Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold" FontSize="16"/>
+                                       Foreground="White" FontWeight="Bold" FontSize="16"/>
                         </Border>
                         <Border IsVisible="{Binding IsStep3}"
                                 Width="40" Height="40" CornerRadius="20"
                                 Background="{StaticResource SuccessBrush}">
                             <TextBlock Text="✓" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                       Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold" FontSize="18"/>
+                                       Foreground="White" FontWeight="Bold" FontSize="18"/>
                         </Border>
                         <Border IsVisible="{Binding IsStep4}"
                                 Width="40" Height="40" CornerRadius="20"
                                 Background="{StaticResource SuccessBrush}">
                             <TextBlock Text="✓" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                       Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold" FontSize="18"/>
+                                       Foreground="White" FontWeight="Bold" FontSize="18"/>
                         </Border>
                         <Border IsVisible="{Binding IsStep1}"
                                 Width="40" Height="40" CornerRadius="20"
@@ -122,13 +122,13 @@
                                 Width="40" Height="40" CornerRadius="20"
                                 Background="{StaticResource PrimaryBrush}">
                             <TextBlock Text="3" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                       Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold" FontSize="16"/>
+                                       Foreground="White" FontWeight="Bold" FontSize="16"/>
                         </Border>
                         <Border IsVisible="{Binding IsStep4}"
                                 Width="40" Height="40" CornerRadius="20"
                                 Background="{StaticResource SuccessBrush}">
                             <TextBlock Text="✓" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                       Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold" FontSize="18"/>
+                                       Foreground="White" FontWeight="Bold" FontSize="18"/>
                         </Border>
                         <Border IsVisible="{Binding IsStep1}"
                                 Width="40" Height="40" CornerRadius="20"
@@ -158,7 +158,7 @@
                                 Width="40" Height="40" CornerRadius="20"
                                 Background="{StaticResource SuccessBrush}">
                             <TextBlock Text="✓" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                       Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold" FontSize="18"/>
+                                       Foreground="White" FontWeight="Bold" FontSize="18"/>
                         </Border>
                         <Border IsVisible="{Binding !IsStep4}"
                                 Width="40" Height="40" CornerRadius="20"
@@ -176,9 +176,9 @@
         <!-- Error message -->
         <Border DockPanel.Dock="Top"
                 IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                Background="{StaticResource DangerBrush}" CornerRadius="6" Padding="16,12" Margin="0,0,0,16"
-                Opacity="0.15">
-            <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource DangerBrush}" TextWrapping="Wrap"/>
+                Background="#FFEBEE" BorderBrush="#EF5350" BorderThickness="1"
+                CornerRadius="6" Padding="16,12" Margin="0,0,0,16">
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="#C62828" FontWeight="SemiBold" TextWrapping="Wrap"/>
         </Border>
 
         <!-- Loading indicator -->

@@ -379,9 +379,11 @@
             <!-- Payment Form (visible when adding) -->
             <Border DockPanel.Dock="Top"
                     IsVisible="{Binding IsAddingPayment}"
-                    Background="#2D2D30"
-                    CornerRadius="4"
-                    Padding="16"
+                    Background="{StaticResource SurfaceHoverBrush}"
+                    BorderBrush="{StaticResource BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="20"
                     Margin="0,0,0,16">
                 <StackPanel Spacing="12">
                     <TextBlock Text="New Payment"

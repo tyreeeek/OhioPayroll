@@ -158,27 +158,64 @@
 
     <!-- Badges -->
     <Style Selector="Border.badge-success">
-        <Setter Property="Background" Value="#00C85310"/>
+        <Setter Property="Background" Value="#E8F5E9"/>
         <Setter Property="CornerRadius" Value="4"/>
         <Setter Property="Padding" Value="8,4"/>
     </Style>
 
     <Style Selector="Border.badge-success TextBlock">
-        <Setter Property="Foreground" Value="{StaticResource SuccessBrush}"/>
+        <Setter Property="Foreground" Value="#2E7D32"/>
         <Setter Property="FontSize" Value="12"/>
         <Setter Property="FontWeight" Value="600"/>
     </Style>
 
     <Style Selector="Border.badge-warning">
-        <Setter Property="Background" Value="#FF950010"/>
+        <Setter Property="Background" Value="#FFF8E1"/>
         <Setter Property="CornerRadius" Value="4"/>
         <Setter Property="Padding" Value="8,4"/>
     </Style>
 
     <Style Selector="Border.badge-warning TextBlock">
-        <Setter Property="Foreground" Value="{StaticResource WarningBrush}"/>
+        <Setter Property="Foreground" Value="#E65100"/>
         <Setter Property="FontSize" Value="12"/>
         <Setter Property="FontWeight" Value="600"/>
+    </Style>
+
+    <Style Selector="Border.badge-danger">
+        <Setter Property="Background" Value="#FFEBEE"/>
+        <Setter Property="CornerRadius" Value="4"/>
+        <Setter Property="Padding" Value="8,4"/>
+    </Style>
+
+    <Style Selector="Border.badge-danger TextBlock">
+        <Setter Property="Foreground" Value="#C62828"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontWeight" Value="600"/>
+    </Style>
+
+    <!-- Alert Boxes -->
+    <Style Selector="Border.alert-error">
+        <Setter Property="Background" Value="#FFEBEE"/>
+        <Setter Property="BorderBrush" Value="#EF5350"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="6"/>
+        <Setter Property="Padding" Value="16,12"/>
+    </Style>
+
+    <Style Selector="Border.alert-success">
+        <Setter Property="Background" Value="#E8F5E9"/>
+        <Setter Property="BorderBrush" Value="#66BB6A"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="6"/>
+        <Setter Property="Padding" Value="16,12"/>
+    </Style>
+
+    <Style Selector="Border.alert-warning">
+        <Setter Property="Background" Value="#FFF8E1"/>
+        <Setter Property="BorderBrush" Value="#FFB300"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="6"/>
+        <Setter Property="Padding" Value="16,12"/>
     </Style>
 
     <!-- Divider -->

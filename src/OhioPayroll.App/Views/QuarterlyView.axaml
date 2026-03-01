@@ -7,15 +7,12 @@
              x:Class="OhioPayroll.App.Views.QuarterlyView"
              x:DataType="vm:QuarterlyViewModel">
 
-
     <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-        <StackPanel Spacing="20" Margin="8">
+        <StackPanel Spacing="24">
 
-            <!-- ============================================================ -->
-            <!-- Header with Year / Quarter selectors                         -->
-            <!-- ============================================================ -->
+            <!-- Header with Year / Quarter selectors -->
             <DockPanel>
-                <StackPanel DockPanel.Dock="Left" Spacing="2">
+                <StackPanel DockPanel.Dock="Left" Spacing="4">
                     <TextBlock Text="Quarterly Overview" Classes="page-title"/>
                     <TextBlock Text="Detailed payroll and tax breakdown by quarter."
                                Classes="page-subtitle"/>
@@ -24,13 +21,13 @@
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="12"
                             HorizontalAlignment="Right" VerticalAlignment="Center">
                     <StackPanel Spacing="4">
-                        <TextBlock Text="Year" FontSize="12" Foreground="Gray"/>
+                        <TextBlock Text="Year" Classes="label"/>
                         <ComboBox ItemsSource="{Binding YearOptions}"
                                   SelectedItem="{Binding SelectedYear}"
                                   MinWidth="100"/>
                     </StackPanel>
                     <StackPanel Spacing="4">
-                        <TextBlock Text="Quarter" FontSize="12" Foreground="Gray"/>
+                        <TextBlock Text="Quarter" Classes="label"/>
                         <ComboBox ItemsSource="{Binding QuarterOptions}"
                                   SelectedItem="{Binding SelectedQuarter}"
                                   MinWidth="80"/>
@@ -38,155 +35,172 @@
                     <Button Content="Refresh"
                             Command="{Binding LoadDataCommand}"
                             VerticalAlignment="Bottom"
-                            Padding="16,6"
-                            Background="#3E3E42"
-                            Foreground="#CCC"
-                            CornerRadius="4"/>
+                            Padding="16,8"
+                            Classes="secondary"/>
                 </StackPanel>
             </DockPanel>
 
             <!-- Quarter Title and Period -->
-            <StackPanel Spacing="2">
-                <TextBlock Text="{Binding QuarterTitle}" FontSize="20" FontWeight="SemiBold" Foreground="#0078D4"/>
-                <TextBlock Text="{Binding PeriodDisplay}" FontSize="14" Foreground="#AAA"/>
+            <StackPanel Spacing="4">
+                <TextBlock Text="{Binding QuarterTitle}" FontSize="20" FontWeight="SemiBold"
+                           Foreground="{StaticResource PrimaryBrush}"/>
+                <TextBlock Text="{Binding PeriodDisplay}" FontSize="14"
+                           Foreground="{StaticResource TextSecondaryBrush}"/>
             </StackPanel>
 
             <!-- Status Message -->
-            <TextBlock Text="{Binding StatusMessage}" FontSize="13" Foreground="#89B4FA"
+            <TextBlock Text="{Binding StatusMessage}" FontSize="13"
+                       Foreground="{StaticResource PrimaryBrush}"
                        IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
 
-            <!-- ============================================================ -->
-            <!-- Summary Cards (8 cards)                                      -->
-            <!-- ============================================================ -->
-            <WrapPanel Orientation="Horizontal" HorizontalAlignment="Left">
+            <!-- Summary Cards Grid -->
+            <Grid ColumnDefinitions="*,*,*,*" RowDefinitions="Auto,Auto" ColumnSpacing="16" RowSpacing="16">
 
-                <Border Classes="card" Margin="0,0,10,10">
-                    <StackPanel>
-                        <TextBlock Text="GROSS PAY" Classes="label" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,6"/>
-                        <TextBlock Text="{Binding GrossPayDisplay}" FontSize="24" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                <Border Grid.Column="0" Grid.Row="0" Classes="stat-card">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="GROSS PAY" Classes="stat-label"/>
+                        <TextBlock Text="{Binding GrossPayDisplay}" FontSize="22" FontWeight="700"
+                                   Foreground="{StaticResource TextPrimaryBrush}"/>
                     </StackPanel>
                 </Border>
 
-                <Border Classes="card" Margin="0,0,10,10">
-                    <StackPanel>
-                        <TextBlock Text="NET PAY" Classes="label" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,6"/>
-                        <TextBlock Text="{Binding NetPayDisplay}" FontSize="24" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                <Border Grid.Column="1" Grid.Row="0" Classes="stat-card">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="NET PAY" Classes="stat-label"/>
+                        <TextBlock Text="{Binding NetPayDisplay}" FontSize="22" FontWeight="700"
+                                   Foreground="{StaticResource TextPrimaryBrush}"/>
                     </StackPanel>
                 </Border>
 
-                <Border Classes="card" Margin="0,0,10,10">
-                    <StackPanel>
-                        <TextBlock Text="FEDERAL TAX" Classes="label" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,6"/>
-                        <TextBlock Text="{Binding FederalTaxDisplay}" FontSize="24" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                <Border Grid.Column="2" Grid.Row="0" Classes="stat-card">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="FEDERAL TAX" Classes="stat-label"/>
+                        <TextBlock Text="{Binding FederalTaxDisplay}" FontSize="22" FontWeight="700"
+                                   Foreground="{StaticResource TextPrimaryBrush}"/>
                     </StackPanel>
                 </Border>
 
-                <Border Classes="card" Margin="0,0,10,10">
-                    <StackPanel>
-                        <TextBlock Text="STATE TAX (OH)" Classes="label" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,6"/>
-                        <TextBlock Text="{Binding StateTaxDisplay}" FontSize="24" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                <Border Grid.Column="3" Grid.Row="0" Classes="stat-card">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="STATE TAX (OH)" Classes="stat-label"/>
+                        <TextBlock Text="{Binding StateTaxDisplay}" FontSize="22" FontWeight="700"
+                                   Foreground="{StaticResource TextPrimaryBrush}"/>
                     </StackPanel>
                 </Border>
 
-                <Border Classes="card" Margin="0,0,10,10">
-                    <StackPanel>
-                        <TextBlock Text="LOCAL TAX" Classes="label" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,6"/>
-                        <TextBlock Text="{Binding LocalTaxDisplay}" FontSize="24" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                <Border Grid.Column="0" Grid.Row="1" Classes="stat-card">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="LOCAL TAX" Classes="stat-label"/>
+                        <TextBlock Text="{Binding LocalTaxDisplay}" FontSize="22" FontWeight="700"
+                                   Foreground="{StaticResource TextPrimaryBrush}"/>
                     </StackPanel>
                 </Border>
 
-                <Border Classes="card" Margin="0,0,10,10">
-                    <StackPanel>
-                        <TextBlock Text="SOCIAL SECURITY" Classes="label" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,6"/>
-                        <TextBlock Text="{Binding SsTaxDisplay}" FontSize="24" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                <Border Grid.Column="1" Grid.Row="1" Classes="stat-card">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="SOCIAL SECURITY" Classes="stat-label"/>
+                        <TextBlock Text="{Binding SsTaxDisplay}" FontSize="22" FontWeight="700"
+                                   Foreground="{StaticResource TextPrimaryBrush}"/>
                     </StackPanel>
                 </Border>
 
-                <Border Classes="card" Margin="0,0,10,10">
-                    <StackPanel>
-                        <TextBlock Text="MEDICARE" Classes="label" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,6"/>
-                        <TextBlock Text="{Binding MedicareTaxDisplay}" FontSize="24" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                <Border Grid.Column="2" Grid.Row="1" Classes="stat-card">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="MEDICARE" Classes="stat-label"/>
+                        <TextBlock Text="{Binding MedicareTaxDisplay}" FontSize="22" FontWeight="700"
+                                   Foreground="{StaticResource TextPrimaryBrush}"/>
                     </StackPanel>
                 </Border>
 
-                <Border Classes="card" Margin="0,0,10,10">
-                    <StackPanel>
-                        <TextBlock Text="EMPLOYER TAXES" Classes="label" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,6"/>
-                        <TextBlock Text="{Binding EmployerTaxDisplay}" FontSize="24" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                <Border Grid.Column="3" Grid.Row="1" Classes="stat-card">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="EMPLOYER TAXES" Classes="stat-label"/>
+                        <TextBlock Text="{Binding EmployerTaxDisplay}" FontSize="22" FontWeight="700"
+                                   Foreground="{StaticResource TextPrimaryBrush}"/>
                     </StackPanel>
                 </Border>
 
-            </WrapPanel>
+            </Grid>
 
-            <!-- ============================================================ -->
-            <!-- 941 Status Banner                                            -->
-            <!-- ============================================================ -->
+            <!-- 941 Status Banner -->
             <Border Classes="card">
-                <DockPanel>
-                    <TextBlock Text="Form 941 Status" FontSize="16" FontWeight="SemiBold"
-                               Foreground="White" DockPanel.Dock="Top" Margin="0,0,0,12"/>
-                    <WrapPanel Orientation="Horizontal">
-                        <StackPanel Margin="0,0,32,0">
-                            <TextBlock Text="PAYROLL RUNS" FontSize="11" Foreground="#888"/>
-                            <TextBlock Text="{Binding PayrollRunCount}" FontSize="18" FontWeight="Bold" Foreground="White"/>
+                <StackPanel Spacing="16">
+                    <TextBlock Text="Form 941 Status" FontSize="16" FontWeight="600"
+                               Foreground="{StaticResource TextPrimaryBrush}"/>
+                    <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="24">
+                        <StackPanel Grid.Column="0" Spacing="4">
+                            <TextBlock Text="PAYROLL RUNS" FontSize="11"
+                                       Foreground="{StaticResource TextMutedBrush}" FontWeight="600"/>
+                            <TextBlock Text="{Binding PayrollRunCount}" FontSize="20" FontWeight="700"
+                                       Foreground="{StaticResource TextPrimaryBrush}"/>
                         </StackPanel>
-                        <StackPanel Margin="0,0,32,0">
-                            <TextBlock Text="EMPLOYEES" FontSize="11" Foreground="#888"/>
-                            <TextBlock Text="{Binding EmployeeCount}" FontSize="18" FontWeight="Bold" Foreground="White"/>
+                        <StackPanel Grid.Column="1" Spacing="4">
+                            <TextBlock Text="EMPLOYEES" FontSize="11"
+                                       Foreground="{StaticResource TextMutedBrush}" FontWeight="600"/>
+                            <TextBlock Text="{Binding EmployeeCount}" FontSize="20" FontWeight="700"
+                                       Foreground="{StaticResource TextPrimaryBrush}"/>
                         </StackPanel>
-                        <StackPanel Margin="0,0,32,0">
-                            <TextBlock Text="DUE DATE" FontSize="11" Foreground="#888"/>
-                            <!-- Normal (not overdue) -->
-                            <TextBlock Text="{Binding Form941DueDateDisplay}" FontSize="18" FontWeight="Bold"
-                                       Foreground="White" IsVisible="{Binding !IsOverdue}"/>
-                            <!-- Overdue -->
-                            <TextBlock Text="{Binding Form941DueDateDisplay}" FontSize="18" FontWeight="Bold"
-                                       Foreground="#F87171" IsVisible="{Binding IsOverdue}"/>
+                        <StackPanel Grid.Column="2" Spacing="4">
+                            <TextBlock Text="DUE DATE" FontSize="11"
+                                       Foreground="{StaticResource TextMutedBrush}" FontWeight="600"/>
+                            <TextBlock Text="{Binding Form941DueDateDisplay}" FontSize="20" FontWeight="700"
+                                       Foreground="{StaticResource TextPrimaryBrush}"
+                                       IsVisible="{Binding !IsOverdue}"/>
+                            <TextBlock Text="{Binding Form941DueDateDisplay}" FontSize="20" FontWeight="700"
+                                       Foreground="{StaticResource DangerBrush}"
+                                       IsVisible="{Binding IsOverdue}"/>
                         </StackPanel>
-                        <StackPanel Margin="0,0,32,0">
-                            <TextBlock Text="STATUS" FontSize="11" Foreground="#888"/>
-                            <TextBlock Text="{Binding Form941StatusDisplay}" FontSize="18" FontWeight="Bold" Foreground="#0078D4"/>
+                        <StackPanel Grid.Column="3" Spacing="4">
+                            <TextBlock Text="STATUS" FontSize="11"
+                                       Foreground="{StaticResource TextMutedBrush}" FontWeight="600"/>
+                            <TextBlock Text="{Binding Form941StatusDisplay}" FontSize="20" FontWeight="700"
+                                       Foreground="{StaticResource PrimaryBrush}"/>
                         </StackPanel>
-                    </WrapPanel>
-                </DockPanel>
+                    </Grid>
+                </StackPanel>
             </Border>
 
             <!-- Overdue warning banner -->
             <Border IsVisible="{Binding IsOverdue}"
-                    Background="#4A2A00"
+                    Background="#FFF8E1"
                     CornerRadius="8"
                     Padding="16,12"
-                    BorderBrush="#D97706"
+                    BorderBrush="#FFB300"
                     BorderThickness="1">
                 <TextBlock Text="This quarter has outstanding tax liabilities past the 941 due date. Please review and submit payments."
-                           FontSize="14" Foreground="#FBBF24" TextWrapping="Wrap"/>
+                           FontSize="14" Foreground="#E65100" FontWeight="SemiBold" TextWrapping="Wrap"/>
             </Border>
 
-            <!-- ============================================================ -->
-            <!-- Tax Liability by Type                                        -->
-            <!-- ============================================================ -->
+            <!-- Tax Liability by Type -->
             <Border Classes="card">
-                <StackPanel Spacing="12">
+                <StackPanel Spacing="16">
                     <DockPanel>
-                        <TextBlock Text="Tax Liability by Type" FontSize="16" FontWeight="SemiBold"
-                                   Foreground="White" DockPanel.Dock="Left"/>
-                        <WrapPanel DockPanel.Dock="Right" HorizontalAlignment="Right" Orientation="Horizontal">
-                            <StackPanel Margin="0,0,20,0">
-                                <TextBlock Text="TOTAL OWED" FontSize="11" Foreground="#888"/>
-                                <TextBlock Text="{Binding TotalOwedDisplay}" FontSize="16" FontWeight="Bold" Foreground="White"/>
-                            </StackPanel>
-                            <StackPanel Margin="0,0,20,0">
-                                <TextBlock Text="TOTAL PAID" FontSize="11" Foreground="#888"/>
-                                <TextBlock Text="{Binding TotalPaidDisplay}" FontSize="16" FontWeight="Bold" Foreground="#4ADE80"/>
+                        <TextBlock Text="Tax Liability by Type" FontSize="16" FontWeight="600"
+                                   Foreground="{StaticResource TextPrimaryBrush}" DockPanel.Dock="Left"/>
+                        <StackPanel DockPanel.Dock="Right" HorizontalAlignment="Right" Orientation="Horizontal" Spacing="24">
+                            <StackPanel>
+                                <TextBlock Text="TOTAL OWED" FontSize="11"
+                                           Foreground="{StaticResource TextMutedBrush}" FontWeight="600"/>
+                                <TextBlock Text="{Binding TotalOwedDisplay}" FontSize="16" FontWeight="700"
+                                           Foreground="{StaticResource TextPrimaryBrush}"/>
                             </StackPanel>
                             <StackPanel>
-                                <TextBlock Text="BALANCE DUE" FontSize="11" Foreground="#888"/>
-                                <TextBlock Text="{Binding BalanceDueDisplay}" FontSize="16" FontWeight="Bold"
-                                           Foreground="#F87171" IsVisible="{Binding HasBalance}"/>
-                                <TextBlock Text="{Binding BalanceDueDisplay}" FontSize="16" FontWeight="Bold"
-                                           Foreground="#4ADE80" IsVisible="{Binding !HasBalance}"/>
+                                <TextBlock Text="TOTAL PAID" FontSize="11"
+                                           Foreground="{StaticResource TextMutedBrush}" FontWeight="600"/>
+                                <TextBlock Text="{Binding TotalPaidDisplay}" FontSize="16" FontWeight="700"
+                                           Foreground="{StaticResource SuccessBrush}"/>
                             </StackPanel>
-                        </WrapPanel>
+                            <StackPanel>
+                                <TextBlock Text="BALANCE DUE" FontSize="11"
+                                           Foreground="{StaticResource TextMutedBrush}" FontWeight="600"/>
+                                <TextBlock Text="{Binding BalanceDueDisplay}" FontSize="16" FontWeight="700"
+                                           Foreground="{StaticResource DangerBrush}"
+                                           IsVisible="{Binding HasBalance}"/>
+                                <TextBlock Text="{Binding BalanceDueDisplay}" FontSize="16" FontWeight="700"
+                                           Foreground="{StaticResource SuccessBrush}"
+                                           IsVisible="{Binding !HasBalance}"/>
+                            </StackPanel>
+                        </StackPanel>
                     </DockPanel>
 
                     <DataGrid ItemsSource="{Binding TaxSummary}"
@@ -218,12 +232,11 @@
                 </StackPanel>
             </Border>
 
-            <!-- ============================================================ -->
-            <!-- Payroll Runs for Quarter                                     -->
-            <!-- ============================================================ -->
+            <!-- Payroll Runs for Quarter -->
             <Border Classes="card">
                 <StackPanel Spacing="12">
-                    <TextBlock Text="Payroll Runs" FontSize="16" FontWeight="SemiBold" Foreground="White"/>
+                    <TextBlock Text="Payroll Runs" FontSize="16" FontWeight="600"
+                               Foreground="{StaticResource TextPrimaryBrush}"/>
 
                     <DataGrid ItemsSource="{Binding PayrollRuns}"
                               AutoGenerateColumns="False"

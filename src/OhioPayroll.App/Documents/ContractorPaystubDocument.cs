@@ -92,8 +92,8 @@ public class ContractorPaystubDocument
 
                     page.Content().Column(column =>
                     {
-                        // Check portion (top)
-                        column.Item().Height(3.5f, Unit.Inch).Element(c => ComposeCheck(c, payment, checkEntry, contractor, company, bankAccount));
+                        // Check portion (top) — 5 inches to fit all content
+                        column.Item().Height(5f, Unit.Inch).Element(c => ComposeCheck(c, payment, checkEntry, contractor, company, bankAccount));
 
                         // Stub portion (bottom)
                         column.Item().Element(c => ComposeCheckStub(c, payment, contractor, company));
@@ -399,82 +399,80 @@ public class ContractorPaystubDocument
         // Real MICR encoding requires IEncryptionService to decrypt banking data.
         // See ContractorCheckDocument.cs for production implementation.
 
-        container.Border(1).BorderColor("#374151").Padding(16).Column(column =>
+        container.Border(1).BorderColor("#374151").Padding(12).Column(column =>
         {
-            column.Spacing(12);
+            column.Spacing(6);
 
-            // Check header - modern layout
+            // Check header
             column.Item().Row(row =>
             {
                 row.RelativeItem().Column(col =>
                 {
-                    col.Item().Text(company.CompanyName ?? "Company Name").FontSize(16).Bold().FontColor("#111827");
+                    col.Item().Text(company.CompanyName ?? "Company Name").FontSize(14).Bold().FontColor("#111827");
                     col.Item().PaddingTop(2).Text(company.Address ?? "Address").FontSize(9).FontColor("#6B7280");
                     col.Item().Text($"{company.City ?? "City"}, {company.State ?? "ST"} {company.ZipCode ?? "00000"}").FontSize(9).FontColor("#6B7280");
                 });
 
-                row.ConstantItem(160).AlignRight().Column(col =>
+                row.ConstantItem(140).AlignRight().Column(col =>
                 {
-                    col.Item().Background("#1F2937").Padding(8).AlignCenter().Column(innerCol =>
+                    col.Item().Background("#1F2937").Padding(6).AlignCenter().Column(innerCol =>
                     {
-                        innerCol.Item().Text($"#{checkEntry.CheckNumber}").FontSize(16).Bold().FontColor("#FFFFFF");
+                        innerCol.Item().Text($"#{checkEntry.CheckNumber}").FontSize(14).Bold().FontColor("#FFFFFF");
                         innerCol.Item().PaddingTop(2).Text($"{payment.PaymentDate:MM/dd/yyyy}").FontSize(9).FontColor("#D1D5DB");
                     });
                 });
             });
 
-            column.Item().PaddingTop(16);
+            column.Item().PaddingTop(8);
 
-            // Pay to the order of - modern design
+            // Pay to the order of
             column.Item().Column(col =>
             {
                 col.Item().Text("PAY TO THE ORDER OF").FontSize(8).Bold().FontColor("#6B7280");
-                col.Item().PaddingTop(4).Row(row =>
+                col.Item().PaddingTop(3).Row(row =>
                 {
                     var payeeName = payment.ContractorNameSnapshot ?? contractor?.Name ?? "Unknown";
-                    row.RelativeItem().BorderBottom(1).BorderColor("#111827").PaddingBottom(4)
-                        .Text(payeeName).FontSize(13).Bold().FontColor("#111827");
+                    row.RelativeItem().BorderBottom(1).BorderColor("#111827").PaddingBottom(3)
+                        .Text(payeeName).FontSize(12).Bold().FontColor("#111827");
                 });
             });
 
-            column.Item().PaddingTop(12);
+            column.Item().PaddingTop(6);
 
             // Amount row
             column.Item().Row(row =>
             {
-                row.RelativeItem().BorderBottom(1).BorderColor("#111827").PaddingBottom(4)
+                row.RelativeItem().BorderBottom(1).BorderColor("#111827").PaddingBottom(3)
                     .Text($"{AmountToWords(payment.Amount)} DOLLARS").FontSize(10).FontColor("#374151");
-                row.ConstantItem(12);
-                row.ConstantItem(140).Border(2).BorderColor("#111827").Padding(6).AlignCenter()
-                    .Text($"${payment.Amount:N2}").FontSize(14).Bold().FontColor("#111827");
+                row.ConstantItem(10);
+                row.ConstantItem(130).Border(2).BorderColor("#111827").Padding(5).AlignCenter()
+                    .Text($"${payment.Amount:N2}").FontSize(13).Bold().FontColor("#111827");
             });
 
-            column.Item().PaddingTop(16);
+            column.Item().PaddingTop(8);
 
             // Memo line
             column.Item().Column(col =>
             {
                 col.Item().Text("MEMO").FontSize(7).Bold().FontColor("#6B7280");
-                col.Item().PaddingTop(2).BorderBottom(1).BorderColor("#D1D5DB").PaddingBottom(4)
+                col.Item().PaddingTop(2).BorderBottom(1).BorderColor("#D1D5DB").PaddingBottom(3)
                     .Text(payment.Description ?? "Contractor Payment").FontSize(9).FontColor("#374151");
             });
 
             // Signature line
-            column.Item().PaddingTop(20).AlignRight().Row(row =>
+            column.Item().PaddingTop(12).AlignRight().Row(row =>
             {
                 row.RelativeItem();
-                row.ConstantItem(220).Column(col =>
+                row.ConstantItem(200).Column(col =>
                 {
                     col.Item().LineHorizontal(1).LineColor("#111827");
-                    col.Item().PaddingTop(3).AlignCenter()
+                    col.Item().PaddingTop(2).AlignCenter()
                         .Text("Authorized Signature").FontSize(8).FontColor("#6B7280");
                 });
             });
 
-            column.Item().PaddingTop(15);
-
-            // MICR line - placeholder (requires encryption service for real data)
-            column.Item().PaddingTop(10).Text(text =>
+            // MICR line
+            column.Item().PaddingTop(8).Text(text =>
             {
                 text.Span("⑆").FontFamily("MICR").FontSize(12);
                 text.Span($"{checkEntry.CheckNumber:D4}").FontFamily("MICR").FontSize(12);

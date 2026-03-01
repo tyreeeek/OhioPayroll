@@ -7,21 +7,19 @@
              x:Class="OhioPayroll.App.Views.CheckPrintingView"
              x:DataType="vm:CheckPrintingViewModel">
 
-
     <ScrollViewer>
-        <StackPanel Spacing="8" Margin="8">
+        <StackPanel Spacing="24">
 
             <!-- Page Header -->
-            <StackPanel Spacing="4" Margin="0,0,0,8">
+            <StackPanel Spacing="4">
                 <TextBlock Text="{Binding Title}" Classes="page-title"/>
                 <TextBlock Text="{Binding Subtitle}" Classes="page-subtitle"/>
             </StackPanel>
 
             <!-- Payroll Run Selection -->
-            <Border Classes="card" Margin="0,0,0,16">
+            <Border Classes="card">
                 <StackPanel Spacing="12">
-                    <TextBlock Text="Select Payroll Run"
-                               Classes="section-header"/>
+                    <TextBlock Text="Select Payroll Run" Classes="section-header"/>
                     <ComboBox ItemsSource="{Binding PayrollRunRows}"
                               SelectedItem="{Binding SelectedRun}"
                               HorizontalAlignment="Stretch"
@@ -37,11 +35,12 @@
             </Border>
 
             <!-- Paychecks Grid -->
-            <Border Classes="card" Margin="0,0,0,16">
+            <Border Classes="card">
                 <DockPanel>
                     <TextBlock Text="Paychecks"
                                Classes="section-header"
-                               DockPanel.Dock="Top"/>
+                               DockPanel.Dock="Top"
+                               Margin="0,0,0,12"/>
 
                     <DataGrid ItemsSource="{Binding PaycheckRows}"
                               SelectedItem="{Binding SelectedPaycheckRow}"
@@ -75,10 +74,9 @@
             </Border>
 
             <!-- Action Buttons -->
-            <Border Classes="card" Margin="0,0,0,16">
-                <StackPanel Spacing="12">
-                    <TextBlock Text="Actions"
-                               Classes="section-header"/>
+            <Border Classes="card">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="Actions" Classes="section-header"/>
 
                     <WrapPanel Orientation="Horizontal" HorizontalAlignment="Left">
                         <Button Content="Print All Checks"
@@ -94,8 +92,7 @@
                                 Classes="secondary"
                                 Margin="0,0,12,8"/>
 
-                        <!-- Separator -->
-                        <Border Width="1" Background="#444" Margin="4,0,12,8" Height="30"
+                        <Border Width="1" Background="{StaticResource BorderBrush}" Margin="4,0,12,8" Height="30"
                                 VerticalAlignment="Center"/>
 
                         <Button Content="Void Selected Check"
@@ -113,49 +110,38 @@
                                      Width="120"
                                      Height="4"/>
                         <TextBlock Text="Generating..."
-                                   Foreground="#888"
+                                   Foreground="{StaticResource TextMutedBrush}"
                                    VerticalAlignment="Center"/>
                     </StackPanel>
                 </StackPanel>
             </Border>
 
             <!-- Status Message - Error -->
-            <Border Classes="section-card"
-                    IsVisible="{Binding IsStatusError}">
-                <StackPanel Spacing="4">
-                    <TextBlock Text="Status"
-                               Classes="section-header"/>
-                    <Border CornerRadius="4"
-                            Padding="12,8"
-                            Background="#4C2020">
-                        <TextBlock Text="{Binding StatusMessage}"
-                                   TextWrapping="Wrap"
-                                   FontSize="13"
-                                   Foreground="#FF6B6B"/>
-                    </Border>
-                </StackPanel>
+            <Border IsVisible="{Binding IsStatusError}"
+                    Background="#FFEBEE" BorderBrush="#EF5350" BorderThickness="1"
+                    CornerRadius="6" Padding="16,12">
+                <TextBlock Text="{Binding StatusMessage}"
+                           TextWrapping="Wrap"
+                           FontSize="14"
+                           FontWeight="SemiBold"
+                           Foreground="#C62828"/>
             </Border>
 
             <!-- Status Message - Success -->
-            <Border Classes="section-card"
-                    IsVisible="{Binding !IsStatusError}">
-                <StackPanel Spacing="4"
-                            IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-                    <TextBlock Text="Status"
-                               Classes="section-header"/>
-                    <Border CornerRadius="4"
-                            Padding="12,8"
-                            Background="#1C3A2A">
-                        <TextBlock Text="{Binding StatusMessage}"
-                                   TextWrapping="Wrap"
-                                   FontSize="13"
-                                   Foreground="#6BCB77"/>
-                    </Border>
-                </StackPanel>
+            <Border IsVisible="{Binding !IsStatusError}"
+                    Margin="0">
+                <Border IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                        Background="#E8F5E9" BorderBrush="#66BB6A" BorderThickness="1"
+                        CornerRadius="6" Padding="16,12">
+                    <TextBlock Text="{Binding StatusMessage}"
+                               TextWrapping="Wrap"
+                               FontSize="14"
+                               FontWeight="SemiBold"
+                               Foreground="#2E7D32"/>
+                </Border>
             </Border>
 
         </StackPanel>
     </ScrollViewer>
 
 </UserControl>
-

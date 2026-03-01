@@ -119,13 +119,15 @@
                 <!-- Validation Error -->
                 <Border DockPanel.Dock="Top"
                         IsVisible="{Binding ValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                        Background="{StaticResource DangerBrush}"
+                        Background="#FFEBEE"
+                        BorderBrush="#EF5350"
+                        BorderThickness="1"
                         CornerRadius="6"
                         Padding="16,12"
-                        Margin="0,0,0,16"
-                        Opacity="0.15">
+                        Margin="0,0,0,16">
                     <TextBlock Text="{Binding ValidationError}"
-                               Foreground="{StaticResource DangerBrush}"
+                               Foreground="#C62828"
+                               FontWeight="SemiBold"
                                TextWrapping="Wrap"/>
                 </Border>
 

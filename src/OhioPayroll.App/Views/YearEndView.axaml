@@ -91,9 +91,10 @@
         <!-- Status Message -->
         <Border DockPanel.Dock="Bottom" Padding="0,16,0,0"
                 IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-            <Border Background="{StaticResource SuccessBrush}" CornerRadius="6" Padding="16,12" Opacity="0.15">
+            <Border Background="#E8F5E9" BorderBrush="#66BB6A" BorderThickness="1"
+                    CornerRadius="6" Padding="16,12">
                 <TextBlock Text="{Binding StatusMessage}"
-                           FontSize="14" Foreground="{StaticResource SuccessBrush}"
+                           FontSize="14" Foreground="#2E7D32" FontWeight="SemiBold"
                            TextWrapping="Wrap"/>
             </Border>
         </Border>

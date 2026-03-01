@@ -71,12 +71,13 @@
                                                 <Button Content="Edit"
                                                         Command="{Binding $parent[DataGrid].((vm:BankAccountsViewModel)DataContext).EditCompanyAccountCommand}"
                                                         Padding="8,4"
-                                                        FontSize="12"/>
+                                                        FontSize="12"
+                                                        Classes="secondary"/>
                                                 <Button Content="Delete"
                                                         Command="{Binding $parent[DataGrid].((vm:BankAccountsViewModel)DataContext).DeleteCompanyAccountCommand}"
                                                         Padding="8,4"
                                                         FontSize="12"
-                                                        Foreground="#EF4444"/>
+                                                        Classes="danger"/>
                                             </StackPanel>
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
@@ -138,12 +139,13 @@
                                                 <Button Content="Edit"
                                                         Command="{Binding $parent[DataGrid].((vm:BankAccountsViewModel)DataContext).EditEmployeeAccountCommand}"
                                                         Padding="8,4"
-                                                        FontSize="12"/>
+                                                        FontSize="12"
+                                                        Classes="secondary"/>
                                                 <Button Content="Delete"
                                                         Command="{Binding $parent[DataGrid].((vm:BankAccountsViewModel)DataContext).DeleteEmployeeAccountCommand}"
                                                         Padding="8,4"
                                                         FontSize="12"
-                                                        Foreground="#EF4444"/>
+                                                        Classes="danger"/>
                                             </StackPanel>
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>

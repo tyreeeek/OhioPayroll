@@ -92,21 +92,18 @@
 
             <!-- Tax Table Alert -->
             <Border IsVisible="{Binding HasTaxTableAlert}"
-                    Background="{StaticResource WarningBrush}"
-                    Opacity="0.1"
+                    Background="#FFF8E1"
                     CornerRadius="8"
                     Padding="24"
-                    BorderBrush="{StaticResource WarningBrush}"
+                    BorderBrush="#FFB300"
                     BorderThickness="1">
-                <Border Background="Transparent">
-                    <StackPanel Spacing="8">
-                        <TextBlock Text="⚠ Alert" FontSize="16" FontWeight="600" Foreground="{StaticResource WarningBrush}"/>
-                        <TextBlock Text="{Binding TaxTableAlertMessage}"
-                                   FontSize="14"
-                                   Foreground="{StaticResource TextPrimaryBrush}"
-                                   TextWrapping="Wrap"/>
-                    </StackPanel>
-                </Border>
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Alert" FontSize="16" FontWeight="600" Foreground="#E65100"/>
+                    <TextBlock Text="{Binding TaxTableAlertMessage}"
+                               FontSize="14"
+                               Foreground="#BF360C"
+                               TextWrapping="Wrap"/>
+                </StackPanel>
             </Border>
 
             <!-- Quarterly Breakdown Section -->

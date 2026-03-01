@@ -9,23 +9,69 @@
 
     <Grid RowDefinitions="Auto,*,Auto">
         <!-- Header -->
-        <Border Grid.Row="0" Background="{StaticResource PrimaryBrush}" Padding="24,20" Margin="0,0,0,24">
-            <StackPanel Spacing="12">
-                <TextBlock Text="Contractor Payroll Processing"
-                           FontSize="28" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                <StackPanel Orientation="Horizontal" Spacing="32">
-                    <TextBlock Text="Step 1: Period" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}"
-                               Opacity="{Binding IsStep1, Converter={StaticResource BoolToOpacityConverter}}"/>
-                    <TextBlock Text="→" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}"/>
-                    <TextBlock Text="Step 2: Hours/Days" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}"
-                               Opacity="{Binding IsStep2, Converter={StaticResource BoolToOpacityConverter}}"/>
-                    <TextBlock Text="→" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}"/>
-                    <TextBlock Text="Step 3: Preview" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}"
-                               Opacity="{Binding IsStep3, Converter={StaticResource BoolToOpacityConverter}}"/>
-                    <TextBlock Text="→" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}"/>
-                    <TextBlock Text="Step 4: Complete" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}"
-                               Opacity="{Binding IsStep4, Converter={StaticResource BoolToOpacityConverter}}"/>
-                </StackPanel>
+        <Border Grid.Row="0" Padding="0,0,0,24">
+            <StackPanel Spacing="16">
+                <TextBlock Text="Contractor Payroll Processing" Classes="page-title"/>
+                <Border Background="{StaticResource SurfaceHoverBrush}" CornerRadius="8" Padding="16,12">
+                    <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center">
+                        <Border Background="{StaticResource PrimaryBrush}" CornerRadius="16" Padding="12,6"
+                                IsVisible="{Binding IsStep1}">
+                            <TextBlock Text="1. Period" FontSize="13" FontWeight="600" Foreground="White"/>
+                        </Border>
+                        <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}"
+                                BorderThickness="1" CornerRadius="16" Padding="12,6"
+                                IsVisible="{Binding !IsStep1}"
+                                Opacity="{Binding IsStep1, Converter={StaticResource BoolToOpacityConverter}}">
+                            <TextBlock Text="1. Period" FontSize="13" FontWeight="500"
+                                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                        </Border>
+
+                        <TextBlock Text="—" FontSize="14" Foreground="{StaticResource BorderBrush}"
+                                   VerticalAlignment="Center"/>
+
+                        <Border Background="{StaticResource PrimaryBrush}" CornerRadius="16" Padding="12,6"
+                                IsVisible="{Binding IsStep2}">
+                            <TextBlock Text="2. Hours/Days" FontSize="13" FontWeight="600" Foreground="White"/>
+                        </Border>
+                        <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}"
+                                BorderThickness="1" CornerRadius="16" Padding="12,6"
+                                IsVisible="{Binding !IsStep2}"
+                                Opacity="{Binding IsStep2, Converter={StaticResource BoolToOpacityConverter}}">
+                            <TextBlock Text="2. Hours/Days" FontSize="13" FontWeight="500"
+                                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                        </Border>
+
+                        <TextBlock Text="—" FontSize="14" Foreground="{StaticResource BorderBrush}"
+                                   VerticalAlignment="Center"/>
+
+                        <Border Background="{StaticResource PrimaryBrush}" CornerRadius="16" Padding="12,6"
+                                IsVisible="{Binding IsStep3}">
+                            <TextBlock Text="3. Preview" FontSize="13" FontWeight="600" Foreground="White"/>
+                        </Border>
+                        <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}"
+                                BorderThickness="1" CornerRadius="16" Padding="12,6"
+                                IsVisible="{Binding !IsStep3}"
+                                Opacity="{Binding IsStep3, Converter={StaticResource BoolToOpacityConverter}}">
+                            <TextBlock Text="3. Preview" FontSize="13" FontWeight="500"
+                                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                        </Border>
+
+                        <TextBlock Text="—" FontSize="14" Foreground="{StaticResource BorderBrush}"
+                                   VerticalAlignment="Center"/>
+
+                        <Border Background="{StaticResource SuccessBrush}" CornerRadius="16" Padding="12,6"
+                                IsVisible="{Binding IsStep4}">
+                            <TextBlock Text="4. Complete" FontSize="13" FontWeight="600" Foreground="White"/>
+                        </Border>
+                        <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}"
+                                BorderThickness="1" CornerRadius="16" Padding="12,6"
+                                IsVisible="{Binding !IsStep4}"
+                                Opacity="{Binding IsStep4, Converter={StaticResource BoolToOpacityConverter}}">
+                            <TextBlock Text="4. Complete" FontSize="13" FontWeight="500"
+                                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                        </Border>
+                    </StackPanel>
+                </Border>
             </StackPanel>
         </Border>
 
@@ -170,10 +216,11 @@
                             </DataGrid.Columns>
                         </DataGrid>
 
-                        <Border Background="{StaticResource WarningBrush}" CornerRadius="6" Padding="16" Opacity="0.15">
+                        <Border Background="#FFF8E1" BorderBrush="#FFB300" BorderThickness="1"
+                                CornerRadius="6" Padding="16">
                             <StackPanel Spacing="8">
-                                <TextBlock Text="Warning: Finalization is Permanent" FontWeight="Bold" Foreground="{StaticResource WarningBrush}"/>
-                                <TextBlock TextWrapping="Wrap" Foreground="{StaticResource WarningBrush}">
+                                <TextBlock Text="Warning: Finalization is Permanent" FontWeight="Bold" Foreground="#E65100"/>
+                                <TextBlock TextWrapping="Wrap" Foreground="#BF360C">
                                     Once finalized, this payroll run cannot be edited or deleted. Payment amounts will be locked and historical snapshots will be created.
                                 </TextBlock>
                             </StackPanel>
