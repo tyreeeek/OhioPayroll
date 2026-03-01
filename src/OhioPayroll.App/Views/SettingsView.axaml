@@ -214,13 +214,13 @@
 
                     <!-- Update Available Panel -->
                     <Border IsVisible="{Binding AvailableUpdate, Converter={x:Static ObjectConverters.IsNotNull}}"
-                            Background="#EDE7F6"
-                            BorderBrush="#7C4DFF"
+                            Background="{StaticResource PrimaryLightBrush}"
+                            BorderBrush="{StaticResource PrimaryBrush}"
                             BorderThickness="1"
-                            CornerRadius="6"
+                            CornerRadius="10"
                             Padding="20">
                         <StackPanel Spacing="12">
-                            <TextBlock Text="Update Available!" FontSize="18" FontWeight="Bold" Foreground="#4F46E5"/>
+                            <TextBlock Text="Update Available!" FontSize="18" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}"/>
                             <TextBlock Text="{Binding AvailableUpdate.ReleaseName}" FontSize="15" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
                             <TextBlock Text="{Binding AvailableUpdate.ReleaseNotes}"
                                        TextWrapping="Wrap"

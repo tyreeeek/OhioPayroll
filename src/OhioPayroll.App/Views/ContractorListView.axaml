@@ -161,12 +161,11 @@
                 <!-- Validation Error -->
                 <Border DockPanel.Dock="Top"
                         IsVisible="{Binding ValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                        Background="#FDE8E8"
-                        CornerRadius="4"
-                        Padding="12,8"
+                        Classes="alert-error"
                         Margin="0,0,0,12">
                     <TextBlock Text="{Binding ValidationError}"
-                               Foreground="#C53030"
+                               Foreground="{StaticResource DangerBrush}"
+                               FontWeight="SemiBold"
                                TextWrapping="Wrap"/>
                 </Border>
 
@@ -267,12 +266,10 @@
                         </StackPanel>
 
                         <!-- Warning if rate cannot be edited -->
-                        <Border Background="#FFF3CD"
-                                CornerRadius="4"
-                                Padding="8,6"
+                        <Border Classes="alert-warning"
                                 IsVisible="{Binding !CanEditRate}">
-                            <TextBlock Text="⚠️ Rate cannot be changed because this contractor has been used in finalized payroll runs."
-                                       Foreground="#856404"
+                            <TextBlock Text="Rate cannot be changed because this contractor has been used in finalized payroll runs."
+                                       Foreground="{StaticResource WarningBrush}"
                                        TextWrapping="Wrap"
                                        FontSize="12"/>
                         </Border>
@@ -391,11 +388,10 @@
 
                     <!-- Payment Validation Error -->
                     <Border IsVisible="{Binding PaymentValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                            Background="#FDE8E8"
-                            CornerRadius="4"
-                            Padding="12,8">
+                            Classes="alert-error">
                         <TextBlock Text="{Binding PaymentValidationError}"
-                                   Foreground="#C53030"
+                                   Foreground="{StaticResource DangerBrush}"
+                                   FontWeight="SemiBold"
                                    TextWrapping="Wrap"/>
                     </Border>
 

@@ -1,123 +1,126 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <!-- Modern Professional Button Styles -->
+    <!-- ══════════════════════════════════════════════════
+         BUTTON SYSTEM — Consistent sizing, smooth interactions
+         ══════════════════════════════════════════════════ -->
 
-    <!-- Primary Button - LARGER, Solid, Professional -->
+    <!-- Primary — Solid indigo -->
     <Style Selector="Button.primary">
         <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
         <Setter Property="Foreground" Value="White"/>
         <Setter Property="BorderThickness" Value="0"/>
-        <Setter Property="Padding" Value="16,8"/>
-        <Setter Property="CornerRadius" Value="6"/>
-        <Setter Property="FontWeight" Value="500"/>
-        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="Padding" Value="20,10"/>
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="FontWeight" Value="600"/>
+        <Setter Property="FontSize" Value="13"/>
         <Setter Property="Cursor" Value="Hand"/>
-        <Setter Property="MinHeight" Value="36"/>
+        <Setter Property="MinHeight" Value="38"/>
         <Setter Property="Transitions">
             <Transitions>
-                <DoubleTransition Property="Opacity" Duration="0:0:0.2"/>
-                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.15"/>
+                <BrushTransition Property="Background" Duration="0:0:0.15"/>
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.1"/>
             </Transitions>
         </Setter>
     </Style>
-
     <Style Selector="Button.primary:pointerover">
         <Setter Property="Background" Value="{StaticResource PrimaryHoverBrush}"/>
         <Setter Property="RenderTransform" Value="translateY(-1px)"/>
     </Style>
-
     <Style Selector="Button.primary:pressed">
         <Setter Property="Background" Value="{StaticResource PrimaryActiveBrush}"/>
         <Setter Property="RenderTransform" Value="translateY(0px)"/>
     </Style>
-
     <Style Selector="Button.primary:disabled">
-        <Setter Property="Opacity" Value="0.4"/>
+        <Setter Property="Opacity" Value="0.5"/>
         <Setter Property="Cursor" Value="Arrow"/>
     </Style>
 
-    <!-- Success Button -->
+    <!-- Secondary — Outlined, subtle -->
+    <Style Selector="Button.secondary">
+        <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="20,10"/>
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="FontWeight" Value="500"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="MinHeight" Value="38"/>
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Property="Background" Duration="0:0:0.15"/>
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="Button.secondary:pointerover">
+        <Setter Property="Background" Value="{StaticResource SurfaceHoverBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource TextMutedBrush}"/>
+    </Style>
+    <Style Selector="Button.secondary:pressed">
+        <Setter Property="Background" Value="{StaticResource SurfaceHoverBrush}"/>
+    </Style>
+
+    <!-- Success — Green solid -->
     <Style Selector="Button.success">
         <Setter Property="Background" Value="{StaticResource SuccessBrush}"/>
         <Setter Property="Foreground" Value="White"/>
         <Setter Property="BorderThickness" Value="0"/>
-        <Setter Property="Padding" Value="16,8"/>
-        <Setter Property="CornerRadius" Value="6"/>
-        <Setter Property="FontWeight" Value="500"/>
-        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="Padding" Value="20,10"/>
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="FontWeight" Value="600"/>
+        <Setter Property="FontSize" Value="13"/>
         <Setter Property="Cursor" Value="Hand"/>
-        <Setter Property="MinHeight" Value="36"/>
+        <Setter Property="MinHeight" Value="38"/>
     </Style>
-
     <Style Selector="Button.success:pointerover">
         <Setter Property="Background" Value="{StaticResource SuccessHoverBrush}"/>
     </Style>
 
-    <!-- Danger Button -->
+    <!-- Danger — Red solid -->
     <Style Selector="Button.danger">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{StaticResource DangerBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource DangerBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="20,10"/>
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="FontWeight" Value="500"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="MinHeight" Value="38"/>
+    </Style>
+    <Style Selector="Button.danger:pointerover">
         <Setter Property="Background" Value="{StaticResource DangerBrush}"/>
         <Setter Property="Foreground" Value="White"/>
-        <Setter Property="BorderThickness" Value="0"/>
-        <Setter Property="Padding" Value="16,8"/>
-        <Setter Property="CornerRadius" Value="6"/>
-        <Setter Property="FontWeight" Value="500"/>
-        <Setter Property="FontSize" Value="14"/>
-        <Setter Property="Cursor" Value="Hand"/>
-        <Setter Property="MinHeight" Value="36"/>
     </Style>
 
-    <Style Selector="Button.danger:pointerover">
-        <Setter Property="Background" Value="{StaticResource DangerHoverBrush}"/>
-    </Style>
-
-    <!-- Secondary/Outline Button -->
-    <Style Selector="Button.secondary">
-        <Setter Property="Background" Value="Transparent"/>
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
-        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
-        <Setter Property="BorderThickness" Value="1.5"/>
-        <Setter Property="Padding" Value="20,12"/>
-        <Setter Property="CornerRadius" Value="6"/>
-        <Setter Property="FontWeight" Value="500"/>
-        <Setter Property="FontSize" Value="14"/>
-        <Setter Property="Cursor" Value="Hand"/>
-        <Setter Property="MinHeight" Value="40"/>
-    </Style>
-
-    <Style Selector="Button.secondary:pointerover">
-        <Setter Property="Background" Value="{StaticResource SurfaceHoverBrush}"/>
-        <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
-    </Style>
-
-    <!-- Ghost Button (Minimal) -->
+    <!-- Ghost — Minimal, no border -->
     <Style Selector="Button.ghost">
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
         <Setter Property="BorderThickness" Value="0"/>
-        <Setter Property="Padding" Value="16,10"/>
+        <Setter Property="Padding" Value="12,8"/>
         <Setter Property="CornerRadius" Value="6"/>
         <Setter Property="FontWeight" Value="500"/>
-        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontSize" Value="13"/>
         <Setter Property="Cursor" Value="Hand"/>
     </Style>
-
     <Style Selector="Button.ghost:pointerover">
         <Setter Property="Background" Value="{StaticResource SurfaceHoverBrush}"/>
         <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
     </Style>
 
-    <!-- Small Button Variant -->
+    <!-- Size Variants -->
     <Style Selector="Button.small">
-        <Setter Property="Padding" Value="12,8"/>
-        <Setter Property="FontSize" Value="13"/>
-        <Setter Property="MinHeight" Value="32"/>
+        <Setter Property="Padding" Value="12,6"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="MinHeight" Value="30"/>
     </Style>
-
-    <!-- Large Button Variant -->
     <Style Selector="Button.large">
-        <Setter Property="Padding" Value="24,16"/>
+        <Setter Property="Padding" Value="28,14"/>
         <Setter Property="FontSize" Value="15"/>
-        <Setter Property="MinHeight" Value="48"/>
+        <Setter Property="MinHeight" Value="46"/>
     </Style>
 </Styles>

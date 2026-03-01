@@ -91,17 +91,13 @@
             </Grid>
 
             <!-- Tax Table Alert -->
-            <Border IsVisible="{Binding HasTaxTableAlert}"
-                    Background="#FFF8E1"
-                    CornerRadius="8"
-                    Padding="24"
-                    BorderBrush="#FFB300"
-                    BorderThickness="1">
+            <Border IsVisible="{Binding HasTaxTableAlert}" Classes="alert-warning">
                 <StackPanel Spacing="8">
-                    <TextBlock Text="Alert" FontSize="16" FontWeight="600" Foreground="#E65100"/>
+                    <TextBlock Text="Alert" FontSize="16" FontWeight="600"
+                               Foreground="{StaticResource WarningBrush}"/>
                     <TextBlock Text="{Binding TaxTableAlertMessage}"
                                FontSize="14"
-                               Foreground="#BF360C"
+                               Foreground="{StaticResource TextPrimaryBrush}"
                                TextWrapping="Wrap"/>
                 </StackPanel>
             </Border>

@@ -3,92 +3,103 @@
 
     <Style>
         <Style.Resources>
-            <!-- LIGHT MODE COLORS — Modern SaaS Palette -->
+            <!-- ══════════════════════════════════════════════════
+                 WHITE MODE — Production SaaS Palette
+                 Inspired by Linear, Vercel, Stripe
+                 ══════════════════════════════════════════════════ -->
+
+            <!-- Primary — Deep Indigo -->
             <Color x:Key="Light_Primary">#4F46E5</Color>
             <Color x:Key="Light_PrimaryHover">#4338CA</Color>
             <Color x:Key="Light_PrimaryActive">#3730A3</Color>
+            <Color x:Key="Light_PrimaryLight">#EEF2FF</Color>
 
-            <Color x:Key="Light_Success">#10B981</Color>
-            <Color x:Key="Light_SuccessHover">#059669</Color>
+            <!-- Semantic -->
+            <Color x:Key="Light_Success">#059669</Color>
+            <Color x:Key="Light_SuccessHover">#047857</Color>
+            <Color x:Key="Light_SuccessLight">#ECFDF5</Color>
 
-            <Color x:Key="Light_Danger">#EF4444</Color>
-            <Color x:Key="Light_DangerHover">#DC2626</Color>
+            <Color x:Key="Light_Danger">#DC2626</Color>
+            <Color x:Key="Light_DangerHover">#B91C1C</Color>
+            <Color x:Key="Light_DangerLight">#FEF2F2</Color>
 
-            <Color x:Key="Light_Warning">#F59E0B</Color>
-            <Color x:Key="Light_WarningHover">#D97706</Color>
+            <Color x:Key="Light_Warning">#D97706</Color>
+            <Color x:Key="Light_WarningHover">#B45309</Color>
+            <Color x:Key="Light_WarningLight">#FFFBEB</Color>
 
-            <Color x:Key="Light_Background">#FFFFFF</Color>
+            <!-- Surfaces -->
+            <Color x:Key="Light_Background">#F9FAFB</Color>
             <Color x:Key="Light_Surface">#FFFFFF</Color>
-            <Color x:Key="Light_SurfaceHover">#F7F8FA</Color>
+            <Color x:Key="Light_SurfaceHover">#F3F4F6</Color>
             <Color x:Key="Light_Border">#E5E7EB</Color>
-            <Color x:Key="Light_Sidebar">#F9FAFB</Color>
+            <Color x:Key="Light_BorderLight">#F3F4F6</Color>
+            <Color x:Key="Light_Sidebar">#FFFFFF</Color>
 
+            <!-- Typography -->
             <Color x:Key="Light_TextPrimary">#111827</Color>
             <Color x:Key="Light_TextSecondary">#6B7280</Color>
             <Color x:Key="Light_TextMuted">#9CA3AF</Color>
 
-            <!-- DARK MODE COLORS -->
-            <Color x:Key="Dark_Primary">#3B82F6</Color>
-            <Color x:Key="Dark_PrimaryHover">#2563EB</Color>
-            <Color x:Key="Dark_PrimaryActive">#1D4ED8</Color>
+            <!-- ══════════════════════════════════════════════════
+                 DARK MODE COLORS (toggle support)
+                 ══════════════════════════════════════════════════ -->
+            <Color x:Key="Dark_Primary">#818CF8</Color>
+            <Color x:Key="Dark_PrimaryHover">#6366F1</Color>
+            <Color x:Key="Dark_PrimaryActive">#4F46E5</Color>
 
-            <Color x:Key="Dark_Success">#10B981</Color>
-            <Color x:Key="Dark_SuccessHover">#059669</Color>
+            <Color x:Key="Dark_Success">#34D399</Color>
+            <Color x:Key="Dark_SuccessHover">#10B981</Color>
 
-            <Color x:Key="Dark_Danger">#EF4444</Color>
-            <Color x:Key="Dark_DangerHover">#DC2626</Color>
+            <Color x:Key="Dark_Danger">#F87171</Color>
+            <Color x:Key="Dark_DangerHover">#EF4444</Color>
 
-            <Color x:Key="Dark_Warning">#F59E0B</Color>
-            <Color x:Key="Dark_WarningHover">#D97706</Color>
+            <Color x:Key="Dark_Warning">#FBBF24</Color>
+            <Color x:Key="Dark_WarningHover">#F59E0B</Color>
 
-            <Color x:Key="Dark_Background">#0D1117</Color>
-            <Color x:Key="Dark_Surface">#161B22</Color>
-            <Color x:Key="Dark_SurfaceHover">#1F2937</Color>
-            <Color x:Key="Dark_Border">#30363D</Color>
-            <Color x:Key="Dark_Sidebar">#0D1117</Color>
+            <Color x:Key="Dark_Background">#0F172A</Color>
+            <Color x:Key="Dark_Surface">#1E293B</Color>
+            <Color x:Key="Dark_SurfaceHover">#334155</Color>
+            <Color x:Key="Dark_Border">#334155</Color>
+            <Color x:Key="Dark_Sidebar">#0F172A</Color>
 
-            <Color x:Key="Dark_TextPrimary">#F0F6FC</Color>
-            <Color x:Key="Dark_TextSecondary">#C9D1D9</Color>
-            <Color x:Key="Dark_TextMuted">#8B949E</Color>
+            <Color x:Key="Dark_TextPrimary">#F8FAFC</Color>
+            <Color x:Key="Dark_TextSecondary">#94A3B8</Color>
+            <Color x:Key="Dark_TextMuted">#64748B</Color>
 
-            <!-- Active Theme Brushes (Default: Light) -->
+            <!-- ══════════════════════════════════════════════════
+                 Active Theme Brushes (Default: Light / White)
+                 ══════════════════════════════════════════════════ -->
             <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Light_Primary}"/>
             <SolidColorBrush x:Key="PrimaryHoverBrush" Color="{StaticResource Light_PrimaryHover}"/>
             <SolidColorBrush x:Key="PrimaryActiveBrush" Color="{StaticResource Light_PrimaryActive}"/>
+            <SolidColorBrush x:Key="PrimaryLightBrush" Color="{StaticResource Light_PrimaryLight}"/>
 
             <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource Light_Success}"/>
             <SolidColorBrush x:Key="SuccessHoverBrush" Color="{StaticResource Light_SuccessHover}"/>
+            <SolidColorBrush x:Key="SuccessLightBrush" Color="{StaticResource Light_SuccessLight}"/>
 
             <SolidColorBrush x:Key="DangerBrush" Color="{StaticResource Light_Danger}"/>
             <SolidColorBrush x:Key="DangerHoverBrush" Color="{StaticResource Light_DangerHover}"/>
+            <SolidColorBrush x:Key="DangerLightBrush" Color="{StaticResource Light_DangerLight}"/>
 
             <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource Light_Warning}"/>
             <SolidColorBrush x:Key="WarningHoverBrush" Color="{StaticResource Light_WarningHover}"/>
+            <SolidColorBrush x:Key="WarningLightBrush" Color="{StaticResource Light_WarningLight}"/>
 
             <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource Light_Background}"/>
             <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource Light_Surface}"/>
             <SolidColorBrush x:Key="SurfaceHoverBrush" Color="{StaticResource Light_SurfaceHover}"/>
             <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource Light_Border}"/>
+            <SolidColorBrush x:Key="BorderLightBrush" Color="{StaticResource Light_BorderLight}"/>
             <SolidColorBrush x:Key="SidebarBrush" Color="{StaticResource Light_Sidebar}"/>
 
             <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource Light_TextPrimary}"/>
             <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource Light_TextSecondary}"/>
             <SolidColorBrush x:Key="TextMutedBrush" Color="{StaticResource Light_TextMuted}"/>
-
-            <!-- Gradients -->
-            <LinearGradientBrush x:Key="PrimaryGradient" StartPoint="0%,0%" EndPoint="100%,100%">
-                <GradientStop Color="#667EEA" Offset="0"/>
-                <GradientStop Color="#764BA2" Offset="1"/>
-            </LinearGradientBrush>
-
-            <LinearGradientBrush x:Key="AccentGradient" StartPoint="0%,0%" EndPoint="100%,100%">
-                <GradientStop Color="#4F46E5" Offset="0"/>
-                <GradientStop Color="#7C3AED" Offset="1"/>
-            </LinearGradientBrush>
         </Style.Resources>
     </Style>
 
-    <!-- Dark Mode Theme -->
+    <!-- Dark Mode Override -->
     <Style Selector="Window.dark-theme">
         <Style.Resources>
             <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Dark_Primary}"/>

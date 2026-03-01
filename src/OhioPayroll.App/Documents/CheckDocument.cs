@@ -86,40 +86,40 @@ public class CheckDocument : IDocument
 
     private void ComposeVoucherStub(IContainer container, string copyLabel)
     {
-        container.Background(LightBg).Border(1).BorderColor(BorderColor).Padding(8).Column(column =>
+        container.Background(LightBg).Border(1).BorderColor(BorderColor).Padding(6).Column(column =>
         {
-            // Voucher header - modern
+            column.Spacing(3);
+
+            // Voucher header
             column.Item().Row(row =>
             {
                 row.RelativeItem().Column(col =>
                 {
-                    col.Item().Text(_company.CompanyName).FontSize(10).Bold().FontColor("#111827");
+                    col.Item().Text(_company.CompanyName).FontSize(9).Bold().FontColor("#111827");
                     col.Item().Text($"EIN: {FormatEin(_company.Ein)}").FontSize(7).FontColor("#6B7280");
                 });
-                row.ConstantItem(130).AlignRight().Background("#FFFFFF").Border(1).BorderColor(AccentGreen).Padding(4).Column(col =>
+                row.ConstantItem(120).AlignRight().Background("#FFFFFF").Border(1).BorderColor(AccentGreen).Padding(3).Column(col =>
                 {
-                    col.Item().AlignRight().Text(copyLabel).FontSize(7).Bold().FontColor("#6B7280");
+                    col.Item().AlignRight().Text(copyLabel).FontSize(6).Bold().FontColor("#6B7280");
                     if (_paycheck.CheckNumber.HasValue)
-                        col.Item().AlignRight().Text($"Check #: {_paycheck.CheckNumber}").FontSize(8).Bold().FontColor("#111827");
+                        col.Item().AlignRight().Text($"Check #: {_paycheck.CheckNumber}").FontSize(7).Bold().FontColor("#111827");
                     col.Item().AlignRight().Text($"Pay Date: {_run.PayDate:MM/dd/yyyy}").FontSize(7).FontColor("#374151");
                 });
             });
 
-            column.Item().PaddingTop(4).Row(row =>
+            column.Item().Row(row =>
             {
                 row.RelativeItem().Column(col =>
                 {
-                    col.Item().Text("EMPLOYEE").FontSize(7).FontColor("#6B7280");
-                    col.Item().PaddingTop(1).Text(_employee.FullName).FontSize(9).Bold().FontColor("#111827");
+                    col.Item().Text("EMPLOYEE").FontSize(6).FontColor("#6B7280");
+                    col.Item().Text(_employee.FullName).FontSize(8).Bold().FontColor("#111827");
                 });
-                row.ConstantItem(200).AlignRight().Column(col =>
+                row.ConstantItem(180).AlignRight().Column(col =>
                 {
-                    col.Item().AlignRight().Text("PERIOD").FontSize(7).FontColor("#6B7280");
-                    col.Item().PaddingTop(1).AlignRight().Text($"{_run.PeriodStart:MM/dd/yyyy} - {_run.PeriodEnd:MM/dd/yyyy}").FontSize(8).Bold().FontColor("#111827");
+                    col.Item().AlignRight().Text("PERIOD").FontSize(6).FontColor("#6B7280");
+                    col.Item().AlignRight().Text($"{_run.PeriodStart:MM/dd/yyyy} - {_run.PeriodEnd:MM/dd/yyyy}").FontSize(7).Bold().FontColor("#111827");
                 });
             });
-
-            column.Item().PaddingTop(6);
 
             // Earnings / Deductions side by side
             column.Item().Row(row =>
@@ -135,10 +135,10 @@ public class CheckDocument : IDocument
 
                     table.Header(header =>
                     {
-                        header.Cell().Background(TableHeaderBg).Padding(3)
-                            .Text("Earnings").FontSize(7).Bold().FontColor(TableHeaderText);
-                        header.Cell().Background(TableHeaderBg).Padding(3).AlignRight()
-                            .Text("Current").FontSize(7).Bold().FontColor(TableHeaderText);
+                        header.Cell().Background(TableHeaderBg).Padding(2)
+                            .Text("Earnings").FontSize(6).Bold().FontColor(TableHeaderText);
+                        header.Cell().Background(TableHeaderBg).Padding(2).AlignRight()
+                            .Text("Current").FontSize(6).Bold().FontColor(TableHeaderText);
                     });
 
                     VoucherRow(table, "Regular Pay", _paycheck.RegularPay, false);
@@ -146,7 +146,7 @@ public class CheckDocument : IDocument
                     VoucherTotalRow(table, "Gross Pay", _paycheck.GrossPay);
                 });
 
-                row.ConstantItem(8);
+                row.ConstantItem(6);
 
                 // Deductions mini-table
                 row.RelativeItem().Table(table =>
@@ -159,10 +159,10 @@ public class CheckDocument : IDocument
 
                     table.Header(header =>
                     {
-                        header.Cell().Background(TableHeaderBg).Padding(3)
-                            .Text("Deductions").FontSize(7).Bold().FontColor(TableHeaderText);
-                        header.Cell().Background(TableHeaderBg).Padding(3).AlignRight()
-                            .Text("Current").FontSize(7).Bold().FontColor(TableHeaderText);
+                        header.Cell().Background(TableHeaderBg).Padding(2)
+                            .Text("Deductions").FontSize(6).Bold().FontColor(TableHeaderText);
+                        header.Cell().Background(TableHeaderBg).Padding(2).AlignRight()
+                            .Text("Current").FontSize(6).Bold().FontColor(TableHeaderText);
                     });
 
                     VoucherRow(table, "Federal W/H", _paycheck.FederalWithholding, false);
@@ -174,15 +174,15 @@ public class CheckDocument : IDocument
                     VoucherTotalRow(table, "Total Deduct.", _paycheck.TotalDeductions);
                 });
 
-                row.ConstantItem(8);
+                row.ConstantItem(6);
 
-                // Net Pay box - highlighted
-                row.ConstantItem(110).AlignMiddle().Border(2).BorderColor(AccentGreen).Background("#FFFFFF").Column(col =>
+                // Net Pay box
+                row.ConstantItem(100).AlignMiddle().Border(2).BorderColor(AccentGreen).Background("#FFFFFF").Column(col =>
                 {
-                    col.Item().Background(AccentGreen).Padding(5).AlignCenter()
-                        .Text("NET PAY").FontSize(8).Bold().FontColor(HeaderText);
-                    col.Item().Padding(8).AlignCenter()
-                        .Text($"{_paycheck.NetPay:C}").FontSize(13).Bold().FontColor(AccentGreen);
+                    col.Item().Background(AccentGreen).Padding(4).AlignCenter()
+                        .Text("NET PAY").FontSize(7).Bold().FontColor(HeaderText);
+                    col.Item().Padding(6).AlignCenter()
+                        .Text($"{_paycheck.NetPay:C}").FontSize(12).Bold().FontColor(AccentGreen);
                 });
             });
         });
@@ -191,98 +191,95 @@ public class CheckDocument : IDocument
     private static void VoucherRow(TableDescriptor table, string description, decimal amount, bool alt)
     {
         var bg = alt ? LightBg : "#FFFFFF";
-        table.Cell().Background(bg).Padding(2).Text(description).FontSize(7);
-        table.Cell().Background(bg).Padding(2).AlignRight().Text($"{amount:C}").FontSize(7);
+        table.Cell().Background(bg).Padding(1).Text(description).FontSize(6);
+        table.Cell().Background(bg).Padding(1).AlignRight().Text($"{amount:C}").FontSize(6);
     }
 
     private static void VoucherTotalRow(TableDescriptor table, string description, decimal amount)
     {
-        table.Cell().BorderTop(1).BorderColor(BorderColor).Padding(2)
-            .Text(description).FontSize(7).Bold();
-        table.Cell().BorderTop(1).BorderColor(BorderColor).Padding(2).AlignRight()
-            .Text($"{amount:C}").FontSize(7).Bold();
+        table.Cell().BorderTop(1).BorderColor(BorderColor).Padding(1)
+            .Text(description).FontSize(6).Bold();
+        table.Cell().BorderTop(1).BorderColor(BorderColor).Padding(1).AlignRight()
+            .Text($"{amount:C}").FontSize(6).Bold();
     }
 
     private void ComposeCheckSection(IContainer container)
     {
-        container.Border(1).BorderColor("#374151").Padding(12).Column(column =>
+        container.Border(1).BorderColor("#374151").Padding(10).Column(column =>
         {
-            // Check header - modern layout
+            column.Spacing(4);
+
+            // Check header
             column.Item().Row(row =>
             {
                 row.RelativeItem().Column(col =>
                 {
-                    col.Item().Text(_company.CompanyName).FontSize(13).Bold().FontColor("#111827");
-                    col.Item().PaddingTop(2).Text(_company.Address).FontSize(9).FontColor("#6B7280");
-                    col.Item().Text($"{_company.City}, {_company.State} {_company.ZipCode}").FontSize(9).FontColor("#6B7280");
+                    col.Item().Text(_company.CompanyName).FontSize(12).Bold().FontColor("#111827");
+                    col.Item().PaddingTop(1).Text(_company.Address).FontSize(8).FontColor("#6B7280");
+                    col.Item().Text($"{_company.City}, {_company.State} {_company.ZipCode}").FontSize(8).FontColor("#6B7280");
                 });
 
-                row.ConstantItem(160).AlignRight().Background(HeaderBg).Padding(8).Column(col =>
+                row.ConstantItem(140).AlignRight().Background(HeaderBg).Padding(6).Column(col =>
                 {
                     if (_paycheck.CheckNumber.HasValue)
                         col.Item().AlignCenter().Text($"#{_paycheck.CheckNumber}")
-                            .FontSize(16).Bold().FontColor("#FFFFFF");
-                    col.Item().PaddingTop(2).AlignCenter()
-                        .Text($"{_run.PayDate:MM/dd/yyyy}").FontSize(9).FontColor("#D1D5DB");
+                            .FontSize(14).Bold().FontColor("#FFFFFF");
+                    col.Item().PaddingTop(1).AlignCenter()
+                        .Text($"{_run.PayDate:MM/dd/yyyy}").FontSize(8).FontColor("#D1D5DB");
                 });
             });
 
-            column.Item().PaddingTop(16);
+            column.Item().PaddingTop(8);
 
-            // Pay To The Order Of - modern
+            // Pay To The Order Of
             column.Item().Column(col =>
             {
-                col.Item().Text("PAY TO THE ORDER OF").FontSize(8).Bold().FontColor("#6B7280");
-                col.Item().PaddingTop(4).Row(row =>
+                col.Item().Text("PAY TO THE ORDER OF").FontSize(7).Bold().FontColor("#6B7280");
+                col.Item().PaddingTop(2).Row(row =>
                 {
-                    row.RelativeItem().BorderBottom(1).BorderColor("#111827").PaddingBottom(4)
-                        .Text(_employee.FullName).FontSize(13).Bold().FontColor("#111827");
+                    row.RelativeItem().BorderBottom(1).BorderColor("#111827").PaddingBottom(2)
+                        .Text(_employee.FullName).FontSize(12).Bold().FontColor("#111827");
                 });
             });
 
-            column.Item().PaddingTop(12);
+            column.Item().PaddingTop(6);
 
             // Amount row
             column.Item().Row(row =>
             {
-                row.RelativeItem().BorderBottom(1).BorderColor("#111827").PaddingBottom(4)
+                row.RelativeItem().BorderBottom(1).BorderColor("#111827").PaddingBottom(2)
                     .Text($"{AmountToWords(_paycheck.NetPay)} DOLLARS")
-                    .FontSize(10).FontColor("#374151");
-                row.ConstantItem(12);
-                row.ConstantItem(140).Border(2).BorderColor("#111827").Padding(6).AlignCenter()
-                    .Text($"${_paycheck.NetPay:C}").FontSize(14).Bold().FontColor("#111827");
+                    .FontSize(9).FontColor("#374151");
+                row.ConstantItem(8);
+                row.ConstantItem(130).Border(2).BorderColor("#111827").Padding(4).AlignCenter()
+                    .Text($"${_paycheck.NetPay:C}").FontSize(13).Bold().FontColor("#111827");
             });
 
-            column.Item().PaddingTop(12);
+            column.Item().PaddingTop(4);
 
-            // Memo line - modern
+            // Memo line
             column.Item().Column(col =>
             {
                 col.Item().Text("MEMO").FontSize(7).Bold().FontColor("#6B7280");
-                col.Item().PaddingTop(2).BorderBottom(1).BorderColor("#D1D5DB").PaddingBottom(4)
+                col.Item().PaddingTop(1).BorderBottom(1).BorderColor("#D1D5DB").PaddingBottom(2)
                     .Text($"Payroll {_run.PeriodStart:MM/dd/yyyy} - {_run.PeriodEnd:MM/dd/yyyy}")
-                    .FontSize(9).FontColor("#374151");
+                    .FontSize(8).FontColor("#374151");
             });
 
             // Signature line
-            column.Item().PaddingTop(20).AlignRight().Row(row =>
+            column.Item().PaddingTop(10).AlignRight().Row(row =>
             {
                 row.RelativeItem();
-                row.ConstantItem(220).Column(col =>
+                row.ConstantItem(200).Column(col =>
                 {
                     col.Item().LineHorizontal(1).LineColor("#111827");
-                    col.Item().PaddingTop(3).AlignCenter()
-                        .Text("Authorized Signature").FontSize(8).FontColor("#6B7280");
+                    col.Item().PaddingTop(2).AlignCenter()
+                        .Text("Authorized Signature").FontSize(7).FontColor("#6B7280");
                 });
             });
 
-            // MICR line
-            // NOTE: The current implementation uses Courier as a placeholder font for the
-            // MICR encoding line. True E-13B MICR compliance requires a special E-13B font
-            // (e.g., "MICR E13B" or similar). For production check printing, an E-13B MICR
-            // font must be installed on the system and referenced here instead of Courier.
-            // Banks may reject checks without proper E-13B encoding on the MICR line.
-            column.Item().PaddingTop(8).Text(ComposeMicrLine())
+            // MICR line (Courier placeholder — install E-13B font for production)
+            column.Item().PaddingTop(6).Text(ComposeMicrLine())
                 .FontSize(10).FontFamily("Courier");
         });
     }

@@ -471,16 +471,11 @@ public class ContractorPaystubDocument
                 });
             });
 
-            // MICR line
-            column.Item().PaddingTop(8).Text(text =>
+            // MICR line (Courier placeholder — install E-13B font for production)
+            column.Item().PaddingTop(6).Text(text =>
             {
-                text.Span("⑆").FontFamily("MICR").FontSize(12);
-                text.Span($"{checkEntry.CheckNumber:D4}").FontFamily("MICR").FontSize(12);
-                text.Span("⑆  ⑈").FontFamily("MICR").FontSize(12);
-                text.Span("000000000").FontFamily("MICR").FontSize(12);
-                text.Span("⑈  ").FontFamily("MICR").FontSize(12);
-                text.Span("000000000").FontFamily("MICR").FontSize(12);
-                text.Span("⑆").FontFamily("MICR").FontSize(12);
+                text.Span($"C000000000C  A000000000A  {checkEntry.CheckNumber:D6}")
+                    .FontFamily("Courier").FontSize(10);
             });
         });
     }
