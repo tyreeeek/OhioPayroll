@@ -21,5 +21,6 @@ public class ContractorConfiguration : IEntityTypeConfiguration<Contractor>
         builder.Property(c => c.Phone).HasMaxLength(20);
         builder.HasIndex(c => c.IsActive);
         builder.HasIndex(c => c.Name);
+        builder.HasIndex(c => c.TinLast4);
     }
 }

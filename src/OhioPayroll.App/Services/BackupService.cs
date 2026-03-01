@@ -21,7 +21,8 @@ public class BackupService
     }
 
     /// <summary>
-    /// Copies the encrypted DB file to the backup directory with a timestamp filename.
+    /// Copies the DB file and encryption keys to the backup directory with a timestamp filename.
+    /// Both the .enckey file and dp-keys directory are required to decrypt SSNs and bank accounts.
     /// </summary>
     public string CreateBackup()
     {
@@ -32,6 +33,52 @@ public class BackupService
         var backupPath = Path.Combine(_backupDirectory, backupFileName);
 
         File.Copy(_dbFilePath, backupPath, overwrite: true);
+
+        // Backup encryption keys (required to decrypt SSNs, TINs, bank accounts)
+        var dbDir = Path.GetDirectoryName(_dbFilePath) ?? Path.GetPathRoot(_dbFilePath);
+        if (string.IsNullOrEmpty(dbDir))
+        {
+            throw new InvalidOperationException(
+                $"Cannot determine directory for database file '{_dbFilePath}'. Backup aborted to avoid losing encryption keys.");
+        }
+
+        var encKeyFile = Path.Combine(dbDir, ".enckey");
+        var dpKeysDir = Path.Combine(dbDir, "dp-keys");
+
+        var encKeyExists = File.Exists(encKeyFile);
+        var dpKeysExists = Directory.Exists(dpKeysDir);
+
+        if (encKeyExists != dpKeysExists)
+        {
+            // Partial key state: one artifact exists but not the other
+            var missing = encKeyExists ? "dp-keys directory" : ".enckey file";
+            var present = encKeyExists ? ".enckey file" : "dp-keys directory";
+            AppLogger.Warning(
+                $"Partial encryption key state detected during backup: {present} exists but {missing} is missing. " +
+                "Both key artifacts are required to decrypt SSNs and bank accounts. Skipping key backup.");
+        }
+        else if (!encKeyExists && !dpKeysExists)
+        {
+            throw new InvalidOperationException(
+                "No encryption key artifacts found (.enckey and dp-keys are both missing). " +
+                "Encrypted fields (SSNs, TINs, bank accounts) will not be recoverable from this backup. " +
+                "Backup aborted to prevent data loss.");
+        }
+
+        if (encKeyExists && dpKeysExists)
+        {
+            var keysBackupDir = Path.Combine(_backupDirectory, $"keys_{timestamp}");
+            Directory.CreateDirectory(keysBackupDir);
+
+            File.Copy(encKeyFile, Path.Combine(keysBackupDir, ".enckey"), overwrite: true);
+
+            var dpKeysBackup = Path.Combine(keysBackupDir, "dp-keys");
+            Directory.CreateDirectory(dpKeysBackup);
+            foreach (var file in Directory.GetFiles(dpKeysDir))
+            {
+                File.Copy(file, Path.Combine(dpKeysBackup, Path.GetFileName(file)), overwrite: true);
+            }
+        }
 
         return backupPath;
     }

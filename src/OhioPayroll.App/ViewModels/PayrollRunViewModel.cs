@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
+using OhioPayroll.App.Extensions;
+using OhioPayroll.App.Services;
 using OhioPayroll.Core.Interfaces;
 using OhioPayroll.Core.Models;
 using OhioPayroll.Core.Models.Enums;
-using OhioPayroll.App.Services;
 using OhioPayroll.Data;
 
 namespace OhioPayroll.App.ViewModels;
@@ -93,6 +94,9 @@ public partial class PayrollRunViewModel : ViewModelBase
     [ObservableProperty]
     private string? _errorMessage;
 
+    [ObservableProperty]
+    private string? _warningMessage;
+
     // ── Step 1: Select Period ────────────────────────────────────────────
     [ObservableProperty]
     private DateTimeOffset _periodStart = DateTimeOffset.Now.AddDays(-13);
@@ -169,6 +173,13 @@ public partial class PayrollRunViewModel : ViewModelBase
     [ObservableProperty]
     private int _finalizedRunId;
 
+    // ── Confirmation dialog state ─────────────────────────────────────
+    [ObservableProperty]
+    private bool _isConfirmingFinalize;
+
+    [ObservableProperty]
+    private string _confirmMessage = string.Empty;
+
     // ── Computed visibility helpers ──────────────────────────────────────
     public bool IsStep1 => CurrentStep == 1;
     public bool IsStep2 => CurrentStep == 2;
@@ -185,7 +196,7 @@ public partial class PayrollRunViewModel : ViewModelBase
         _engine = engine;
         _audit = audit;
 
-        _ = LoadSettingsDefaultsAsync();
+        LoadSettingsDefaultsAsync().FireAndForgetSafeAsync(errorContext: "loading payroll settings defaults");
     }
 
     private async Task LoadSettingsDefaultsAsync()
@@ -425,27 +436,43 @@ public partial class PayrollRunViewModel : ViewModelBase
 
         int payDateYear = PayDate.Year;
 
+        // Batch-load all employees and YTD paychecks to avoid N+1 queries
+        var employeeIds = EntryRows.Select(e => e.EmployeeId).ToList();
+
+        var allEmployees = await _db.Employees
+            .AsNoTracking()
+            .Where(e => employeeIds.Contains(e.Id))
+            .ToDictionaryAsync(e => e.Id);
+
+        var allYtdPaychecks = await _db.Paychecks
+            .AsNoTracking()
+            .Where(p => employeeIds.Contains(p.EmployeeId)
+                && p.PayrollRun.PayDate.Year == payDateYear
+                && p.PayrollRun.Status == PayrollRunStatus.Finalized)
+            .ToListAsync();
+
+        var paychecksByEmployee = allYtdPaychecks
+            .GroupBy(p => p.EmployeeId)
+            .ToDictionary(g => g.Key, g => g.ToList());
+
         var previews = new ObservableCollection<PaycheckPreviewRow>();
+        var skippedEmployees = new List<string>();
 
         foreach (var entry in EntryRows)
         {
-            // Load the full employee record
-            var emp = await _db.Employees
-                .AsNoTracking()
-                .FirstAsync(e => e.Id == entry.EmployeeId);
+            if (!allEmployees.TryGetValue(entry.EmployeeId, out var emp))
+            {
+                AppLogger.Warning($"Employee ID {entry.EmployeeId} ({entry.EmployeeName}) not found in database during payroll calculation — skipping.");
+                skippedEmployees.Add(entry.EmployeeName);
+                continue;
+            }
 
-            // Load YTD priors from finalized paychecks this year
-            var ytdPaychecks = await _db.Paychecks
-                .AsNoTracking()
-                .Where(p => p.EmployeeId == emp.Id
-                    && p.PayrollRun.PayDate.Year == payDateYear
-                    && p.PayrollRun.Status == PayrollRunStatus.Finalized)
-                .ToListAsync();
+            var ytdPaychecks = paychecksByEmployee.TryGetValue(emp.Id, out var list)
+                ? list
+                : new List<Paycheck>();
 
             decimal ytdGross = ytdPaychecks.Sum(p => p.GrossPay);
             decimal ytdSs = ytdPaychecks.Sum(p => p.SocialSecurityTax);
-            decimal ytdFuta = ytdPaychecks.Sum(p => p.EmployerFuta);
-            decimal ytdSuta = ytdPaychecks.Sum(p => p.EmployerSuta);
             decimal ytdFederal = ytdPaychecks.Sum(p => p.FederalWithholding);
             decimal ytdOhio = ytdPaychecks.Sum(p => p.OhioStateWithholding);
             decimal ytdSchool = ytdPaychecks.Sum(p => p.SchoolDistrictTax);
@@ -454,18 +481,19 @@ public partial class PayrollRunViewModel : ViewModelBase
             decimal ytdNet = ytdPaychecks.Sum(p => p.NetPay);
 
             // Run the calculation engine
+            // ytdGross is used for SS/FUTA/SUTA wage caps (all cap on gross wages)
             var result = _engine.CalculatePaycheck(
                 emp,
                 entry.RegularHours,
                 entry.OvertimeHours,
                 SelectedFrequency,
                 ytdGross,
-                ytdSs,
-                ytdFuta,
-                ytdSuta,
+                ytdGross,
+                ytdGross,
                 schoolDistrictRate,
                 localTaxRate,
-                sutaRate);
+                sutaRate,
+                payDateYear);
 
             previews.Add(new PaycheckPreviewRow
             {
@@ -501,6 +529,15 @@ public partial class PayrollRunViewModel : ViewModelBase
 
         PreviewRows = previews;
 
+        if (skippedEmployees.Count > 0)
+        {
+            WarningMessage = $"Warning: {skippedEmployees.Count} employee(s) were skipped because they could not be found in the database: {string.Join(", ", skippedEmployees)}";
+        }
+        else
+        {
+            WarningMessage = null;
+        }
+
         // Compute run totals
         TotalGrossPay = previews.Sum(p => p.GrossPay);
         TotalNetPay = previews.Sum(p => p.NetPay);
@@ -518,13 +555,40 @@ public partial class PayrollRunViewModel : ViewModelBase
         EmployeeCount = previews.Count;
     }
 
+    // ── Request Finalization (shows confirmation) ───────────────────────
+    [RelayCommand]
+    private void RequestFinalize()
+    {
+        if (IsFinalized) return;
+
+        ConfirmMessage = $"Finalize payroll for {EmployeeCount} employees?\n\n" +
+            $"Total Gross Pay: {TotalGrossPay:C}\n" +
+            $"Total Net Pay: {TotalNetPay:C}\n\n" +
+            "This action cannot be undone.";
+        IsConfirmingFinalize = true;
+    }
+
+    [RelayCommand]
+    private void CancelFinalize()
+    {
+        IsConfirmingFinalize = false;
+        ConfirmMessage = string.Empty;
+    }
+
     // ── Finalize Command (Step 3 → 4) ───────────────────────────────────
     [RelayCommand]
     private async Task FinalizeAsync()
     {
         if (IsFinalized) return;
 
+        IsConfirmingFinalize = false;
         ErrorMessage = null;
+
+        // Create correlation context for this payroll operation
+        using var correlationContext = new PayrollCorrelationContext();
+
+        AppLogger.Information($"Starting payroll finalization: Period={PeriodStart.DateTime:d} to {PeriodEnd.DateTime:d}, " +
+            $"PayDate={PayDate.DateTime:d}, Employees={EmployeeCount}, EstimatedGross={TotalGrossPay:C}");
 
         try
         {
@@ -535,7 +599,12 @@ public partial class PayrollRunViewModel : ViewModelBase
             try
             {
                 var settings = await _db.PayrollSettings.FirstOrDefaultAsync();
-                int nextCheckNumber = settings?.NextCheckNumber ?? 1001;
+                if (settings is null)
+                {
+                    throw new InvalidOperationException(
+                        "PayrollSettings not found. Please configure payroll settings (Settings page) before finalizing a payroll run.");
+                }
+                int nextCheckNumber = settings.NextCheckNumber;
 
                 // Create PayrollRun
                 var run = new PayrollRun
@@ -561,6 +630,9 @@ public partial class PayrollRunViewModel : ViewModelBase
                 };
 
                 _db.PayrollRuns.Add(run);
+
+                // Track paycheck/check pairs so check numbers can be reassigned on concurrency retry
+                var paycheckCheckPairs = new List<(Paycheck Paycheck, CheckRegisterEntry CheckEntry)>();
 
                 // Create Paychecks and CheckRegisterEntries
                 foreach (var preview in PreviewRows)
@@ -614,6 +686,7 @@ public partial class PayrollRunViewModel : ViewModelBase
                     };
 
                     _db.CheckRegister.Add(checkEntry);
+                    paycheckCheckPairs.Add((paycheck, checkEntry));
                     nextCheckNumber++;
                 }
 
@@ -630,14 +703,38 @@ public partial class PayrollRunViewModel : ViewModelBase
                 CreateTaxLiability(TaxType.FUTA, taxYear, quarter, TotalEmployerFuta);
                 CreateTaxLiability(TaxType.SUTA, taxYear, quarter, TotalEmployerSuta);
 
-                // Update next check number in settings
-                if (settings is not null)
+                // Save with concurrency retry for PayrollSettings
+                const int maxRetries = 3;
+                for (int attempt = 1; ; attempt++)
                 {
                     settings.NextCheckNumber = nextCheckNumber;
                     settings.UpdatedAt = DateTime.UtcNow;
+
+                    try
+                    {
+                        await _db.SaveChangesAsync();
+                        break; // Success
+                    }
+                    catch (DbUpdateConcurrencyException) when (attempt < maxRetries)
+                    {
+                        AppLogger.Warning($"Concurrency conflict on PayrollSettings (attempt {attempt}/{maxRetries}). Reloading and retrying...");
+
+                        // Detach and re-fetch settings to handle any entity state
+                        _db.Entry(settings).State = EntityState.Detached;
+                        settings = await _db.PayrollSettings.FirstOrDefaultAsync();
+                        if (settings == null) break;
+                        nextCheckNumber = settings.NextCheckNumber;
+
+                        // Reassign check numbers on the already-tracked entities
+                        foreach (var (paycheck, checkEntry) in paycheckCheckPairs)
+                        {
+                            paycheck.CheckNumber = nextCheckNumber;
+                            checkEntry.CheckNumber = nextCheckNumber;
+                            nextCheckNumber++;
+                        }
+                    }
                 }
 
-                await _db.SaveChangesAsync();
                 await transaction.CommitAsync();
 
                 // Audit log (outside transaction - non-critical)
@@ -704,6 +801,7 @@ public partial class PayrollRunViewModel : ViewModelBase
         CurrentStep = 1;
         IsFinalized = false;
         ErrorMessage = null;
+        WarningMessage = null;
         FinalizedMessage = string.Empty;
         FinalizedRunId = 0;
 
@@ -729,5 +827,273 @@ public partial class PayrollRunViewModel : ViewModelBase
         TotalEmployerSuta = 0;
         EmployeeCount = 0;
     }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // VOID PAYCHECK WORKFLOW
+    // ═══════════════════════════════════════════════════════════════════════
+
+    [ObservableProperty]
+    private ObservableCollection<VoidablePaycheckRow> _voidablePaychecks = new();
+
+    [ObservableProperty]
+    private VoidablePaycheckRow? _selectedPaycheckToVoid;
+
+    [ObservableProperty]
+    private bool _isVoidingPaycheck;
+
+    [ObservableProperty]
+    private bool _isConfirmingVoid;
+
+    [ObservableProperty]
+    private string _voidConfirmMessage = string.Empty;
+
+    [ObservableProperty]
+    private string _voidReason = string.Empty;
+
+    [ObservableProperty]
+    private string? _voidStatusMessage;
+
+    /// <summary>
+    /// Loads recent paychecks that can be voided (finalized, not already void, within last 90 days).
+    /// </summary>
+    [RelayCommand]
+    private async Task LoadVoidablePaychecksAsync()
+    {
+        try
+        {
+            IsLoading = true;
+            var cutoffDate = DateTime.Now.AddDays(-90);
+
+            var paychecks = await _db.Paychecks
+                .AsNoTracking()
+                .Include(p => p.Employee)
+                .Include(p => p.PayrollRun)
+                .Where(p => !p.IsVoid
+                    && p.PayrollRun.Status == PayrollRunStatus.Finalized
+                    && p.PayrollRun.PayDate >= cutoffDate)
+                .OrderByDescending(p => p.PayrollRun.PayDate)
+                .ThenBy(p => p.Employee.LastName)
+                .Take(100)
+                .ToListAsync();
+
+            var rows = paychecks.Select(p => new VoidablePaycheckRow
+            {
+                PaycheckId = p.Id,
+                EmployeeName = p.Employee.FullName,
+                PayDate = p.PayrollRun.PayDate,
+                CheckNumber = p.CheckNumber,
+                GrossPay = p.GrossPay,
+                NetPay = p.NetPay,
+                PayrollRunId = p.PayrollRunId
+            }).ToList();
+
+            VoidablePaychecks = new ObservableCollection<VoidablePaycheckRow>(rows);
+            VoidStatusMessage = $"Loaded {rows.Count} voidable paycheck(s) from the last 90 days.";
+        }
+        catch (Exception ex)
+        {
+            VoidStatusMessage = $"Error loading paychecks: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    /// <summary>
+    /// Initiates the void confirmation dialog for the selected paycheck.
+    /// </summary>
+    [RelayCommand]
+    private void RequestVoidPaycheck(VoidablePaycheckRow? paycheck)
+    {
+        if (paycheck is null) return;
+
+        SelectedPaycheckToVoid = paycheck;
+        VoidReason = string.Empty;
+        VoidConfirmMessage = $"Void paycheck #{paycheck.CheckNumber} for {paycheck.EmployeeName}?\n\n" +
+            $"Pay Date: {paycheck.PayDate:MMM dd, yyyy}\n" +
+            $"Gross Pay: {paycheck.GrossPay:C}\n" +
+            $"Net Pay: {paycheck.NetPay:C}\n\n" +
+            "This will:\n" +
+            "• Mark the paycheck as void\n" +
+            "• Mark the check as voided in the check register\n" +
+            "• Reduce tax liabilities for this period\n" +
+            "• Create an audit trail entry\n\n" +
+            "This action cannot be undone.";
+        IsConfirmingVoid = true;
+    }
+
+    [RelayCommand]
+    private void CancelVoidPaycheck()
+    {
+        IsConfirmingVoid = false;
+        SelectedPaycheckToVoid = null;
+        VoidConfirmMessage = string.Empty;
+        VoidReason = string.Empty;
+    }
+
+    /// <summary>
+    /// Voids the selected paycheck, updates tax liabilities, and creates audit trail.
+    /// </summary>
+    [RelayCommand]
+    private async Task ConfirmVoidPaycheckAsync()
+    {
+        if (SelectedPaycheckToVoid is null) return;
+        if (string.IsNullOrWhiteSpace(VoidReason))
+        {
+            VoidStatusMessage = "Please provide a reason for voiding this paycheck.";
+            return;
+        }
+
+        IsConfirmingVoid = false;
+        IsVoidingPaycheck = true;
+        VoidStatusMessage = "Voiding paycheck...";
+
+        try
+        {
+            using var transaction = await _db.Database.BeginTransactionAsync();
+
+            try
+            {
+                var paycheckId = SelectedPaycheckToVoid.PaycheckId;
+
+                // Load the paycheck with tracking
+                var paycheck = await _db.Paychecks
+                    .Include(p => p.PayrollRun)
+                    .FirstOrDefaultAsync(p => p.Id == paycheckId);
+
+                if (paycheck is null)
+                {
+                    VoidStatusMessage = "Paycheck not found.";
+                    return;
+                }
+
+                if (paycheck.IsVoid)
+                {
+                    VoidStatusMessage = "This paycheck has already been voided.";
+                    return;
+                }
+
+                // Mark paycheck as void
+                paycheck.IsVoid = true;
+                paycheck.VoidDate = DateTime.UtcNow;
+                paycheck.VoidReason = VoidReason.Trim();
+
+                // Update check register entry if exists
+                var checkEntry = await _db.CheckRegister
+                    .FirstOrDefaultAsync(c => c.PaycheckId == paycheckId);
+                if (checkEntry is not null)
+                {
+                    checkEntry.Status = CheckStatus.Voided;
+                    checkEntry.VoidDate = DateTime.UtcNow;
+                    checkEntry.VoidReason = VoidReason.Trim();
+                }
+
+                // Reduce tax liabilities for this paycheck's quarter
+                int quarter = GetQuarter(paycheck.PayrollRun.PayDate);
+                int taxYear = paycheck.PayrollRun.PayDate.Year;
+
+                await ReduceTaxLiabilityAsync(TaxType.Federal, taxYear, quarter, paycheck.FederalWithholding);
+                await ReduceTaxLiabilityAsync(TaxType.Ohio, taxYear, quarter, paycheck.OhioStateWithholding);
+                await ReduceTaxLiabilityAsync(TaxType.Local, taxYear, quarter, paycheck.LocalMunicipalityTax);
+                await ReduceTaxLiabilityAsync(TaxType.SchoolDistrict, taxYear, quarter, paycheck.SchoolDistrictTax);
+                await ReduceTaxLiabilityAsync(TaxType.FICA_SS, taxYear, quarter,
+                    paycheck.SocialSecurityTax + paycheck.EmployerSocialSecurity);
+                await ReduceTaxLiabilityAsync(TaxType.FICA_Med, taxYear, quarter,
+                    paycheck.MedicareTax + paycheck.EmployerMedicare);
+                await ReduceTaxLiabilityAsync(TaxType.FUTA, taxYear, quarter, paycheck.EmployerFuta);
+                await ReduceTaxLiabilityAsync(TaxType.SUTA, taxYear, quarter, paycheck.EmployerSuta);
+
+                // Update payroll run totals
+                var run = paycheck.PayrollRun;
+                run.TotalGrossPay -= paycheck.GrossPay;
+                run.TotalNetPay -= paycheck.NetPay;
+                run.TotalFederalTax -= paycheck.FederalWithholding;
+                run.TotalStateTax -= paycheck.OhioStateWithholding;
+                run.TotalLocalTax -= paycheck.LocalMunicipalityTax;
+                run.TotalSocialSecurity -= paycheck.SocialSecurityTax;
+                run.TotalMedicare -= paycheck.MedicareTax;
+                run.TotalEmployerSocialSecurity -= paycheck.EmployerSocialSecurity;
+                run.TotalEmployerMedicare -= paycheck.EmployerMedicare;
+                run.TotalEmployerFuta -= paycheck.EmployerFuta;
+                run.TotalEmployerSuta -= paycheck.EmployerSuta;
+
+                await _db.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                // Audit log
+                await _audit.LogAsync(
+                    "Voided",
+                    "Paycheck",
+                    paycheckId,
+                    oldValue: $"Check #{paycheck.CheckNumber}, Gross: {paycheck.GrossPay:C}",
+                    newValue: $"Void reason: {VoidReason.Trim()}");
+
+                AppLogger.Information($"Paycheck #{paycheckId} (Check #{paycheck.CheckNumber}) voided. Reason: {VoidReason.Trim()}");
+
+                VoidStatusMessage = $"Paycheck #{paycheck.CheckNumber} has been voided successfully.";
+
+                // Refresh the list
+                await LoadVoidablePaychecksAsync();
+            }
+            catch
+            {
+                // Transaction will auto-rollback
+                throw;
+            }
+        }
+        catch (Exception ex)
+        {
+            AppLogger.Error($"Error voiding paycheck: {ex.Message}", ex);
+            VoidStatusMessage = $"Error voiding paycheck: {ex.Message}";
+        }
+        finally
+        {
+            IsVoidingPaycheck = false;
+            SelectedPaycheckToVoid = null;
+            VoidReason = string.Empty;
+        }
+    }
+
+    private async Task ReduceTaxLiabilityAsync(TaxType taxType, int year, int quarter, decimal amount)
+    {
+        if (amount <= 0) return;
+
+        var liability = await _db.TaxLiabilities
+            .FirstOrDefaultAsync(t => t.TaxType == taxType
+                && t.TaxYear == year
+                && t.Quarter == quarter);
+
+        if (liability is not null)
+        {
+            liability.AmountOwed = Math.Max(0, liability.AmountOwed - amount);
+            liability.UpdatedAt = DateTime.UtcNow;
+
+            // If fully paid or reduced to zero, update status
+            if (liability.AmountOwed <= liability.AmountPaid)
+            {
+                liability.Status = TaxLiabilityStatus.Paid;
+            }
+        }
+    }
+}
+
+/// <summary>
+/// Row model for displaying voidable paychecks in the UI.
+/// </summary>
+public class VoidablePaycheckRow
+{
+    public int PaycheckId { get; set; }
+    public string EmployeeName { get; set; } = string.Empty;
+    public DateTime PayDate { get; set; }
+    public int? CheckNumber { get; set; }
+    public decimal GrossPay { get; set; }
+    public decimal NetPay { get; set; }
+    public int PayrollRunId { get; set; }
+
+    public string PayDateDisplay => PayDate.ToString("MMM dd, yyyy");
+    public string CheckNumberDisplay => CheckNumber?.ToString() ?? "N/A";
+    public string GrossPayDisplay => GrossPay.ToString("C");
+    public string NetPayDisplay => NetPay.ToString("C");
 }
 

@@ -8,6 +8,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
 using OhioPayroll.App.Documents;
+using OhioPayroll.App.Extensions;
 using OhioPayroll.App.Services;
 using OhioPayroll.Core.Interfaces;
 using OhioPayroll.Core.Models;
@@ -96,7 +97,8 @@ public partial class CheckPrintingViewModel : ViewModelBase
         _encryption = encryption;
         _audit = audit;
 
-        _ = LoadPayrollRunsAsync();
+        ExecuteWithLoadingAsync(LoadPayrollRunsAsync, "Loading payroll runs...")
+            .FireAndForgetSafeAsync(errorContext: "loading payroll runs");
     }
 
     // --- Load payroll runs ---
@@ -128,7 +130,8 @@ public partial class CheckPrintingViewModel : ViewModelBase
     {
         if (value is not null)
         {
-            _ = LoadPaychecksAsync(value.Id);
+            ExecuteWithLoadingAsync(() => LoadPaychecksAsync(value.Id), "Loading paychecks...")
+                .FireAndForgetSafeAsync(errorContext: "loading paychecks");
         }
         else
         {

@@ -22,13 +22,14 @@ public class CheckDocument : IDocument
     private const float SectionHeight = 3.5f; // inches (approximately 11/3)
     private const float Margin = 0.25f;       // inches
 
-    // Color palette
-    private static readonly string HeaderBg = "#1B3A5C";
+    // Modern color palette
+    private static readonly string HeaderBg = "#1F2937";
     private static readonly string HeaderText = "#FFFFFF";
-    private static readonly string LightBg = "#F5F7FA";
-    private static readonly string BorderColor = "#CBD5E1";
-    private static readonly string TableHeaderBg = "#2C5F8A";
+    private static readonly string LightBg = "#F9FAFB";
+    private static readonly string BorderColor = "#E5E7EB";
+    private static readonly string TableHeaderBg = "#374151";
     private static readonly string TableHeaderText = "#FFFFFF";
+    private static readonly string AccentGreen = "#10B981";
 
     public CheckDocument(
         CompanyInfo company,
@@ -85,33 +86,40 @@ public class CheckDocument : IDocument
 
     private void ComposeVoucherStub(IContainer container, string copyLabel)
     {
-        container.Border(0.5f).BorderColor(BorderColor).Padding(6).Column(column =>
+        container.Background(LightBg).Border(1).BorderColor(BorderColor).Padding(8).Column(column =>
         {
-            // Voucher header
+            // Voucher header - modern
             column.Item().Row(row =>
             {
                 row.RelativeItem().Column(col =>
                 {
-                    col.Item().Text(_company.CompanyName).FontSize(9).Bold();
-                    col.Item().Text($"EIN: {FormatEin(_company.Ein)}").FontSize(7).FontColor("#64748B");
+                    col.Item().Text(_company.CompanyName).FontSize(10).Bold().FontColor("#111827");
+                    col.Item().Text($"EIN: {FormatEin(_company.Ein)}").FontSize(7).FontColor("#6B7280");
                 });
-                row.ConstantItem(120).AlignRight().Column(col =>
+                row.ConstantItem(130).AlignRight().Background("#FFFFFF").Border(1).BorderColor(AccentGreen).Padding(4).Column(col =>
                 {
-                    col.Item().AlignRight().Text(copyLabel).FontSize(7).Bold().FontColor("#64748B");
+                    col.Item().AlignRight().Text(copyLabel).FontSize(7).Bold().FontColor("#6B7280");
                     if (_paycheck.CheckNumber.HasValue)
-                        col.Item().AlignRight().Text($"Check #: {_paycheck.CheckNumber}").FontSize(7);
-                    col.Item().AlignRight().Text($"Pay Date: {_run.PayDate:MM/dd/yyyy}").FontSize(7);
+                        col.Item().AlignRight().Text($"Check #: {_paycheck.CheckNumber}").FontSize(8).Bold().FontColor("#111827");
+                    col.Item().AlignRight().Text($"Pay Date: {_run.PayDate:MM/dd/yyyy}").FontSize(7).FontColor("#374151");
                 });
             });
 
-            column.Item().PaddingTop(2).Row(row =>
+            column.Item().PaddingTop(4).Row(row =>
             {
-                row.RelativeItem().Text($"Employee: {_employee.FullName}").FontSize(8).Bold();
-                row.ConstantItem(180).AlignRight()
-                    .Text($"Period: {_run.PeriodStart:MM/dd/yyyy} - {_run.PeriodEnd:MM/dd/yyyy}").FontSize(7);
+                row.RelativeItem().Column(col =>
+                {
+                    col.Item().Text("EMPLOYEE").FontSize(7).FontColor("#6B7280");
+                    col.Item().PaddingTop(1).Text(_employee.FullName).FontSize(9).Bold().FontColor("#111827");
+                });
+                row.ConstantItem(200).AlignRight().Column(col =>
+                {
+                    col.Item().AlignRight().Text("PERIOD").FontSize(7).FontColor("#6B7280");
+                    col.Item().PaddingTop(1).AlignRight().Text($"{_run.PeriodStart:MM/dd/yyyy} - {_run.PeriodEnd:MM/dd/yyyy}").FontSize(8).Bold().FontColor("#111827");
+                });
             });
 
-            column.Item().PaddingTop(4);
+            column.Item().PaddingTop(6);
 
             // Earnings / Deductions side by side
             column.Item().Row(row =>
@@ -168,13 +176,13 @@ public class CheckDocument : IDocument
 
                 row.ConstantItem(8);
 
-                // Net Pay box
-                row.ConstantItem(100).AlignMiddle().Border(1).BorderColor(HeaderBg).Column(col =>
+                // Net Pay box - highlighted
+                row.ConstantItem(110).AlignMiddle().Border(2).BorderColor(AccentGreen).Background("#FFFFFF").Column(col =>
                 {
-                    col.Item().Background(HeaderBg).Padding(4).AlignCenter()
+                    col.Item().Background(AccentGreen).Padding(5).AlignCenter()
                         .Text("NET PAY").FontSize(8).Bold().FontColor(HeaderText);
-                    col.Item().Padding(6).AlignCenter()
-                        .Text($"{_paycheck.NetPay:C}").FontSize(12).Bold();
+                    col.Item().Padding(8).AlignCenter()
+                        .Text($"{_paycheck.NetPay:C}").FontSize(13).Bold().FontColor(AccentGreen);
                 });
             });
         });
@@ -197,73 +205,74 @@ public class CheckDocument : IDocument
 
     private void ComposeCheckSection(IContainer container)
     {
-        container.Border(0.5f).BorderColor(BorderColor).Padding(8).Column(column =>
+        container.Border(1).BorderColor("#374151").Padding(12).Column(column =>
         {
-            // Check header: Company info + check number/date
+            // Check header - modern layout
             column.Item().Row(row =>
             {
                 row.RelativeItem().Column(col =>
                 {
-                    col.Item().Text(_company.CompanyName).FontSize(11).Bold();
-                    col.Item().Text(_company.Address).FontSize(8);
-                    col.Item().Text($"{_company.City}, {_company.State} {_company.ZipCode}").FontSize(8);
+                    col.Item().Text(_company.CompanyName).FontSize(13).Bold().FontColor("#111827");
+                    col.Item().PaddingTop(2).Text(_company.Address).FontSize(9).FontColor("#6B7280");
+                    col.Item().Text($"{_company.City}, {_company.State} {_company.ZipCode}").FontSize(9).FontColor("#6B7280");
                 });
 
-                row.ConstantItem(160).AlignRight().Column(col =>
+                row.ConstantItem(160).AlignRight().Background(HeaderBg).Padding(8).Column(col =>
                 {
                     if (_paycheck.CheckNumber.HasValue)
-                        col.Item().AlignRight().Text($"{_paycheck.CheckNumber}")
-                            .FontSize(11).Bold();
-                    col.Item().PaddingTop(4).AlignRight()
-                        .Text($"Date: {_run.PayDate:MM/dd/yyyy}").FontSize(9);
+                        col.Item().AlignCenter().Text($"#{_paycheck.CheckNumber}")
+                            .FontSize(16).Bold().FontColor("#FFFFFF");
+                    col.Item().PaddingTop(2).AlignCenter()
+                        .Text($"{_run.PayDate:MM/dd/yyyy}").FontSize(9).FontColor("#D1D5DB");
+                });
+            });
+
+            column.Item().PaddingTop(16);
+
+            // Pay To The Order Of - modern
+            column.Item().Column(col =>
+            {
+                col.Item().Text("PAY TO THE ORDER OF").FontSize(8).Bold().FontColor("#6B7280");
+                col.Item().PaddingTop(4).Row(row =>
+                {
+                    row.RelativeItem().BorderBottom(1).BorderColor("#111827").PaddingBottom(4)
+                        .Text(_employee.FullName).FontSize(13).Bold().FontColor("#111827");
                 });
             });
 
             column.Item().PaddingTop(12);
 
-            // Pay To The Order Of
+            // Amount row
             column.Item().Row(row =>
             {
-                row.ConstantItem(120).Text("PAY TO THE\nORDER OF").FontSize(8).Bold();
-                row.RelativeItem().BorderBottom(1).BorderColor("#000000").PaddingBottom(2)
-                    .Text(_employee.FullName).FontSize(11).Bold();
-                row.ConstantItem(10);
-                row.ConstantItem(120).Border(1).BorderColor("#000000").Padding(4).AlignCenter()
-                    .Text($"**{_paycheck.NetPay:C}**").FontSize(10).Bold();
-            });
-
-            column.Item().PaddingTop(8);
-
-            // Amount in words
-            column.Item().Row(row =>
-            {
-                row.RelativeItem().BorderBottom(1).BorderColor("#000000").PaddingBottom(2)
+                row.RelativeItem().BorderBottom(1).BorderColor("#111827").PaddingBottom(4)
                     .Text($"{AmountToWords(_paycheck.NetPay)} DOLLARS")
-                    .FontSize(9);
-                row.ConstantItem(10);
-                row.ConstantItem(120);
+                    .FontSize(10).FontColor("#374151");
+                row.ConstantItem(12);
+                row.ConstantItem(140).Border(2).BorderColor("#111827").Padding(6).AlignCenter()
+                    .Text($"${_paycheck.NetPay:C}").FontSize(14).Bold().FontColor("#111827");
             });
 
-            column.Item().PaddingTop(8);
+            column.Item().PaddingTop(12);
 
-            // Memo line
-            column.Item().Row(row =>
+            // Memo line - modern
+            column.Item().Column(col =>
             {
-                row.ConstantItem(40).Text("Memo:").FontSize(8);
-                row.RelativeItem().BorderBottom(1).BorderColor(BorderColor).PaddingBottom(2)
+                col.Item().Text("MEMO").FontSize(7).Bold().FontColor("#6B7280");
+                col.Item().PaddingTop(2).BorderBottom(1).BorderColor("#D1D5DB").PaddingBottom(4)
                     .Text($"Payroll {_run.PeriodStart:MM/dd/yyyy} - {_run.PeriodEnd:MM/dd/yyyy}")
-                    .FontSize(8).FontColor("#64748B");
+                    .FontSize(9).FontColor("#374151");
             });
 
-            // Signature line (push to bottom)
-            column.Item().PaddingTop(16).AlignRight().Row(row =>
+            // Signature line
+            column.Item().PaddingTop(20).AlignRight().Row(row =>
             {
                 row.RelativeItem();
-                row.ConstantItem(200).Column(col =>
+                row.ConstantItem(220).Column(col =>
                 {
-                    col.Item().LineHorizontal(1).LineColor("#000000");
-                    col.Item().PaddingTop(2).AlignCenter()
-                        .Text("Authorized Signature").FontSize(7).FontColor("#64748B");
+                    col.Item().LineHorizontal(1).LineColor("#111827");
+                    col.Item().PaddingTop(3).AlignCenter()
+                        .Text("Authorized Signature").FontSize(8).FontColor("#6B7280");
                 });
             });
 

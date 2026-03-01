@@ -4,10 +4,40 @@
     <OutputType>WinExe</OutputType>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+
+    <!-- Application Info -->
+    <AssemblyName>OhioPayroll</AssemblyName>
+    <Product>Ohio Payroll System</Product>
+    <Version>2.4.0</Version>
+    <FileVersion>2.4.0.0</FileVersion>
+    <AssemblyVersion>2.4.0.0</AssemblyVersion>
+    <Company>Ohio Payroll</Company>
+    <Copyright>Copyright © 2026</Copyright>
+    <Description>Full production release - Contractor payroll, theme toggle, window chrome fixes</Description>
+
+    <!-- Windows Icon -->
+    <ApplicationIcon>Assets\ohio-payroll.ico</ApplicationIcon>
+
+    <!-- Publishing Settings -->
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <PublishTrimmed>false</PublishTrimmed>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
   </PropertyGroup>
 
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
+    <AvaloniaResource Include="Styles\**" />
+  </ItemGroup>
+
+  <!-- Embedded IRS PDF forms for auto-filling -->
+  <ItemGroup>
+    <EmbeddedResource Include="Assets\IrsForms\fw2.pdf" />
+    <EmbeddedResource Include="Assets\IrsForms\fw3.pdf" />
+    <EmbeddedResource Include="Assets\IrsForms\f1099nec.pdf" />
+    <EmbeddedResource Include="Assets\IrsForms\f1096.pdf" />
+    <EmbeddedResource Include="Assets\IrsForms\f940.pdf" />
+    <EmbeddedResource Include="Assets\IrsForms\f941.pdf" />
   </ItemGroup>
 
   <ItemGroup>
@@ -21,15 +51,17 @@
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
     </PackageReference>
     <PackageReference Include="ClosedXML" Version="0.105.0" />
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.*" />
-    <PackageReference Include="Microsoft.AspNetCore.DataProtection" Version="8.0.*" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.*">
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
+    <PackageReference Include="itext" Version="9.5.0" />
+    <PackageReference Include="itext.bouncy-castle-adapter" Version="9.5.0" />
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection" Version="10.0.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.3">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.*" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.3" />
     <PackageReference Include="QuestPDF" Version="2026.2.0" />
-    <PackageReference Include="Serilog" Version="4.2.*" />
+    <PackageReference Include="Serilog" Version="4.2.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
   </ItemGroup>
 

@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
+using OhioPayroll.App.Extensions;
+using OhioPayroll.App.Services;
 using OhioPayroll.Core.Interfaces;
 using OhioPayroll.Core.Models;
 using OhioPayroll.Core.Models.Enums;
@@ -152,7 +154,8 @@ public partial class BankAccountsViewModel : ViewModelBase
         _encryption = encryption;
         _audit = audit;
 
-        _ = LoadAllAsync();
+        ExecuteWithLoadingAsync(LoadAllAsync, "Loading bank accounts...")
+            .FireAndForgetSafeAsync(errorContext: "loading bank accounts");
     }
 
     partial void OnIsNewCompanyAccountChanged(bool value)
@@ -295,60 +298,109 @@ public partial class BankAccountsViewModel : ViewModelBase
         var encryptedRouting = _encryption.Encrypt(cleanRouting);
         var encryptedAccount = _encryption.Encrypt(cleanAccount);
 
-        if (IsNewCompanyAccount)
-        {
-            // Clear existing defaults if needed
-            if (CompanyIsDefaultForChecks)
-                await ClearCompanyDefaultForChecksAsync();
-            if (CompanyIsDefaultForAch)
-                await ClearCompanyDefaultForAchAsync();
+        // Optimistic concurrency: Retry up to 3 times on conflict
+        const int maxRetries = 3;
+        int attempt = 0;
 
-            var account = new CompanyBankAccount
+        while (attempt < maxRetries)
+        {
+            try
             {
-                BankName = CompanyBankName.Trim(),
-                EncryptedRoutingNumber = encryptedRouting,
-                EncryptedAccountNumber = encryptedAccount,
-                IsDefaultForChecks = CompanyIsDefaultForChecks,
-                IsDefaultForAch = CompanyIsDefaultForAch,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
+                using var transaction = await _db.Database.BeginTransactionAsync();
+                try
+                {
+                    if (IsNewCompanyAccount)
+                    {
+                        // Clear existing defaults if needed
+                        if (CompanyIsDefaultForChecks)
+                            await ClearCompanyDefaultForChecksInternalAsync();
+                        if (CompanyIsDefaultForAch)
+                            await ClearCompanyDefaultForAchInternalAsync();
 
-            _db.CompanyBankAccounts.Add(account);
-            await _db.SaveChangesAsync();
+                        var account = new CompanyBankAccount
+                        {
+                            BankName = CompanyBankName.Trim(),
+                            EncryptedRoutingNumber = encryptedRouting,
+                            EncryptedAccountNumber = encryptedAccount,
+                            IsDefaultForChecks = CompanyIsDefaultForChecks,
+                            IsDefaultForAch = CompanyIsDefaultForAch,
+                            CreatedAt = DateTime.UtcNow,
+                            UpdatedAt = DateTime.UtcNow
+                        };
 
-            await _audit.LogAsync("Created", "CompanyBankAccount", account.Id,
-                newValue: $"{account.BankName}");
+                        _db.CompanyBankAccounts.Add(account);
+                        await _db.SaveChangesAsync();
+
+                        await transaction.CommitAsync();
+
+                        await _audit.LogAsync("Created", "CompanyBankAccount", account.Id,
+                            newValue: $"{account.BankName}");
+                    }
+                    else
+                    {
+                        var account = await _db.CompanyBankAccounts.FindAsync(EditingCompanyId);
+                        if (account is null)
+                        {
+                            await transaction.RollbackAsync();
+                            return;
+                        }
+
+                        var oldValue = $"{account.BankName}";
+
+                        // Clear existing defaults if this one is becoming default
+                        if (CompanyIsDefaultForChecks && !account.IsDefaultForChecks)
+                            await ClearCompanyDefaultForChecksInternalAsync();
+                        if (CompanyIsDefaultForAch && !account.IsDefaultForAch)
+                            await ClearCompanyDefaultForAchInternalAsync();
+
+                        account.BankName = CompanyBankName.Trim();
+                        account.EncryptedRoutingNumber = encryptedRouting;
+                        account.EncryptedAccountNumber = encryptedAccount;
+                        account.IsDefaultForChecks = CompanyIsDefaultForChecks;
+                        account.IsDefaultForAch = CompanyIsDefaultForAch;
+                        account.UpdatedAt = DateTime.UtcNow;
+
+                        await _db.SaveChangesAsync();
+
+                        await transaction.CommitAsync();
+
+                        await _audit.LogAsync("Updated", "CompanyBankAccount", account.Id,
+                            oldValue: oldValue,
+                            newValue: $"{account.BankName}");
+                    }
+
+                    IsEditingCompany = false;
+                    await LoadCompanyAccountsAsync();
+                    break; // Success - exit retry loop
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                attempt++;
+                if (attempt >= maxRetries)
+                {
+                    ValidationError = "This bank account was modified by another user. Please refresh and try again.";
+                    AppLogger.Error($"Concurrency conflict after {maxRetries} retries on CompanyBankAccount", ex);
+                    return;
+                }
+
+                AppLogger.Information($"Concurrency conflict on CompanyBankAccount, retry {attempt}/{maxRetries}");
+
+                // Reload all affected entities
+                foreach (var entry in ex.Entries)
+                {
+                    await entry.ReloadAsync();
+                }
+
+                // Exponential backoff
+                await Task.Delay(100 * attempt);
+            }
         }
-        else
-        {
-            var account = await _db.CompanyBankAccounts.FindAsync(EditingCompanyId);
-            if (account is null) return;
-
-            var oldValue = $"{account.BankName}";
-
-            // Clear existing defaults if this one is becoming default
-            if (CompanyIsDefaultForChecks && !account.IsDefaultForChecks)
-                await ClearCompanyDefaultForChecksAsync();
-            if (CompanyIsDefaultForAch && !account.IsDefaultForAch)
-                await ClearCompanyDefaultForAchAsync();
-
-            account.BankName = CompanyBankName.Trim();
-            account.EncryptedRoutingNumber = encryptedRouting;
-            account.EncryptedAccountNumber = encryptedAccount;
-            account.IsDefaultForChecks = CompanyIsDefaultForChecks;
-            account.IsDefaultForAch = CompanyIsDefaultForAch;
-            account.UpdatedAt = DateTime.UtcNow;
-
-            await _db.SaveChangesAsync();
-
-            await _audit.LogAsync("Updated", "CompanyBankAccount", account.Id,
-                oldValue: oldValue,
-                newValue: $"{account.BankName}");
-        }
-
-        IsEditingCompany = false;
-        await LoadCompanyAccountsAsync();
     }
 
     [RelayCommand]
@@ -379,6 +431,12 @@ public partial class BankAccountsViewModel : ViewModelBase
 
     private async Task ClearCompanyDefaultForChecksAsync()
     {
+        await ClearCompanyDefaultForChecksInternalAsync();
+        await _db.SaveChangesAsync();
+    }
+
+    private async Task ClearCompanyDefaultForChecksInternalAsync()
+    {
         var existing = await _db.CompanyBankAccounts
             .Where(a => a.IsDefaultForChecks)
             .ToListAsync();
@@ -391,6 +449,12 @@ public partial class BankAccountsViewModel : ViewModelBase
     }
 
     private async Task ClearCompanyDefaultForAchAsync()
+    {
+        await ClearCompanyDefaultForAchInternalAsync();
+        await _db.SaveChangesAsync();
+    }
+
+    private async Task ClearCompanyDefaultForAchInternalAsync()
     {
         var existing = await _db.CompanyBankAccounts
             .Where(a => a.IsDefaultForAch)

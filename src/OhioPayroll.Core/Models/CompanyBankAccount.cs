@@ -10,5 +10,8 @@ public class CompanyBankAccount
     public bool IsDefaultForAch { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+
+    // Optimistic concurrency token
+    public byte[]? RowVersion { get; set; }
 }
 

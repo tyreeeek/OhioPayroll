@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
+using OhioPayroll.App.Extensions;
 using OhioPayroll.App.Services;
 using OhioPayroll.Core.Models;
 using OhioPayroll.Core.Models.Enums;
@@ -19,6 +20,7 @@ namespace OhioPayroll.App.ViewModels;
 public partial class SettingsViewModel : ViewModelBase
 {
     private readonly PayrollDbContext _db;
+    private readonly UpdaterService _updaterService;
 
     // ── Company Info ────────────────────────────────────────────────
     [ObservableProperty] private string _companyName = string.Empty;
@@ -54,13 +56,30 @@ public partial class SettingsViewModel : ViewModelBase
     private int _companyInfoId;
     private int _payrollSettingsId;
 
+    // ── Auto-Updater ────────────────────────────────────────────────
+    [ObservableProperty] private bool _autoCheckForUpdates = true;
+    [ObservableProperty] private UpdateChannel _selectedUpdateChannel = UpdateChannel.Stable;
+    [ObservableProperty] private string _currentVersion = "0.0.0";
+    [ObservableProperty] private string _lastUpdateCheckText = "Never";
+    [ObservableProperty] private bool _isCheckingForUpdates;
+    [ObservableProperty] private UpdateInfo? _availableUpdate;
+
     public List<PayFrequency> AvailablePayFrequencies { get; } =
         Enum.GetValues<PayFrequency>().ToList();
 
-    public SettingsViewModel(PayrollDbContext db)
+    public UpdateChannel[] UpdateChannels { get; } = Enum.GetValues<UpdateChannel>();
+
+    public SettingsViewModel(PayrollDbContext db, UpdaterService updaterService)
     {
         _db = db;
-        _ = LoadDataAsync();
+        _updaterService = updaterService;
+
+        // Get current version from assembly
+        var assembly = System.Reflection.Assembly.GetExecutingAssembly();
+        var version = assembly.GetName().Version;
+        CurrentVersion = version != null ? $"{version.Major}.{version.Minor}.{version.Build}" : "0.0.0";
+
+        LoadDataAsync().FireAndForgetSafeAsync(errorContext: "loading settings");
     }
 
     private string GetBackupDirectory()
@@ -131,6 +150,12 @@ public partial class SettingsViewModel : ViewModelBase
                 NextCheckNumber = settings.NextCheckNumber;
                 CheckOffsetX = settings.CheckOffsetX;
                 CheckOffsetY = settings.CheckOffsetY;
+
+                // Update settings
+                AutoCheckForUpdates = settings.AutoCheckForUpdates;
+                SelectedUpdateChannel = settings.UpdateChannel;
+                if (settings.LastUpdateCheck.HasValue)
+                    LastUpdateCheckText = $"Last checked: {settings.LastUpdateCheck.Value:g}";
             }
 
             LoadLastBackupTime();
@@ -151,97 +176,99 @@ public partial class SettingsViewModel : ViewModelBase
     [RelayCommand]
     private async Task SaveAsync()
     {
-        try
+        // ── Validation ──────────────────────────────────────────
+        ValidationError = null;
+
+        if (!string.IsNullOrWhiteSpace(Ein))
         {
-            // ── Validation ──────────────────────────────────────────
-            ValidationError = null;
-
-            if (!string.IsNullOrWhiteSpace(Ein))
+            if (!Regex.IsMatch(Ein.Trim(), @"^\d{2}-\d{7}$"))
             {
-                if (!Regex.IsMatch(Ein.Trim(), @"^\d{2}-\d{7}$"))
-                {
-                    ValidationError = "EIN must be in the format XX-XXXXXXX (2 digits, dash, 7 digits).";
-                    StatusMessage = ValidationError;
-                    return;
-                }
-            }
-
-            if (SutaRate < 0m || SutaRate > 0.15m)
-            {
-                ValidationError = "SUTA rate must be between 0 and 0.15 (15%).";
+                ValidationError = "EIN must be in the format XX-XXXXXXX (2 digits, dash, 7 digits).";
                 StatusMessage = ValidationError;
                 return;
             }
+        }
 
-            if (LocalTaxRate < 0m || LocalTaxRate > 0.05m)
-            {
-                ValidationError = "Local tax rate must be between 0 and 0.05 (5%).";
-                StatusMessage = ValidationError;
-                return;
-            }
+        if (SutaRate < 0m || SutaRate > 0.15m)
+        {
+            ValidationError = "SUTA rate must be between 0 and 0.15 (15%).";
+            StatusMessage = ValidationError;
+            return;
+        }
 
-            if (SchoolDistrictRate < 0m || SchoolDistrictRate > 0.05m)
-            {
-                ValidationError = "School district rate must be between 0 and 0.05 (5%).";
-                StatusMessage = ValidationError;
-                return;
-            }
+        if (LocalTaxRate < 0m || LocalTaxRate > 0.05m)
+        {
+            ValidationError = "Local tax rate must be between 0 and 0.05 (5%).";
+            StatusMessage = ValidationError;
+            return;
+        }
 
-            StatusMessage = "Saving...";
+        if (SchoolDistrictRate < 0m || SchoolDistrictRate > 0.05m)
+        {
+            ValidationError = "School district rate must be between 0 and 0.05 (5%).";
+            StatusMessage = ValidationError;
+            return;
+        }
 
-            // ── Company Info ────────────────────────────────────────
-            var company = await _db.CompanyInfo.FindAsync(_companyInfoId);
-            if (company is null)
-            {
-                company = new CompanyInfo();
-                _db.CompanyInfo.Add(company);
-            }
+        // Use ExecuteWithLoadingAsync for save operation
+        var success = await ExecuteWithLoadingAsync(SaveInternalAsync, "Saving settings...");
 
-            company.CompanyName = CompanyName;
-            company.Ein = Ein;
-            company.StateWithholdingId = StateWithholdingId;
-            company.Address = Address;
-            company.City = City;
-            company.State = State;
-            company.ZipCode = ZipCode;
-            company.Phone = Phone;
-            company.UpdatedAt = DateTime.Now;
-
-            // ── Payroll Settings ────────────────────────────────────
-            var settings = await _db.PayrollSettings.FindAsync(_payrollSettingsId);
-            if (settings is null)
-            {
-                settings = new PayrollSettings();
-                _db.PayrollSettings.Add(settings);
-            }
-
-            settings.PayFrequency = PayFrequency;
-            settings.CurrentTaxYear = CurrentTaxYear;
-            settings.LocalTaxRate = LocalTaxRate;
-            settings.SchoolDistrictRate = SchoolDistrictRate;
-            settings.SchoolDistrictCode = SchoolDistrictCode;
-            settings.SutaRate = SutaRate;
-            settings.BackupDirectory = BackupDirectory;
-            settings.NextCheckNumber = NextCheckNumber;
-            settings.CheckOffsetX = CheckOffsetX;
-            settings.CheckOffsetY = CheckOffsetY;
-            settings.UpdatedAt = DateTime.Now;
-
-            await _db.SaveChangesAsync();
-
-            // Capture the generated IDs for new records
-            _companyInfoId = company.Id;
-            _payrollSettingsId = settings.Id;
-
-            HasChanges = false;
-            AppLogger.Information("Settings saved successfully");
+        if (success)
+        {
             StatusMessage = "Settings saved successfully.";
         }
-        catch (Exception ex)
+    }
+
+    private async Task SaveInternalAsync()
+    {
+        // ── Company Info ────────────────────────────────────────
+        var company = await _db.CompanyInfo.FindAsync(_companyInfoId);
+        if (company is null)
         {
-            AppLogger.Error($"Error saving settings: {ex.Message}", ex);
-            StatusMessage = $"Error saving settings: {ex.Message}";
+            company = new CompanyInfo();
+            _db.CompanyInfo.Add(company);
         }
+
+        company.CompanyName = CompanyName;
+        company.Ein = Ein;
+        company.StateWithholdingId = StateWithholdingId;
+        company.Address = Address;
+        company.City = City;
+        company.State = State;
+        company.ZipCode = ZipCode;
+        company.Phone = Phone;
+        company.UpdatedAt = DateTime.Now;
+
+        // ── Payroll Settings ────────────────────────────────────
+        var settings = await _db.PayrollSettings.FindAsync(_payrollSettingsId);
+        if (settings is null)
+        {
+            settings = new PayrollSettings();
+            _db.PayrollSettings.Add(settings);
+        }
+
+        settings.PayFrequency = PayFrequency;
+        settings.CurrentTaxYear = CurrentTaxYear;
+        settings.LocalTaxRate = LocalTaxRate;
+        settings.SchoolDistrictRate = SchoolDistrictRate;
+        settings.SchoolDistrictCode = SchoolDistrictCode;
+        settings.SutaRate = SutaRate;
+        settings.BackupDirectory = BackupDirectory;
+        settings.NextCheckNumber = NextCheckNumber;
+        settings.CheckOffsetX = CheckOffsetX;
+        settings.CheckOffsetY = CheckOffsetY;
+        settings.AutoCheckForUpdates = AutoCheckForUpdates;
+        settings.UpdateChannel = SelectedUpdateChannel;
+        settings.UpdatedAt = DateTime.Now;
+
+        await _db.SaveChangesAsync();
+
+        // Capture the generated IDs for new records
+        _companyInfoId = company.Id;
+        _payrollSettingsId = settings.Id;
+
+        HasChanges = false;
+        AppLogger.Information("Settings saved successfully");
     }
 
     [RelayCommand]
@@ -307,6 +334,40 @@ public partial class SettingsViewModel : ViewModelBase
         }
     }
 
+    [RelayCommand]
+    private async Task CheckForUpdates()
+    {
+        try
+        {
+            IsCheckingForUpdates = true;
+            StatusMessage = "Checking for updates...";
+            AvailableUpdate = null;
+
+            var updateInfo = await _updaterService.CheckForUpdatesAsync(silent: false);
+
+            if (updateInfo != null)
+            {
+                AvailableUpdate = updateInfo;
+                StatusMessage = $"Update available: Version {updateInfo.Version}";
+                LastUpdateCheckText = $"Last checked: {DateTime.Now:g} - Update available!";
+            }
+            else
+            {
+                StatusMessage = "You are running the latest version";
+                LastUpdateCheckText = $"Last checked: {DateTime.Now:g}";
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error checking for updates: {ex.Message}";
+            AppLogger.Error($"Error checking for updates: {ex.Message}", ex);
+        }
+        finally
+        {
+            IsCheckingForUpdates = false;
+        }
+    }
+
     /// <summary>
     /// Called by generated property setters via partial methods to track changes.
     /// </summary>
@@ -328,5 +389,7 @@ public partial class SettingsViewModel : ViewModelBase
     partial void OnNextCheckNumberChanged(int value) => HasChanges = true;
     partial void OnCheckOffsetXChanged(decimal value) => HasChanges = true;
     partial void OnCheckOffsetYChanged(decimal value) => HasChanges = true;
+    partial void OnAutoCheckForUpdatesChanged(bool value) => HasChanges = true;
+    partial void OnSelectedUpdateChannelChanged(UpdateChannel value) => HasChanges = true;
 }
 

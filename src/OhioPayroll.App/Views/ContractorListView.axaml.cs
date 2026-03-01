@@ -1,8 +1,6 @@
-using Avalonia.Controls;
-
 namespace OhioPayroll.App.Views;
 
-public partial class ContractorListView : UserControl
+public partial class ContractorListView : ConfirmableUserControl
 {
     public ContractorListView()
     {

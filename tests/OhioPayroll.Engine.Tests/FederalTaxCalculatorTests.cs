@@ -136,5 +136,68 @@ public class FederalTaxCalculatorTests
 
         mwsTax.Should().Be(singleTax);
     }
+
+    [Fact]
+    public void HeadOfHousehold_LowerTax_ThanSingle()
+    {
+        var calc = CreateCalculator();
+        decimal grossPay = 2_000m;
+
+        var singleTax = calc.Calculate(grossPay, FilingStatus.Single, PayFrequency.BiWeekly);
+        var hohTax = calc.Calculate(grossPay, FilingStatus.HeadOfHousehold, PayFrequency.BiWeekly);
+
+        hohTax.Should().BeLessThan(singleTax);
+    }
+
+    [Fact]
+    public void HeadOfHousehold_BelowStandardDeduction_ZeroTax()
+    {
+        var calc = CreateCalculator();
+        // $10,800 annual is in 0% bracket. BiWeekly = 10800/26 = ~415.38
+        var result = calc.Calculate(415.00m, FilingStatus.HeadOfHousehold, PayFrequency.BiWeekly);
+        result.Should().Be(0m);
+    }
+
+    [Fact]
+    public void Allowances_ReduceTax()
+    {
+        var calc = CreateCalculator();
+        decimal grossPay = 2_000m;
+
+        var taxNoAllowances = calc.Calculate(grossPay, FilingStatus.Single, PayFrequency.BiWeekly, allowances: 0);
+        var taxWithAllowances = calc.Calculate(grossPay, FilingStatus.Single, PayFrequency.BiWeekly, allowances: 2);
+
+        taxWithAllowances.Should().BeLessThan(taxNoAllowances);
+    }
+
+    [Fact]
+    public void ZeroAllowances_SameAsDefault()
+    {
+        var calc = CreateCalculator();
+        decimal grossPay = 2_000m;
+
+        var taxDefault = calc.Calculate(grossPay, FilingStatus.Single, PayFrequency.BiWeekly);
+        var taxZero = calc.Calculate(grossPay, FilingStatus.Single, PayFrequency.BiWeekly, allowances: 0);
+
+        taxZero.Should().Be(taxDefault);
+    }
+
+    [Fact]
+    public void HighAllowances_ReducesToZeroTax()
+    {
+        var calc = CreateCalculator();
+        // With enough allowances, tax should be zero
+        var result = calc.Calculate(2_000m, FilingStatus.Single, PayFrequency.BiWeekly, allowances: 50);
+        result.Should().Be(0m);
+    }
+
+    [Fact]
+    public void NegativeAllowances_ThrowsArgumentOutOfRange()
+    {
+        var calc = CreateCalculator();
+        var act = () => calc.Calculate(2_000m, FilingStatus.Single, PayFrequency.BiWeekly, allowances: -1);
+        act.Should().Throw<ArgumentOutOfRangeException>()
+            .Which.ParamName.Should().Be("allowances");
+    }
 }
 

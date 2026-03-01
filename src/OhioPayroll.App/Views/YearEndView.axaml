@@ -7,143 +7,114 @@
              x:Class="OhioPayroll.App.Views.YearEndView"
              x:DataType="vm:YearEndViewModel">
 
-    <UserControl.Styles>
-        <Style Selector="Border.summary-card">
-            <Setter Property="Background" Value="#2D2D30"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="20,16"/>
-            <Setter Property="BorderBrush" Value="#444"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="MinWidth" Value="160"/>
-            <Setter Property="MinHeight" Value="90"/>
-        </Style>
-        <Style Selector="TextBlock.card-header">
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Foreground" Value="#999"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Margin" Value="0,0,0,8"/>
-        </Style>
-        <Style Selector="TextBlock.card-value">
-            <Setter Property="FontSize" Value="24"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="White"/>
-        </Style>
-    </UserControl.Styles>
 
     <DockPanel>
 
         <!-- Page Header -->
-        <Border DockPanel.Dock="Top" Padding="8,8,8,0">
+        <Border DockPanel.Dock="Top" Padding="0,0,0,24">
             <StackPanel Spacing="4">
-                <TextBlock Text="{Binding Title}" FontSize="24" FontWeight="Bold"/>
-                <TextBlock Text="{Binding Subtitle}" FontSize="14" Foreground="#888"/>
+                <TextBlock Text="{Binding Title}" Classes="page-title"/>
+                <TextBlock Text="{Binding Subtitle}" Classes="page-subtitle"/>
             </StackPanel>
         </Border>
 
         <!-- Summary Cards -->
-        <Border DockPanel.Dock="Top" Padding="8,16,8,0">
-            <WrapPanel Orientation="Horizontal" HorizontalAlignment="Left">
+        <Border DockPanel.Dock="Top" Padding="0,0,0,24">
+            <Grid ColumnDefinitions="*,*,*,*,*,*" RowDefinitions="Auto" ColumnSpacing="24">
 
-                <Border Classes="summary-card" Margin="0,0,12,12">
+                <Border Grid.Column="0" Classes="stat-card">
                     <StackPanel>
-                        <TextBlock Text="EMPLOYEES" Classes="card-header"/>
-                        <TextBlock Text="{Binding EmployeeCountDisplay}" Classes="card-value"/>
+                        <TextBlock Text="EMPLOYEES" Classes="stat-label"/>
+                        <TextBlock Text="{Binding EmployeeCountDisplay}" Classes="stat-value"/>
                     </StackPanel>
                 </Border>
 
-                <Border Classes="summary-card" Margin="0,0,12,12">
+                <Border Grid.Column="1" Classes="stat-card">
                     <StackPanel>
-                        <TextBlock Text="TOTAL WAGES" Classes="card-header"/>
-                        <TextBlock Text="{Binding TotalWagesDisplay}" Classes="card-value"/>
+                        <TextBlock Text="TOTAL WAGES" Classes="stat-label"/>
+                        <TextBlock Text="{Binding TotalWagesDisplay}" Classes="stat-value"/>
                     </StackPanel>
                 </Border>
 
-                <Border Classes="summary-card" Margin="0,0,12,12">
+                <Border Grid.Column="2" Classes="stat-card">
                     <StackPanel>
-                        <TextBlock Text="FEDERAL TAX" Classes="card-header"/>
-                        <TextBlock Text="{Binding TotalFederalTaxDisplay}" Classes="card-value"
-                                   Foreground="#F87171"/>
+                        <TextBlock Text="FEDERAL TAX" Classes="stat-label"/>
+                        <TextBlock Text="{Binding TotalFederalTaxDisplay}" Classes="stat-value"/>
                     </StackPanel>
                 </Border>
 
-                <Border Classes="summary-card" Margin="0,0,12,12">
+                <Border Grid.Column="3" Classes="stat-card">
                     <StackPanel>
-                        <TextBlock Text="SS TAX" Classes="card-header"/>
-                        <TextBlock Text="{Binding TotalSsTaxDisplay}" Classes="card-value"
-                                   Foreground="#FBBF24"/>
+                        <TextBlock Text="SS TAX" Classes="stat-label"/>
+                        <TextBlock Text="{Binding TotalSsTaxDisplay}" Classes="stat-value"/>
                     </StackPanel>
                 </Border>
 
-                <Border Classes="summary-card" Margin="0,0,12,12">
+                <Border Grid.Column="4" Classes="stat-card">
                     <StackPanel>
-                        <TextBlock Text="MEDICARE TAX" Classes="card-header"/>
-                        <TextBlock Text="{Binding TotalMedicareTaxDisplay}" Classes="card-value"
-                                   Foreground="#60A5FA"/>
+                        <TextBlock Text="MEDICARE TAX" Classes="stat-label"/>
+                        <TextBlock Text="{Binding TotalMedicareTaxDisplay}" Classes="stat-value"/>
                     </StackPanel>
                 </Border>
 
-                <Border Classes="summary-card" Margin="0,0,12,12">
+                <Border Grid.Column="5" Classes="stat-card">
                     <StackPanel>
-                        <TextBlock Text="STATE TAX" Classes="card-header"/>
-                        <TextBlock Text="{Binding TotalStateTaxDisplay}" Classes="card-value"
-                                   Foreground="#A78BFA"/>
+                        <TextBlock Text="STATE TAX" Classes="stat-label"/>
+                        <TextBlock Text="{Binding TotalStateTaxDisplay}" Classes="stat-value"/>
                     </StackPanel>
                 </Border>
 
-            </WrapPanel>
+            </Grid>
         </Border>
 
         <!-- Year Selector and Generate All -->
-        <Border DockPanel.Dock="Top" Padding="8,12,8,12">
-            <StackPanel Orientation="Horizontal" Spacing="16">
+        <Border DockPanel.Dock="Top" Padding="0,0,0,24">
+            <StackPanel Orientation="Horizontal" Spacing="20">
 
                 <StackPanel Spacing="4">
-                    <TextBlock Text="Tax Year" FontSize="12" Foreground="Gray"/>
+                    <TextBlock Text="Tax Year" Classes="label"/>
                     <ComboBox ItemsSource="{Binding AvailableYears}"
                               SelectedItem="{Binding SelectedYear}"
-                              MinWidth="120"/>
+                              MinWidth="140"/>
                 </StackPanel>
 
-                <Button Content="Generate All (W-2s, W-3, 1099-NECs, 1096)"
+                <Button Content="Generate All (W-2s, W-3, 1099-NECs, 1096, 940)"
                         Command="{Binding GenerateAllCommand}"
                         IsEnabled="{Binding !IsGenerating}"
                         VerticalAlignment="Bottom"
-                        Padding="16,8"
-                        Background="#0078D4"
-                        Foreground="White"
-                        CornerRadius="4"/>
+                        Padding="20,10"
+                        Classes="primary"/>
 
             </StackPanel>
         </Border>
 
         <!-- Status Message -->
-        <Border DockPanel.Dock="Bottom" Padding="8,0,8,8"
+        <Border DockPanel.Dock="Bottom" Padding="0,16,0,0"
                 IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-            <Border Background="#2D2D30" CornerRadius="6" Padding="16,12"
-                    BorderBrush="#444" BorderThickness="1">
+            <Border Background="{StaticResource SuccessBrush}" CornerRadius="6" Padding="16,12" Opacity="0.15">
                 <TextBlock Text="{Binding StatusMessage}"
-                           FontSize="13" Foreground="#4ADE80"
+                           FontSize="14" Foreground="{StaticResource SuccessBrush}"
                            TextWrapping="Wrap"/>
             </Border>
         </Border>
 
         <!-- Generating indicator -->
-        <Border DockPanel.Dock="Bottom" Padding="8,0,8,4"
+        <Border DockPanel.Dock="Bottom" Padding="0,0,0,8"
                 IsVisible="{Binding IsGenerating}">
             <TextBlock Text="Generating documents, please wait..."
-                       FontSize="13" Foreground="#999"/>
+                       FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"/>
         </Border>
 
         <!-- Main Scrollable Content -->
         <ScrollViewer HorizontalScrollBarVisibility="Disabled"
                       VerticalScrollBarVisibility="Auto">
-            <StackPanel Spacing="0" Margin="8,0,8,8">
+            <StackPanel Spacing="32" Margin="0,0,0,24">
 
-                <!-- ═══════ W-2 Employee Section ═══════ -->
-                <Border Background="#2D2D30" CornerRadius="8" Padding="20">
-                    <StackPanel Spacing="12">
-                        <TextBlock Text="W-2 Employees" FontSize="20" FontWeight="SemiBold" Foreground="White"/>
-                        <TextBlock Text="Employees with finalized payroll for the selected tax year" FontSize="13" Foreground="#999"/>
+                <!-- W-2 Employee Section -->
+                <Border Classes="card">
+                    <StackPanel Spacing="16">
+                        <TextBlock Text="W-2 Employees" Classes="section-header"/>
+                        <TextBlock Text="Employees with finalized payroll for the selected tax year" FontSize="13" Foreground="{StaticResource TextMutedBrush}"/>
 
                         <DataGrid ItemsSource="{Binding EmployeeRows}"
                                   AutoGenerateColumns="False"
@@ -159,22 +130,22 @@
                                                     Width="200"/>
                                 <DataGridTextColumn Header="SSN Last 4"
                                                     Binding="{Binding SsnLast4}"
-                                                    Width="80"/>
+                                                    Width="90"/>
                                 <DataGridTextColumn Header="Total Wages"
                                                     Binding="{Binding TotalWagesDisplay}"
-                                                    Width="120"/>
+                                                    Width="130"/>
                                 <DataGridTextColumn Header="Federal Tax"
                                                     Binding="{Binding FederalTaxDisplay}"
-                                                    Width="110"/>
+                                                    Width="120"/>
                                 <DataGridTextColumn Header="State Tax"
                                                     Binding="{Binding StateTaxDisplay}"
-                                                    Width="110"/>
+                                                    Width="120"/>
                                 <DataGridTextColumn Header="SS Tax"
                                                     Binding="{Binding SsTaxDisplay}"
-                                                    Width="100"/>
+                                                    Width="110"/>
                                 <DataGridTextColumn Header="Medicare Tax"
                                                     Binding="{Binding MedicareTaxDisplay}"
-                                                    Width="100"/>
+                                                    Width="110"/>
                                 <DataGridTextColumn Header="Local Tax"
                                                     Binding="{Binding LocalTaxDisplay}"
                                                     Width="*"/>
@@ -182,54 +153,55 @@
                         </DataGrid>
 
                         <!-- W-2 Generation Buttons -->
-                        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                        <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
                             <Button Content="Generate All W-2s"
-                                    Command="{Binding GenerateW2sCommand}"
+                                    Command="{Binding GenerateOfficialW2sCommand}"
                                     IsEnabled="{Binding !IsGenerating}"
                                     Padding="16,8"
-                                    Classes="accent"/>
+                                    Classes="primary"/>
                             <Button Content="Generate W-3"
                                     Command="{Binding GenerateW3Command}"
                                     IsEnabled="{Binding !IsGenerating}"
                                     Padding="16,8"
-                                    Background="#3E3E42"
-                                    Foreground="#CCC"
-                                    CornerRadius="4"/>
+                                    Classes="secondary"/>
+                            <Button Content="Export W-2 EFW2 File"
+                                    Command="{Binding ExportEfw2Command}"
+                                    IsEnabled="{Binding !IsGenerating}"
+                                    Padding="16,8"
+                                    Classes="secondary"/>
                         </StackPanel>
                     </StackPanel>
                 </Border>
 
-                <!-- ═══════ 1099 Contractor Section ═══════ -->
-                <Border Background="#2D2D30" CornerRadius="8" Padding="20" Margin="0,16,0,0">
-                    <StackPanel Spacing="12">
-                        <TextBlock Text="1099-NEC Contractors" FontSize="20" FontWeight="SemiBold" Foreground="White"/>
-                        <TextBlock Text="Contractors paid $600 or more receive a 1099-NEC" FontSize="13" Foreground="#999"/>
+                <!-- 1099 Contractor Section -->
+                <Border Classes="card">
+                    <StackPanel Spacing="16">
+                        <TextBlock Text="1099-NEC Contractors" Classes="section-header"/>
+                        <TextBlock Text="Contractors paid $600 or more receive a 1099-NEC" FontSize="13" Foreground="{StaticResource TextMutedBrush}"/>
 
                         <!-- Contractor Summary Cards -->
-                        <WrapPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,8,0,0">
-                            <Border Classes="summary-card" Margin="0,0,12,12">
+                        <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto" ColumnSpacing="24" Margin="0,8,0,0">
+                            <Border Grid.Column="0" Classes="stat-card">
                                 <StackPanel>
-                                    <TextBlock Text="CONTRACTORS" Classes="card-header"/>
-                                    <TextBlock Text="{Binding ContractorCountDisplay}" Classes="card-value"/>
+                                    <TextBlock Text="CONTRACTORS" Classes="stat-label"/>
+                                    <TextBlock Text="{Binding ContractorCountDisplay}" Classes="stat-value"/>
                                 </StackPanel>
                             </Border>
 
-                            <Border Classes="summary-card" Margin="0,0,12,12">
+                            <Border Grid.Column="1" Classes="stat-card">
                                 <StackPanel>
-                                    <TextBlock Text="TOTAL PAYMENTS" Classes="card-header"/>
-                                    <TextBlock Text="{Binding TotalContractorPaymentsDisplay}" Classes="card-value"
-                                               Foreground="#34D399"/>
+                                    <TextBlock Text="TOTAL PAYMENTS" Classes="stat-label"/>
+                                    <TextBlock Text="{Binding TotalContractorPaymentsDisplay}" Classes="stat-value"/>
                                 </StackPanel>
                             </Border>
 
-                            <Border Classes="summary-card" Margin="0,0,12,12">
+                            <Border Grid.Column="2" Classes="stat-card">
                                 <StackPanel>
-                                    <TextBlock Text="1099s REQUIRED" Classes="card-header"/>
-                                    <TextBlock Text="{Binding Form1099CountDisplay}" Classes="card-value"
-                                               Foreground="#FB923C"/>
+                                    <TextBlock Text="1099s REQUIRED" Classes="stat-label"/>
+                                    <TextBlock Text="{Binding Form1099CountDisplay}" Classes="stat-value"/>
                                 </StackPanel>
                             </Border>
-                        </WrapPanel>
+                        </Grid>
 
                         <!-- Contractor DataGrid -->
                         <DataGrid ItemsSource="{Binding ContractorRows}"
@@ -243,13 +215,13 @@
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Contractor"
                                                     Binding="{Binding ContractorName}"
-                                                    Width="250"/>
+                                                    Width="260"/>
                                 <DataGridTextColumn Header="TIN"
                                                     Binding="{Binding MaskedTin}"
-                                                    Width="120"/>
+                                                    Width="130"/>
                                 <DataGridTextColumn Header="Total Payments"
                                                     Binding="{Binding TotalPaymentsDisplay}"
-                                                    Width="150"/>
+                                                    Width="160"/>
                                 <DataGridTextColumn Header="Status"
                                                     Binding="{Binding StatusDisplay}"
                                                     Width="*"/>
@@ -257,21 +229,38 @@
                         </DataGrid>
 
                         <!-- 1099 Generation Buttons -->
-                        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                        <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
                             <Button Content="Generate 1099-NECs"
-                                    Command="{Binding Generate1099sCommand}"
+                                    Command="{Binding GenerateOfficial1099sCommand}"
                                     IsEnabled="{Binding !IsGenerating}"
                                     Padding="16,8"
-                                    Background="#0078D4"
-                                    Foreground="White"
-                                    CornerRadius="4"/>
+                                    Classes="primary"/>
                             <Button Content="Generate 1096"
                                     Command="{Binding Generate1096Command}"
                                     IsEnabled="{Binding !IsGenerating}"
                                     Padding="16,8"
-                                    Background="#3E3E42"
-                                    Foreground="#CCC"
-                                    CornerRadius="4"/>
+                                    Classes="secondary"/>
+                            <Button Content="Export 1099 IRIS CSV"
+                                    Command="{Binding ExportIrisCsvCommand}"
+                                    IsEnabled="{Binding !IsGenerating}"
+                                    Padding="16,8"
+                                    Classes="secondary"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Form 940 (FUTA) Section -->
+                <Border Classes="card">
+                    <StackPanel Spacing="16">
+                        <TextBlock Text="Form 940 — Annual FUTA Tax Return" Classes="section-header"/>
+                        <TextBlock Text="Federal Unemployment Tax Act (FUTA) annual return — $7,000 wage base per employee at 0.6% net rate" FontSize="13" Foreground="{StaticResource TextMutedBrush}"/>
+
+                        <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
+                            <Button Content="Generate Form 940"
+                                    Command="{Binding GenerateOfficialForm940Command}"
+                                    IsEnabled="{Binding !IsGenerating}"
+                                    Padding="16,8"
+                                    Classes="primary"/>
                         </StackPanel>
                     </StackPanel>
                 </Border>
@@ -281,4 +270,3 @@
 
     </DockPanel>
 </UserControl>
-

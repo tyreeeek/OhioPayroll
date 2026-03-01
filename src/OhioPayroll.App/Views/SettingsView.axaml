@@ -8,227 +8,252 @@
              x:Class="OhioPayroll.App.Views.SettingsView"
              x:DataType="vm:SettingsViewModel">
 
-    <UserControl.Styles>
-        <Style Selector="TextBlock.section-header">
-            <Setter Property="FontSize" Value="20"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Margin" Value="0,0,0,16"/>
-        </Style>
-        <Style Selector="TextBlock.field-label">
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="0,0,8,0"/>
-            <Setter Property="FontSize" Value="14"/>
-        </Style>
-        <Style Selector="TextBox.field-input">
-            <Setter Property="MinWidth" Value="300"/>
-            <Setter Property="Margin" Value="0,0,0,4"/>
-        </Style>
-        <Style Selector="NumericUpDown.field-input">
-            <Setter Property="MinWidth" Value="300"/>
-            <Setter Property="Margin" Value="0,0,0,4"/>
-        </Style>
-    </UserControl.Styles>
 
     <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-        <StackPanel Spacing="24" Margin="8">
+        <StackPanel Spacing="32" Margin="0,0,0,32">
 
             <!-- Page Title -->
-            <TextBlock Text="Settings" FontSize="26" FontWeight="Bold" Margin="0,0,0,8"/>
+            <TextBlock Text="Settings" Classes="page-title"/>
 
-            <!-- ══════════════════════════════════════════════════════════
-                 Company Information
-                 ══════════════════════════════════════════════════════════ -->
-            <Border Background="#2D2D30" CornerRadius="8" Padding="24" BorderBrush="#444" BorderThickness="1">
-                <StackPanel Spacing="8">
+            <!-- Company Information -->
+            <Border Classes="card">
+                <StackPanel Spacing="16">
                     <TextBlock Text="Company Information" Classes="section-header"/>
 
-                    <Grid ColumnDefinitions="160,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="10">
+                    <Grid ColumnDefinitions="180,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="12">
 
                         <!-- Company Name -->
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Company Name" Classes="field-label"/>
-                        <TextBox   Grid.Row="0" Grid.Column="1" Text="{Binding CompanyName}" Classes="field-input" Watermark="Enter company name"/>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Company Name" Classes="label" VerticalAlignment="Center"/>
+                        <TextBox   Grid.Row="0" Grid.Column="1" Text="{Binding CompanyName}" Watermark="Enter company name"/>
 
                         <!-- EIN -->
-                        <TextBlock Grid.Row="1" Grid.Column="0" Text="EIN" Classes="field-label"/>
-                        <TextBox   Grid.Row="1" Grid.Column="1" Text="{Binding Ein}" Classes="field-input" Watermark="XX-XXXXXXX"/>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="EIN" Classes="label" VerticalAlignment="Center"/>
+                        <TextBox   Grid.Row="1" Grid.Column="1" Text="{Binding Ein}" Watermark="XX-XXXXXXX"/>
 
                         <!-- State Withholding ID -->
-                        <TextBlock Grid.Row="2" Grid.Column="0" Text="State Withholding ID" Classes="field-label"/>
-                        <TextBox   Grid.Row="2" Grid.Column="1" Text="{Binding StateWithholdingId}" Classes="field-input" Watermark="Ohio employer withholding account number"/>
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="State Withholding ID" Classes="label" VerticalAlignment="Center"/>
+                        <TextBox   Grid.Row="2" Grid.Column="1" Text="{Binding StateWithholdingId}" Watermark="Ohio employer withholding account number"/>
 
                         <!-- Address -->
-                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Address" Classes="field-label"/>
-                        <TextBox   Grid.Row="3" Grid.Column="1" Text="{Binding Address}" Classes="field-input" Watermark="Street address"/>
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Address" Classes="label" VerticalAlignment="Center"/>
+                        <TextBox   Grid.Row="3" Grid.Column="1" Text="{Binding Address}" Watermark="Street address"/>
 
                         <!-- City -->
-                        <TextBlock Grid.Row="4" Grid.Column="0" Text="City" Classes="field-label"/>
-                        <TextBox   Grid.Row="4" Grid.Column="1" Text="{Binding City}" Classes="field-input" Watermark="City"/>
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="City" Classes="label" VerticalAlignment="Center"/>
+                        <TextBox   Grid.Row="4" Grid.Column="1" Text="{Binding City}" Watermark="City"/>
 
                         <!-- State -->
-                        <TextBlock Grid.Row="5" Grid.Column="0" Text="State" Classes="field-label"/>
-                        <TextBox   Grid.Row="5" Grid.Column="1" Text="{Binding State}" Classes="field-input" Watermark="OH" MaxLength="2"/>
+                        <TextBlock Grid.Row="5" Grid.Column="0" Text="State" Classes="label" VerticalAlignment="Center"/>
+                        <TextBox   Grid.Row="5" Grid.Column="1" Text="{Binding State}" Watermark="OH" MaxLength="2"/>
 
                         <!-- Zip Code -->
-                        <TextBlock Grid.Row="6" Grid.Column="0" Text="Zip Code" Classes="field-label"/>
-                        <TextBox   Grid.Row="6" Grid.Column="1" Text="{Binding ZipCode}" Classes="field-input" Watermark="XXXXX" MaxLength="10"/>
+                        <TextBlock Grid.Row="6" Grid.Column="0" Text="Zip Code" Classes="label" VerticalAlignment="Center"/>
+                        <TextBox   Grid.Row="6" Grid.Column="1" Text="{Binding ZipCode}" Watermark="XXXXX" MaxLength="10"/>
 
                         <!-- Phone -->
-                        <TextBlock Grid.Row="7" Grid.Column="0" Text="Phone" Classes="field-label"/>
-                        <TextBox   Grid.Row="7" Grid.Column="1" Text="{Binding Phone}" Classes="field-input" Watermark="(XXX) XXX-XXXX"/>
+                        <TextBlock Grid.Row="7" Grid.Column="0" Text="Phone" Classes="label" VerticalAlignment="Center"/>
+                        <TextBox   Grid.Row="7" Grid.Column="1" Text="{Binding Phone}" Watermark="(XXX) XXX-XXXX"/>
                     </Grid>
                 </StackPanel>
             </Border>
 
-            <!-- ══════════════════════════════════════════════════════════
-                 Payroll Settings
-                 ══════════════════════════════════════════════════════════ -->
-            <Border Background="#2D2D30" CornerRadius="8" Padding="24" BorderBrush="#444" BorderThickness="1">
-                <StackPanel Spacing="8">
+            <!-- Payroll Settings -->
+            <Border Classes="card">
+                <StackPanel Spacing="16">
                     <TextBlock Text="Payroll Settings" Classes="section-header"/>
 
-                    <Grid ColumnDefinitions="180,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="10">
+                    <Grid ColumnDefinitions="200,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="12">
 
                         <!-- Pay Frequency -->
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Pay Frequency" Classes="field-label"/>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Pay Frequency" Classes="label" VerticalAlignment="Center"/>
                         <ComboBox  Grid.Row="0" Grid.Column="1"
                                    ItemsSource="{Binding AvailablePayFrequencies}"
                                    SelectedItem="{Binding PayFrequency}"
                                    MinWidth="300"/>
 
                         <!-- Current Tax Year -->
-                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Current Tax Year" Classes="field-label"/>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Current Tax Year" Classes="label" VerticalAlignment="Center"/>
                         <NumericUpDown Grid.Row="1" Grid.Column="1"
                                        Value="{Binding CurrentTaxYear}"
                                        Minimum="2020" Maximum="2099"
                                        FormatString="0"
-                                       Classes="field-input"/>
+                                       MinWidth="300"/>
 
                         <!-- Local Tax Rate -->
-                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Local Tax Rate (%)" Classes="field-label"/>
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Local Tax Rate (%)" Classes="label" VerticalAlignment="Center"/>
                         <NumericUpDown Grid.Row="2" Grid.Column="1"
                                        Value="{Binding LocalTaxRate}"
                                        Minimum="0" Maximum="1"
                                        Increment="0.001"
                                        FormatString="P3"
-                                       Classes="field-input"/>
+                                       MinWidth="300"/>
 
                         <!-- School District Rate -->
-                        <TextBlock Grid.Row="3" Grid.Column="0" Text="School District Rate (%)" Classes="field-label"/>
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="School District Rate (%)" Classes="label" VerticalAlignment="Center"/>
                         <NumericUpDown Grid.Row="3" Grid.Column="1"
                                        Value="{Binding SchoolDistrictRate}"
                                        Minimum="0" Maximum="1"
                                        Increment="0.001"
                                        FormatString="P3"
-                                       Classes="field-input"/>
+                                       MinWidth="300"/>
 
                         <!-- School District Code -->
-                        <TextBlock Grid.Row="4" Grid.Column="0" Text="School District Code" Classes="field-label"/>
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="School District Code" Classes="label" VerticalAlignment="Center"/>
                         <TextBox   Grid.Row="4" Grid.Column="1"
                                    Text="{Binding SchoolDistrictCode}"
-                                   Classes="field-input" Watermark="e.g., 0401"/>
+                                   Watermark="e.g., 0401"/>
 
                         <!-- SUTA Rate -->
-                        <TextBlock Grid.Row="5" Grid.Column="0" Text="SUTA Rate (%)" Classes="field-label"/>
+                        <TextBlock Grid.Row="5" Grid.Column="0" Text="SUTA Rate (%)" Classes="label" VerticalAlignment="Center"/>
                         <NumericUpDown Grid.Row="5" Grid.Column="1"
                                        Value="{Binding SutaRate}"
                                        Minimum="0" Maximum="1"
                                        Increment="0.001"
                                        FormatString="P3"
-                                       Classes="field-input"/>
+                                       MinWidth="300"/>
 
                         <!-- Backup Directory -->
-                        <TextBlock Grid.Row="6" Grid.Column="0" Text="Backup Directory" Classes="field-label"/>
+                        <TextBlock Grid.Row="6" Grid.Column="0" Text="Backup Directory" Classes="label" VerticalAlignment="Center"/>
                         <TextBox   Grid.Row="6" Grid.Column="1"
                                    Text="{Binding BackupDirectory}"
-                                   Classes="field-input" Watermark="C:\Backups\Payroll"/>
+                                   Watermark="C:\Backups\Payroll"/>
 
                         <!-- Next Check Number -->
-                        <TextBlock Grid.Row="7" Grid.Column="0" Text="Next Check Number" Classes="field-label"/>
+                        <TextBlock Grid.Row="7" Grid.Column="0" Text="Next Check Number" Classes="label" VerticalAlignment="Center"/>
                         <NumericUpDown Grid.Row="7" Grid.Column="1"
                                        Value="{Binding NextCheckNumber}"
                                        Minimum="1" Maximum="999999"
                                        FormatString="0"
-                                       Classes="field-input"/>
+                                       MinWidth="300"/>
 
                         <!-- Check Offset X -->
-                        <TextBlock Grid.Row="8" Grid.Column="0" Text="Check Offset X" Classes="field-label"/>
+                        <TextBlock Grid.Row="8" Grid.Column="0" Text="Check Offset X" Classes="label" VerticalAlignment="Center"/>
                         <NumericUpDown Grid.Row="8" Grid.Column="1"
                                        Value="{Binding CheckOffsetX}"
                                        Increment="0.1"
                                        FormatString="0.0"
-                                       Classes="field-input"/>
+                                       MinWidth="300"/>
 
                         <!-- Check Offset Y -->
-                        <TextBlock Grid.Row="9" Grid.Column="0" Text="Check Offset Y" Classes="field-label"/>
+                        <TextBlock Grid.Row="9" Grid.Column="0" Text="Check Offset Y" Classes="label" VerticalAlignment="Center"/>
                         <NumericUpDown Grid.Row="9" Grid.Column="1"
                                        Value="{Binding CheckOffsetY}"
                                        Increment="0.1"
                                        FormatString="0.0"
-                                       Classes="field-input"/>
+                                       MinWidth="300"/>
                     </Grid>
                 </StackPanel>
             </Border>
 
-            <!-- ══════════════════════════════════════════════════════════
-                 Backup & Restore
-                 ══════════════════════════════════════════════════════════ -->
-            <Border Background="#2D2D30" CornerRadius="8" Padding="24" BorderBrush="#444" BorderThickness="1">
-                <StackPanel Spacing="12">
+            <!-- Backup & Restore -->
+            <Border Classes="card">
+                <StackPanel Spacing="16">
                     <TextBlock Text="Backup &amp; Restore" Classes="section-header"/>
 
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <TextBlock Text="Last Backup:" Classes="field-label" FontWeight="SemiBold"/>
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <TextBlock Text="Last Backup:" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}"/>
                         <TextBlock Text="{Binding LastBackupDisplay}"
                                    VerticalAlignment="Center"
                                    FontSize="14"
-                                   Foreground="#89B4FA"/>
+                                   Foreground="{StaticResource TextPrimaryBrush}"/>
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,8,0,0">
                         <Button Content="Backup Now"
                                 Command="{Binding BackupNowCommand}"
                                 Padding="24,10"
-                                FontSize="14"
-                                FontWeight="SemiBold"
-                                Background="#0078D4"
-                                Foreground="White"
-                                CornerRadius="4"/>
+                                Classes="primary"/>
 
                         <Button Content="Open Backup Folder"
                                 Command="{Binding OpenBackupFolderCommand}"
                                 Padding="24,10"
-                                FontSize="14"
-                                FontWeight="SemiBold"
-                                Background="#3E3E42"
-                                Foreground="White"
-                                CornerRadius="4"/>
+                                Classes="secondary"/>
                     </StackPanel>
                 </StackPanel>
             </Border>
 
-            <!-- ══════════════════════════════════════════════════════════
-                 Save Button & Status
-                 ══════════════════════════════════════════════════════════ -->
-            <StackPanel Orientation="Horizontal" Spacing="16" HorizontalAlignment="Left">
+            <!-- Application Updates -->
+            <Border Classes="card">
+                <StackPanel Spacing="20">
+                    <TextBlock Text="Application Updates" Classes="section-header"/>
+
+                    <CheckBox Content="Automatically check for updates on startup"
+                              IsChecked="{Binding AutoCheckForUpdates}"/>
+
+                    <Grid ColumnDefinitions="200,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="16">
+                        <!-- Update Channel -->
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Update Channel:" Classes="label" VerticalAlignment="Center"/>
+                        <ComboBox Grid.Row="0" Grid.Column="1"
+                                  ItemsSource="{Binding UpdateChannels}"
+                                  SelectedItem="{Binding SelectedUpdateChannel}"
+                                  MinWidth="220"
+                                  HorizontalAlignment="Left"/>
+
+                        <!-- Current Version -->
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Current Version:" Classes="label" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="1" Grid.Column="1"
+                                   Text="{Binding CurrentVersion}"
+                                   FontWeight="600"
+                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                   VerticalAlignment="Center"/>
+
+                        <!-- Last Check -->
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Last Check:" Classes="label" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="2" Grid.Column="1"
+                                   Text="{Binding LastUpdateCheckText}"
+                                   VerticalAlignment="Center"
+                                   FontSize="14"
+                                   Foreground="{StaticResource TextSecondaryBrush}"/>
+                    </Grid>
+
+                    <Button Content="Check for Updates Now"
+                            Command="{Binding CheckForUpdatesCommand}"
+                            IsEnabled="{Binding !IsCheckingForUpdates}"
+                            Padding="24,10"
+                            Classes="primary"/>
+
+                    <!-- Update Available Panel -->
+                    <Border IsVisible="{Binding AvailableUpdate, Converter={x:Static ObjectConverters.IsNotNull}}"
+                            Background="{StaticResource PrimaryBrush}"
+                            CornerRadius="6"
+                            Padding="20"
+                            Opacity="0.15">
+                        <StackPanel Spacing="12">
+                            <TextBlock Text="Update Available!" FontSize="18" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}"/>
+                            <TextBlock Text="{Binding AvailableUpdate.ReleaseName}" FontSize="15" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <TextBlock Text="{Binding AvailableUpdate.ReleaseNotes}"
+                                       TextWrapping="Wrap"
+                                       MaxHeight="150"
+                                       FontSize="13"
+                                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <Button Content="Download and Install Update"
+                                    Classes="primary"
+                                    Padding="16,8"
+                                    Margin="0,8,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock Text="Note: Updates are downloaded from GitHub. Your data and settings are preserved during updates."
+                               FontSize="12"
+                               Foreground="{StaticResource TextMutedBrush}"
+                               TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Save Button & Status -->
+            <StackPanel Orientation="Horizontal" Spacing="20" HorizontalAlignment="Left">
                 <Button Content="Save Settings"
                         Command="{Binding SaveCommand}"
                         IsEnabled="{Binding HasChanges}"
                         Padding="24,10"
-                        FontSize="14"
-                        FontWeight="SemiBold"
-                        Background="#0078D4"
-                        Foreground="White"
-                        CornerRadius="4"/>
+                        Classes="primary"/>
 
                 <TextBlock Text="{Binding StatusMessage}"
                            VerticalAlignment="Center"
                            FontSize="14"
-                           Foreground="#89B4FA"/>
+                           Foreground="{StaticResource SuccessBrush}"/>
             </StackPanel>
 
-            <!-- Bottom spacer -->
-            <Border Height="16"/>
         </StackPanel>
     </ScrollViewer>
 </UserControl>
-

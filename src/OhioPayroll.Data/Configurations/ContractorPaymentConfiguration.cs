@@ -16,8 +16,10 @@ public class ContractorPaymentConfiguration : IEntityTypeConfiguration<Contracto
         builder.HasOne(p => p.Contractor)
             .WithMany(c => c.Payments)
             .HasForeignKey(p => p.ContractorId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.Property(p => p.TaxYear).IsRequired();
         builder.HasIndex(p => new { p.ContractorId, p.TaxYear });
         builder.HasIndex(p => p.PaymentDate);
+        builder.HasIndex(p => new { p.ContractorId, p.IsDeleted });
     }
 }

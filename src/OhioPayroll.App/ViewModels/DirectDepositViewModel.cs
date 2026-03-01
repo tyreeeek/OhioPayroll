@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
+using OhioPayroll.App.Extensions;
 using OhioPayroll.App.Services;
 using OhioPayroll.Core.Interfaces;
 using OhioPayroll.Core.Models;
@@ -81,11 +82,20 @@ public partial class DirectDepositViewModel : ViewModelBase
         _encryption = encryption;
         _audit = audit;
 
-        _ = Task.Run(async () =>
+        SafeLoadPayrollRunsAsync().FireAndForgetSafeAsync(errorContext: "loading payroll runs");
+    }
+
+    private async Task SafeLoadPayrollRunsAsync()
+    {
+        try
         {
-            try { await LoadPayrollRunsAsync(); }
-            catch (Exception ex) { AppLogger.Error($"Failed to load payroll runs: {ex.Message}", ex); }
-        });
+            await LoadPayrollRunsAsync();
+        }
+        catch (Exception ex)
+        {
+            AppLogger.Error($"Failed to load payroll runs: {ex.Message}", ex);
+            ShowError($"Failed to load payroll runs: {ex.Message}");
+        }
     }
 
     // --- Load payroll runs ---
@@ -93,22 +103,30 @@ public partial class DirectDepositViewModel : ViewModelBase
     [RelayCommand]
     private async Task LoadPayrollRunsAsync()
     {
-        var runs = await _db.PayrollRuns
-            .AsNoTracking()
-            .Where(r => r.Status == PayrollRunStatus.Finalized)
-            .OrderByDescending(r => r.PayDate)
-            .Select(r => new PayrollRunRow
-            {
-                Id = r.Id,
-                PayDate = r.PayDate,
-                PeriodStart = r.PeriodStart,
-                PeriodEnd = r.PeriodEnd,
-                EmployeeCount = r.Paychecks.Count,
-                TotalNetPay = r.TotalNetPay
-            })
-            .ToListAsync();
+        try
+        {
+            var runs = await _db.PayrollRuns
+                .AsNoTracking()
+                .Where(r => r.Status == PayrollRunStatus.Finalized)
+                .OrderByDescending(r => r.PayDate)
+                .Select(r => new PayrollRunRow
+                {
+                    Id = r.Id,
+                    PayDate = r.PayDate,
+                    PeriodStart = r.PeriodStart,
+                    PeriodEnd = r.PeriodEnd,
+                    EmployeeCount = r.Paychecks.Count,
+                    TotalNetPay = r.TotalNetPay
+                })
+                .ToListAsync();
 
-        PayrollRunRows = new ObservableCollection<PayrollRunRow>(runs);
+            PayrollRunRows = new ObservableCollection<PayrollRunRow>(runs);
+        }
+        catch (Exception ex)
+        {
+            AppLogger.Error($"Error loading payroll runs: {ex.Message}", ex);
+            ShowError($"Error loading payroll runs: {ex.Message}");
+        }
     }
 
     // --- When selected run changes, load ACH preview ---
@@ -117,11 +135,7 @@ public partial class DirectDepositViewModel : ViewModelBase
     {
         if (value is not null)
         {
-            _ = Task.Run(async () =>
-            {
-                try { await LoadAchPreviewAsync(value.Id); }
-                catch (Exception ex) { AppLogger.Error($"Failed to load ACH preview: {ex.Message}", ex); }
-            });
+            SafeLoadAchPreviewAsync(value.Id).FireAndForgetSafeAsync(errorContext: "loading ACH preview");
         }
         else
         {
@@ -133,7 +147,33 @@ public partial class DirectDepositViewModel : ViewModelBase
         }
     }
 
+    private async Task SafeLoadAchPreviewAsync(int payrollRunId)
+    {
+        try
+        {
+            await LoadAchPreviewAsync(payrollRunId);
+        }
+        catch (Exception ex)
+        {
+            AppLogger.Error($"Failed to load ACH preview: {ex.Message}", ex);
+            ShowError($"Failed to load ACH preview: {ex.Message}");
+        }
+    }
+
     private async Task LoadAchPreviewAsync(int payrollRunId)
+    {
+        try
+        {
+            await LoadAchPreviewInternalAsync(payrollRunId);
+        }
+        catch (Exception ex)
+        {
+            AppLogger.Error($"Error loading ACH preview: {ex.Message}", ex);
+            ShowError($"Error loading ACH preview: {ex.Message}");
+        }
+    }
+
+    private async Task LoadAchPreviewInternalAsync(int payrollRunId)
     {
         // Get all non-void paychecks for this run
         var paychecks = await _db.Paychecks

@@ -15,6 +15,15 @@ public class PayrollSettings
     public int NextCheckNumber { get; set; } = 1001;
     public decimal CheckOffsetX { get; set; }
     public decimal CheckOffsetY { get; set; }
+
+    // Auto-updater settings
+    public bool AutoCheckForUpdates { get; set; } = true;
+    public DateTime? LastUpdateCheck { get; set; }
+    public string? LastKnownVersion { get; set; }
+    public string? UpdateChannelUrl { get; set; }  // Configurable (see UpdateChannel enum)
+    public UpdateChannel UpdateChannel { get; set; } = UpdateChannel.Stable;
+    public DateTime? ContractorPayrollLockDate { get; set; }  // Optional: prevent payroll before date
+
     public DateTime UpdatedAt { get; set; }
 }
 

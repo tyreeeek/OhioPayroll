@@ -13,9 +13,9 @@ public interface IPayrollCalculationEngine
         decimal ytdGrossPrior,
         decimal ytdSocialSecurityPrior,
         decimal ytdFutaPrior,
-        decimal ytdSutaPrior,
         decimal schoolDistrictRate,
         decimal localTaxRate,
-        decimal? customSutaRate = null);
+        decimal? customSutaRate = null,
+        int taxYear = 0);
 }
 

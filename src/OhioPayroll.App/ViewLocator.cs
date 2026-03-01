@@ -24,6 +24,7 @@ public class ViewLocator : IDataTemplate
                 EmployeeListViewModel => new EmployeeListView(),
                 ContractorListViewModel => new ContractorListView(),
                 PayrollRunViewModel => new PayrollRunView(),
+                ContractorPayrollViewModel => new ContractorPayrollView(),
                 BankAccountsViewModel => new BankAccountsView(),
                 CheckPrintingViewModel => new CheckPrintingView(),
                 DirectDepositViewModel => new DirectDepositView(),

@@ -22,6 +22,9 @@ public class PayrollRunConfiguration : IEntityTypeConfiguration<PayrollRun>
         builder.Property(p => p.TotalEmployerSuta).HasPrecision(18, 2);
         builder.HasIndex(p => p.PayDate);
         builder.HasIndex(p => p.Status);
+
+        // Optimistic concurrency token
+        builder.Property(p => p.RowVersion).IsRowVersion();
     }
 }
 

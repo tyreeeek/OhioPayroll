@@ -7,8 +7,11 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
 using OhioPayroll.App.Documents.Reports;
+using OhioPayroll.App.Extensions;
+using OhioPayroll.App.Services;
 using OhioPayroll.Core.Models.Enums;
 using OhioPayroll.Data;
+using OhioPayroll.Engine.Calculators;
 using QuestPDF.Fluent;
 
 namespace OhioPayroll.App.ViewModels;
@@ -16,9 +19,6 @@ namespace OhioPayroll.App.ViewModels;
 public partial class ReportsViewModel : ViewModelBase
 {
     private readonly PayrollDbContext _db;
-
-    // Social Security wage base - must be updated annually per IRS guidelines
-    private const decimal SsWageBase = 176100m;
 
     [ObservableProperty]
     private string _selectedReportType = "Payroll Summary";
@@ -60,7 +60,8 @@ public partial class ReportsViewModel : ViewModelBase
     public ReportsViewModel(PayrollDbContext db)
     {
         _db = db;
-        _ = LoadAvailableYearsAsync();
+        ExecuteWithLoadingAsync(LoadAvailableYearsAsync, "Loading...")
+            .FireAndForgetSafeAsync(errorContext: "loading available years");
     }
 
     partial void OnSelectedReportTypeChanged(string value)
@@ -118,6 +119,7 @@ public partial class ReportsViewModel : ViewModelBase
             };
 
             StatusMessage = $"Report saved to: {filePath}";
+            OpenFolder(Path.GetDirectoryName(filePath)!);
         }
         catch (Exception ex)
         {
@@ -139,6 +141,8 @@ public partial class ReportsViewModel : ViewModelBase
         return dir;
     }
 
+    private static void OpenFolder(string path) => PlatformHelper.OpenFolder(path);
+
     private async Task<string> GeneratePayrollSummaryAsync()
     {
         var start = StartDate.DateTime;
@@ -155,29 +159,30 @@ public partial class ReportsViewModel : ViewModelBase
             .OrderBy(r => r.PayDate)
             .ToListAsync();
 
-        var summaryRuns = new List<PayrollRunSummary>();
-        foreach (var run in runs)
-        {
-            var paycheckCount = await _db.Paychecks
-                .AsNoTracking()
-                .CountAsync(p => p.PayrollRunId == run.Id && !p.IsVoid);
+        // Batch-load paycheck counts to avoid N+1 queries
+        var runIds = runs.Select(r => r.Id).ToList();
+        var paycheckCounts = await _db.Paychecks
+            .AsNoTracking()
+            .Where(p => runIds.Contains(p.PayrollRunId) && !p.IsVoid)
+            .GroupBy(p => p.PayrollRunId)
+            .Select(g => new { RunId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.RunId, x => x.Count);
 
-            summaryRuns.Add(new PayrollRunSummary
-            {
-                RunId = run.Id,
-                PayDate = run.PayDate,
-                EmployeeCount = paycheckCount,
-                GrossPay = run.TotalGrossPay,
-                FederalTax = run.TotalFederalTax,
-                StateTax = run.TotalStateTax,
-                LocalTax = run.TotalLocalTax,
-                SocialSecurity = run.TotalSocialSecurity,
-                Medicare = run.TotalMedicare,
-                EmployerTaxes = run.TotalEmployerSocialSecurity + run.TotalEmployerMedicare
-                    + run.TotalEmployerFuta + run.TotalEmployerSuta,
-                NetPay = run.TotalNetPay
-            });
-        }
+        var summaryRuns = runs.Select(run => new PayrollRunSummary
+        {
+            RunId = run.Id,
+            PayDate = run.PayDate,
+            EmployeeCount = paycheckCounts.GetValueOrDefault(run.Id, 0),
+            GrossPay = run.TotalGrossPay,
+            FederalTax = run.TotalFederalTax,
+            StateTax = run.TotalStateTax,
+            LocalTax = run.TotalLocalTax,
+            SocialSecurity = run.TotalSocialSecurity,
+            Medicare = run.TotalMedicare,
+            EmployerTaxes = run.TotalEmployerSocialSecurity + run.TotalEmployerMedicare
+                + run.TotalEmployerFuta + run.TotalEmployerSuta,
+            NetPay = run.TotalNetPay
+        }).ToList();
 
         var data = new PayrollSummaryData
         {
@@ -237,40 +242,34 @@ public partial class ReportsViewModel : ViewModelBase
         var company = await _db.CompanyInfo.AsNoTracking().FirstOrDefaultAsync();
         var companyName = company?.CompanyName ?? "Ohio Payroll";
 
+        // Batch-load employees with their paychecks to avoid N+1 queries
         var employees = await _db.Employees
             .AsNoTracking()
             .Where(e => e.IsActive || e.Paychecks.Any(p =>
                 p.PayrollRun.PayDate.Year == year
                 && p.PayrollRun.Status == PayrollRunStatus.Finalized
                 && !p.IsVoid))
+            .Include(e => e.Paychecks.Where(p =>
+                p.PayrollRun.PayDate.Year == year
+                && p.PayrollRun.Status == PayrollRunStatus.Finalized
+                && !p.IsVoid))
             .ToListAsync();
 
-        var lines = new List<YtdEmployeeLine>();
-        foreach (var emp in employees)
-        {
-            var paychecks = await _db.Paychecks
-                .AsNoTracking()
-                .Where(p => p.EmployeeId == emp.Id
-                    && p.PayrollRun.PayDate.Year == year
-                    && p.PayrollRun.Status == PayrollRunStatus.Finalized
-                    && !p.IsVoid)
-                .ToListAsync();
-
-            if (paychecks.Count == 0) continue;
-
-            lines.Add(new YtdEmployeeLine
+        var lines = employees
+            .Where(emp => emp.Paychecks.Count > 0)
+            .Select(emp => new YtdEmployeeLine
             {
                 EmployeeName = $"{emp.LastName}, {emp.FirstName}",
                 SsnLast4 = emp.SsnLast4,
-                GrossPay = paychecks.Sum(p => p.GrossPay),
-                FederalTax = paychecks.Sum(p => p.FederalWithholding),
-                StateTax = paychecks.Sum(p => p.OhioStateWithholding),
-                LocalTax = paychecks.Sum(p => p.LocalMunicipalityTax) + paychecks.Sum(p => p.SchoolDistrictTax),
-                SocialSecurity = paychecks.Sum(p => p.SocialSecurityTax),
-                Medicare = paychecks.Sum(p => p.MedicareTax),
-                NetPay = paychecks.Sum(p => p.NetPay)
-            });
-        }
+                GrossPay = emp.Paychecks.Sum(p => p.GrossPay),
+                FederalTax = emp.Paychecks.Sum(p => p.FederalWithholding),
+                StateTax = emp.Paychecks.Sum(p => p.OhioStateWithholding),
+                LocalTax = emp.Paychecks.Sum(p => p.LocalMunicipalityTax) + emp.Paychecks.Sum(p => p.SchoolDistrictTax),
+                SocialSecurity = emp.Paychecks.Sum(p => p.SocialSecurityTax),
+                Medicare = emp.Paychecks.Sum(p => p.MedicareTax),
+                NetPay = emp.Paychecks.Sum(p => p.NetPay)
+            })
+            .ToList();
 
         var data = new YtdEmployeeReportData
         {
@@ -296,8 +295,10 @@ public partial class ReportsViewModel : ViewModelBase
 
         var entries = await _db.CheckRegister
             .AsNoTracking()
-            .Include(c => c.Paycheck)
+            .Include(c => c.Paycheck!)
                 .ThenInclude(p => p.Employee)
+            .Include(c => c.ContractorPayment!)
+                .ThenInclude(p => p.Contractor)
             .Where(c => c.IssuedDate >= start && c.IssuedDate <= end)
             .OrderBy(c => c.CheckNumber)
             .ToListAsync();
@@ -308,11 +309,17 @@ public partial class ReportsViewModel : ViewModelBase
             if (e.Status != CheckStatus.Voided)
                 runningTotal += e.Amount;
 
+            // Handle both employee paychecks and contractor payments
+            var payeeName = e.Paycheck?.Employee?.FullName
+                           ?? e.ContractorPayment?.Contractor?.Name
+                           ?? e.ContractorPayment?.ContractorNameSnapshot
+                           ?? "Unknown";
+
             return new CheckRegisterLine
             {
                 CheckNumber = e.CheckNumber,
                 Date = e.IssuedDate,
-                PayeeName = e.Paycheck?.Employee?.FullName ?? "Unknown",
+                PayeeName = payeeName,
                 Amount = e.Amount,
                 Status = e.Status.ToString(),
                 RunningTotal = runningTotal
@@ -340,7 +347,7 @@ public partial class ReportsViewModel : ViewModelBase
         var quarter = SelectedQuarter;
         var company = await _db.CompanyInfo.AsNoTracking().FirstOrDefaultAsync();
 
-        var (qStart, qEnd) = GetQuarterDates(year, quarter);
+        var (qStart, qEnd) = TaxCalendarHelper.GetQuarterDates(year, quarter);
 
         // Get all finalized paychecks in the quarter
         var paychecks = await _db.Paychecks
@@ -361,13 +368,20 @@ public partial class ReportsViewModel : ViewModelBase
         // Line 3: Federal tax withheld
         var federalTax = paychecks.Sum(p => p.FederalWithholding);
 
-        // Line 5a: Taxable SS wages (capped at $176,100 per employee)
+        // Line 5a: Taxable SS wages (capped per employee at the year's wage base)
+        if (year < 2020)
+        {
+            throw new InvalidOperationException(
+                $"Form 941 Worksheet cannot be generated for tax year {year}. " +
+                $"Social Security wage base data is only available for years 2020 and later.");
+        }
+        var ssWageBase = FicaCalculator.GetSocialSecurityWageCap(year);
         var employeeGroups = paychecks.GroupBy(p => p.EmployeeId);
         decimal taxableSsWages = 0m;
         foreach (var group in employeeGroups)
         {
             var empGross = group.Sum(p => p.GrossPay);
-            taxableSsWages += Math.Min(empGross, SsWageBase);
+            taxableSsWages += Math.Min(empGross, ssWageBase);
         }
 
         var ssTaxDue = taxableSsWages * 0.124m;
@@ -417,18 +431,6 @@ public partial class ReportsViewModel : ViewModelBase
         var filePath = Path.Combine(GetOutputDirectory(), fileName);
         doc.GeneratePdf(filePath);
         return filePath;
-    }
-
-    private static (DateTime start, DateTime end) GetQuarterDates(int year, int quarter)
-    {
-        return quarter switch
-        {
-            1 => (new DateTime(year, 1, 1), new DateTime(year, 3, 31)),
-            2 => (new DateTime(year, 4, 1), new DateTime(year, 6, 30)),
-            3 => (new DateTime(year, 7, 1), new DateTime(year, 9, 30)),
-            4 => (new DateTime(year, 10, 1), new DateTime(year, 12, 31)),
-            _ => throw new ArgumentOutOfRangeException(nameof(quarter))
-        };
     }
 
     private static string FormatTaxType(TaxType type)

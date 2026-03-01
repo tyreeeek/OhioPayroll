@@ -14,21 +14,21 @@
         <DockPanel IsVisible="{Binding !IsEditing}">
 
             <!-- Header -->
-            <Border DockPanel.Dock="Top" Padding="0,0,0,16">
+            <Border DockPanel.Dock="Top" Padding="0,0,0,24">
                 <DockPanel>
                     <TextBlock Text="Employees"
-                               FontSize="24" FontWeight="Bold"
+                               Classes="page-title"
                                VerticalAlignment="Center"/>
                     <Button Content="+ Add Employee"
                             Command="{Binding AddEmployeeCommand}"
                             HorizontalAlignment="Right"
                             Padding="16,8"
-                            Classes="accent"/>
+                            Classes="primary"/>
                 </DockPanel>
             </Border>
 
             <!-- Search / Filter Bar -->
-            <Border DockPanel.Dock="Top" Padding="0,0,0,12">
+            <Border DockPanel.Dock="Top" Padding="0,0,0,16">
                 <StackPanel Orientation="Horizontal" Spacing="16">
                     <TextBox Text="{Binding SearchText}"
                              Watermark="Search by name or SSN last 4..."
@@ -43,7 +43,7 @@
             <TextBlock DockPanel.Dock="Top"
                        Text="No employees found. Click '+ Add Employee' to get started."
                        IsVisible="{Binding !Employees.Count}"
-                       Foreground="#888"
+                       Foreground="{StaticResource TextMutedBrush}"
                        FontSize="14"
                        HorizontalAlignment="Center"
                        Margin="0,32,0,0"/>
@@ -87,13 +87,13 @@
                                             Command="{Binding $parent[DataGrid].((vm:EmployeeListViewModel)DataContext).EditEmployeeCommand}"
                                             CommandParameter="{Binding}"
                                             Padding="8,4"
-                                            FontSize="12"/>
-                                    <Button Content="Deactivate"
-                                            Command="{Binding $parent[DataGrid].((vm:EmployeeListViewModel)DataContext).DeactivateEmployeeCommand}"
+                                            FontSize="12"
+                                            Classes="secondary"/>
+                                    <Button Content="Delete"
+                                            Command="{Binding $parent[DataGrid].((vm:EmployeeListViewModel)DataContext).RequestDeleteCommand}"
                                             CommandParameter="{Binding}"
                                             Padding="8,4"
                                             FontSize="12"
-                                            IsVisible="{Binding IsActive}"
                                             Classes="danger"/>
                                 </StackPanel>
                             </DataTemplate>
@@ -108,66 +108,68 @@
         <!-- Form Panel - Visible when editing                            -->
         <!-- ============================================================ -->
         <ScrollViewer IsVisible="{Binding IsEditing}">
-            <DockPanel Margin="0,0,0,24">
+            <DockPanel Margin="0,0,0,32">
 
                 <!-- Form Header -->
-                <Border DockPanel.Dock="Top" Padding="0,0,0,16">
+                <Border DockPanel.Dock="Top" Padding="0,0,0,24">
                     <TextBlock Text="{Binding FormTitle}"
-                               FontSize="24" FontWeight="Bold"/>
+                               Classes="page-title"/>
                 </Border>
 
                 <!-- Validation Error -->
                 <Border DockPanel.Dock="Top"
                         IsVisible="{Binding ValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                        Background="#FDE8E8"
-                        CornerRadius="4"
-                        Padding="12,8"
-                        Margin="0,0,0,12">
+                        Background="{StaticResource DangerBrush}"
+                        CornerRadius="6"
+                        Padding="16,12"
+                        Margin="0,0,0,16"
+                        Opacity="0.15">
                     <TextBlock Text="{Binding ValidationError}"
-                               Foreground="#C53030"
+                               Foreground="{StaticResource DangerBrush}"
                                TextWrapping="Wrap"/>
                 </Border>
 
                 <!-- Action Buttons -->
-                <Border DockPanel.Dock="Bottom" Padding="0,16,0,0">
+                <Border DockPanel.Dock="Bottom" Padding="0,24,0,0">
                     <StackPanel Orientation="Horizontal"
                                 Spacing="12"
                                 HorizontalAlignment="Right">
                         <Button Content="Cancel"
                                 Command="{Binding CancelEditCommand}"
-                                Padding="24,8"/>
+                                Padding="24,10"
+                                Classes="secondary"/>
                         <Button Content="Save Employee"
                                 Command="{Binding SaveEmployeeCommand}"
-                                Padding="24,8"
-                                Classes="accent"/>
+                                Padding="24,10"
+                                Classes="primary"/>
                     </StackPanel>
                 </Border>
 
                 <!-- Form Body - Two Column Grid -->
-                <Grid ColumnDefinitions="*,24,*" RowDefinitions="Auto">
+                <Grid ColumnDefinitions="*,32,*" RowDefinitions="Auto">
 
                     <!-- Left Column -->
                     <StackPanel Grid.Column="0" Spacing="16">
 
                         <!-- Personal Information -->
                         <TextBlock Text="Personal Information"
-                                   FontSize="16" FontWeight="SemiBold"
-                                   Margin="0,0,0,4"/>
+                                   Classes="section-header"
+                                   Margin="0,0,0,8"/>
 
                         <StackPanel Spacing="4">
-                            <TextBlock Text="First Name" FontSize="12" Foreground="Gray"/>
+                            <TextBlock Text="First Name" Classes="label"/>
                             <TextBox Text="{Binding FirstName}"
                                      Watermark="First name"/>
                         </StackPanel>
 
                         <StackPanel Spacing="4">
-                            <TextBlock Text="Last Name" FontSize="12" Foreground="Gray"/>
+                            <TextBlock Text="Last Name" Classes="label"/>
                             <TextBox Text="{Binding LastName}"
                                      Watermark="Last name"/>
                         </StackPanel>
 
                         <StackPanel Spacing="4">
-                            <TextBlock Text="Social Security Number" FontSize="12" Foreground="Gray"/>
+                            <TextBlock Text="Social Security Number" Classes="label"/>
                             <TextBox Text="{Binding Ssn}"
                                      Watermark="000-00-0000"
                                      PasswordChar="*"/>
@@ -175,11 +177,11 @@
 
                         <!-- Pay Configuration -->
                         <TextBlock Text="Pay Configuration"
-                                   FontSize="16" FontWeight="SemiBold"
-                                   Margin="0,12,0,4"/>
+                                   Classes="section-header"
+                                   Margin="0,24,0,8"/>
 
                         <StackPanel Spacing="4">
-                            <TextBlock Text="Pay Type" FontSize="12" Foreground="Gray"/>
+                            <TextBlock Text="Pay Type" Classes="label"/>
                             <ComboBox ItemsSource="{Binding PayTypeValues}"
                                       SelectedItem="{Binding PayType}"
                                       HorizontalAlignment="Stretch"/>
@@ -187,7 +189,7 @@
 
                         <StackPanel Spacing="4"
                                     IsVisible="{Binding IsHourly}">
-                            <TextBlock Text="Hourly Rate ($)" FontSize="12" Foreground="Gray"/>
+                            <TextBlock Text="Hourly Rate ($)" Classes="label"/>
                             <NumericUpDown Value="{Binding HourlyRate}"
                                            Minimum="0"
                                            FormatString="F2"
@@ -196,7 +198,7 @@
 
                         <StackPanel Spacing="4"
                                     IsVisible="{Binding IsSalary}">
-                            <TextBlock Text="Annual Salary ($)" FontSize="12" Foreground="Gray"/>
+                            <TextBlock Text="Annual Salary ($)" Classes="label"/>
                             <NumericUpDown Value="{Binding AnnualSalary}"
                                            Minimum="0"
                                            FormatString="F2"
@@ -205,11 +207,11 @@
 
                         <!-- Hire Date -->
                         <TextBlock Text="Employment"
-                                   FontSize="16" FontWeight="SemiBold"
-                                   Margin="0,12,0,4"/>
+                                   Classes="section-header"
+                                   Margin="0,24,0,8"/>
 
                         <StackPanel Spacing="4">
-                            <TextBlock Text="Hire Date" FontSize="12" Foreground="Gray"/>
+                            <TextBlock Text="Hire Date" Classes="label"/>
                             <DatePicker SelectedDate="{Binding HireDate}"/>
                         </StackPanel>
 
@@ -220,25 +222,25 @@
 
                         <!-- Tax Information -->
                         <TextBlock Text="Tax Information"
-                                   FontSize="16" FontWeight="SemiBold"
-                                   Margin="0,0,0,4"/>
+                                   Classes="section-header"
+                                   Margin="0,0,0,8"/>
 
                         <StackPanel Spacing="4">
-                            <TextBlock Text="Federal Filing Status" FontSize="12" Foreground="Gray"/>
+                            <TextBlock Text="Federal Filing Status" Classes="label"/>
                             <ComboBox ItemsSource="{Binding FilingStatusValues}"
                                       SelectedItem="{Binding FederalFilingStatus}"
                                       HorizontalAlignment="Stretch"/>
                         </StackPanel>
 
                         <StackPanel Spacing="4">
-                            <TextBlock Text="Ohio Filing Status" FontSize="12" Foreground="Gray"/>
+                            <TextBlock Text="Ohio Filing Status" Classes="label"/>
                             <ComboBox ItemsSource="{Binding FilingStatusValues}"
                                       SelectedItem="{Binding OhioFilingStatus}"
                                       HorizontalAlignment="Stretch"/>
                         </StackPanel>
 
                         <StackPanel Spacing="4">
-                            <TextBlock Text="Federal Allowances" FontSize="12" Foreground="Gray"/>
+                            <TextBlock Text="Federal Allowances" Classes="label"/>
                             <NumericUpDown Value="{Binding FederalAllowances}"
                                            Minimum="0"
                                            Maximum="99"
@@ -247,7 +249,7 @@
                         </StackPanel>
 
                         <StackPanel Spacing="4">
-                            <TextBlock Text="Ohio Exemptions" FontSize="12" Foreground="Gray"/>
+                            <TextBlock Text="Ohio Exemptions" Classes="label"/>
                             <NumericUpDown Value="{Binding OhioExemptions}"
                                            Minimum="0"
                                            Maximum="99"
@@ -257,45 +259,45 @@
 
                         <!-- Location -->
                         <TextBlock Text="Location"
-                                   FontSize="16" FontWeight="SemiBold"
-                                   Margin="0,12,0,4"/>
+                                   Classes="section-header"
+                                   Margin="0,24,0,8"/>
 
                         <StackPanel Spacing="4">
-                            <TextBlock Text="School District Code" FontSize="12" Foreground="Gray"/>
+                            <TextBlock Text="School District Code" Classes="label"/>
                             <TextBox Text="{Binding SchoolDistrictCode}"
                                      Watermark="e.g. 0401"/>
                         </StackPanel>
 
                         <StackPanel Spacing="4">
-                            <TextBlock Text="Municipality Code" FontSize="12" Foreground="Gray"/>
+                            <TextBlock Text="Municipality Code" Classes="label"/>
                             <TextBox Text="{Binding MunicipalityCode}"
                                      Watermark="e.g. COLS"/>
                         </StackPanel>
 
                         <!-- Address -->
                         <TextBlock Text="Address"
-                                   FontSize="16" FontWeight="SemiBold"
-                                   Margin="0,12,0,4"/>
+                                   Classes="section-header"
+                                   Margin="0,24,0,8"/>
 
                         <StackPanel Spacing="4">
-                            <TextBlock Text="Street Address" FontSize="12" Foreground="Gray"/>
+                            <TextBlock Text="Street Address" Classes="label"/>
                             <TextBox Text="{Binding Address}"
                                      Watermark="Street address"/>
                         </StackPanel>
 
-                        <Grid ColumnDefinitions="*,8,80,8,100">
+                        <Grid ColumnDefinitions="*,12,80,12,100">
                             <StackPanel Grid.Column="0" Spacing="4">
-                                <TextBlock Text="City" FontSize="12" Foreground="Gray"/>
+                                <TextBlock Text="City" Classes="label"/>
                                 <TextBox Text="{Binding City}"
                                          Watermark="City"/>
                             </StackPanel>
                             <StackPanel Grid.Column="2" Spacing="4">
-                                <TextBlock Text="State" FontSize="12" Foreground="Gray"/>
+                                <TextBlock Text="State" Classes="label"/>
                                 <TextBox Text="{Binding State}"
                                          Watermark="OH"/>
                             </StackPanel>
                             <StackPanel Grid.Column="4" Spacing="4">
-                                <TextBlock Text="ZIP Code" FontSize="12" Foreground="Gray"/>
+                                <TextBlock Text="ZIP Code" Classes="label"/>
                                 <TextBox Text="{Binding ZipCode}"
                                          Watermark="00000"/>
                             </StackPanel>
@@ -310,4 +312,3 @@
     </Panel>
 
 </UserControl>
-

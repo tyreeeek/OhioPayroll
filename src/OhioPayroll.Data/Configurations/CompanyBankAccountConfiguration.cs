@@ -12,6 +12,9 @@ public class CompanyBankAccountConfiguration : IEntityTypeConfiguration<CompanyB
         builder.Property(b => b.BankName).IsRequired().HasMaxLength(100);
         builder.Property(b => b.EncryptedRoutingNumber).IsRequired();
         builder.Property(b => b.EncryptedAccountNumber).IsRequired();
+
+        // Optimistic concurrency token
+        builder.Property(b => b.RowVersion).IsRowVersion();
     }
 }
 

@@ -1,6 +1,7 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+<views:ConfirmableUserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:OhioPayroll.App.ViewModels"
+             xmlns:views="using:OhioPayroll.App.Views"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
@@ -27,13 +28,17 @@
             <Border DockPanel.Dock="Top" Padding="0,0,0,16">
                 <DockPanel>
                     <TextBlock Text="Contractors"
-                               FontSize="24" FontWeight="Bold"
+                               Classes="page-title"
                                VerticalAlignment="Center"/>
-                    <Button Content="+ Add Contractor"
-                            Command="{Binding AddContractorCommand}"
-                            HorizontalAlignment="Right"
-                            Padding="16,8"
-                            Classes="accent"/>
+                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                        <Button Content="Run Payroll"
+                                Command="{Binding RunContractorPayrollCommand}"
+                                Classes="accent"
+                                Padding="16,8"/>
+                        <Button Content="+ Add Contractor"
+                                Command="{Binding AddContractorCommand}"
+                                Classes="primary"/>
+                    </StackPanel>
                 </DockPanel>
             </Border>
 
@@ -53,7 +58,7 @@
             <TextBlock DockPanel.Dock="Top"
                        Text="No contractors found. Click '+ Add Contractor' to get started."
                        IsVisible="{Binding !Contractors.Count}"
-                       Foreground="#888"
+                       Foreground="{StaticResource TextMutedBrush}"
                        FontSize="14"
                        HorizontalAlignment="Center"
                        Margin="0,32,0,0"/>
@@ -86,7 +91,7 @@
                     <DataGridTextColumn Header="Status"
                                         Binding="{Binding StatusText}"
                                         Width="80"/>
-                    <DataGridTemplateColumn Header="Actions" Width="230">
+                    <DataGridTemplateColumn Header="Actions" Width="280">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate x:DataType="vm:ContractorRowViewModel">
                                 <StackPanel Orientation="Horizontal"
@@ -97,18 +102,33 @@
                                             Command="{Binding $parent[DataGrid].((vm:ContractorListViewModel)DataContext).EditContractorCommand}"
                                             CommandParameter="{Binding}"
                                             Padding="8,4"
-                                            FontSize="12"/>
+                                            FontSize="12"
+                                            Classes="secondary"/>
                                     <Button Content="Payments"
                                             Command="{Binding $parent[DataGrid].((vm:ContractorListViewModel)DataContext).ViewPaymentsCommand}"
                                             CommandParameter="{Binding}"
                                             Padding="8,4"
-                                            FontSize="12"/>
+                                            FontSize="12"
+                                            Classes="secondary"/>
                                     <Button Content="Deactivate"
-                                            Command="{Binding $parent[DataGrid].((vm:ContractorListViewModel)DataContext).DeactivateContractorCommand}"
+                                            Command="{Binding $parent[DataGrid].((vm:ContractorListViewModel)DataContext).RequestDeactivationCommand}"
                                             CommandParameter="{Binding}"
                                             Padding="8,4"
                                             FontSize="12"
                                             IsVisible="{Binding IsActive}"
+                                            Classes="danger"/>
+                                    <Button Content="Activate"
+                                            Command="{Binding $parent[DataGrid].((vm:ContractorListViewModel)DataContext).RequestActivationCommand}"
+                                            CommandParameter="{Binding}"
+                                            Padding="8,4"
+                                            FontSize="12"
+                                            IsVisible="{Binding !IsActive}"
+                                            Classes="primary"/>
+                                    <Button Content="Delete"
+                                            Command="{Binding $parent[DataGrid].((vm:ContractorListViewModel)DataContext).RequestDeleteCommand}"
+                                            CommandParameter="{Binding}"
+                                            Padding="8,4"
+                                            FontSize="12"
                                             Classes="danger"/>
                                 </StackPanel>
                             </DataTemplate>
@@ -161,7 +181,7 @@
                         <Button Content="Save Contractor"
                                 Command="{Binding SaveContractorCommand}"
                                 Padding="24,8"
-                                Classes="accent"/>
+                                Classes="primary"/>
                     </StackPanel>
                 </Border>
 
@@ -173,23 +193,23 @@
 
                         <!-- Contractor Information -->
                         <TextBlock Text="Contractor Information"
-                                   FontSize="16" FontWeight="SemiBold"
+                                   Classes="section-header"
                                    Margin="0,0,0,4"/>
 
                         <StackPanel Spacing="4">
-                            <TextBlock Text="Name *" FontSize="12" Foreground="Gray"/>
+                            <TextBlock Text="Name *" Classes="label"/>
                             <TextBox Text="{Binding Name}"
                                      Watermark="Contractor name"/>
                         </StackPanel>
 
                         <StackPanel Spacing="4">
-                            <TextBlock Text="Business Name (DBA)" FontSize="12" Foreground="Gray"/>
+                            <TextBlock Text="Business Name (DBA)" Classes="label"/>
                             <TextBox Text="{Binding BusinessName}"
                                      Watermark="Business name or DBA"/>
                         </StackPanel>
 
                         <StackPanel Spacing="4">
-                            <TextBlock Text="TIN (SSN or EIN) *" FontSize="12" Foreground="Gray"/>
+                            <TextBlock Text="TIN (SSN or EIN) *" Classes="label"/>
                             <TextBox Text="{Binding Tin}"
                                      Watermark="000-00-0000 or 00-0000000"
                                      PasswordChar="*"/>
@@ -200,7 +220,7 @@
 
                         <!-- Business Type -->
                         <StackPanel Spacing="4">
-                            <TextBlock Text="Business Type" FontSize="12" Foreground="Gray"/>
+                            <TextBlock Text="Business Type" Classes="label"/>
                             <ComboBox ItemsSource="{Binding BusinessTypeValues}"
                                       SelectedItem="{Binding BusinessType}"
                                       HorizontalAlignment="Stretch"/>
@@ -211,6 +231,52 @@
                                   IsChecked="{Binding Is1099Exempt}"
                                   Margin="0,8,0,0"/>
 
+                        <!-- Rate Information -->
+                        <TextBlock Text="Rate Information"
+                                   Classes="section-header"
+                                   Margin="0,16,0,4"/>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Rate Type" Classes="label"/>
+                            <ComboBox ItemsSource="{Binding RateTypeValues}"
+                                      SelectedItem="{Binding RateType}"
+                                      IsEnabled="{Binding CanEditRate}"
+                                      HorizontalAlignment="Stretch"/>
+                        </StackPanel>
+
+                        <!-- Hourly Rate (visible when RateType = Hourly) -->
+                        <StackPanel Spacing="4" IsVisible="{Binding IsHourlyRate}">
+                            <TextBlock Text="Hourly Rate" Classes="label"/>
+                            <NumericUpDown Value="{Binding HourlyRate}"
+                                           Minimum="0" Maximum="9999"
+                                           FormatString="C2"
+                                           IsEnabled="{Binding CanEditRate}"
+                                           Watermark="$0.00"
+                                           HorizontalAlignment="Stretch"/>
+                        </StackPanel>
+
+                        <!-- Daily Rate (visible when RateType = Daily) -->
+                        <StackPanel Spacing="4" IsVisible="{Binding IsDailyRate}">
+                            <TextBlock Text="Daily Rate" Classes="label"/>
+                            <NumericUpDown Value="{Binding DailyRate}"
+                                           Minimum="0" Maximum="99999"
+                                           FormatString="C2"
+                                           IsEnabled="{Binding CanEditRate}"
+                                           Watermark="$0.00"
+                                           HorizontalAlignment="Stretch"/>
+                        </StackPanel>
+
+                        <!-- Warning if rate cannot be edited -->
+                        <Border Background="#FFF3CD"
+                                CornerRadius="4"
+                                Padding="8,6"
+                                IsVisible="{Binding !CanEditRate}">
+                            <TextBlock Text="⚠️ Rate cannot be changed because this contractor has been used in finalized payroll runs."
+                                       Foreground="#856404"
+                                       TextWrapping="Wrap"
+                                       FontSize="12"/>
+                        </Border>
+
                     </StackPanel>
 
                     <!-- Right Column -->
@@ -218,28 +284,28 @@
 
                         <!-- Address -->
                         <TextBlock Text="Address"
-                                   FontSize="16" FontWeight="SemiBold"
+                                   Classes="section-header"
                                    Margin="0,0,0,4"/>
 
                         <StackPanel Spacing="4">
-                            <TextBlock Text="Street Address *" FontSize="12" Foreground="Gray"/>
+                            <TextBlock Text="Street Address *" Classes="label"/>
                             <TextBox Text="{Binding Address}"
                                      Watermark="Street address"/>
                         </StackPanel>
 
                         <Grid ColumnDefinitions="*,8,80,8,100">
                             <StackPanel Grid.Column="0" Spacing="4">
-                                <TextBlock Text="City *" FontSize="12" Foreground="Gray"/>
+                                <TextBlock Text="City *" Classes="label"/>
                                 <TextBox Text="{Binding City}"
                                          Watermark="City"/>
                             </StackPanel>
                             <StackPanel Grid.Column="2" Spacing="4">
-                                <TextBlock Text="State" FontSize="12" Foreground="Gray"/>
+                                <TextBlock Text="State" Classes="label"/>
                                 <TextBox Text="{Binding State}"
                                          Watermark="OH"/>
                             </StackPanel>
                             <StackPanel Grid.Column="4" Spacing="4">
-                                <TextBlock Text="ZIP Code *" FontSize="12" Foreground="Gray"/>
+                                <TextBlock Text="ZIP Code *" Classes="label"/>
                                 <TextBox Text="{Binding ZipCode}"
                                          Watermark="00000"/>
                             </StackPanel>
@@ -247,17 +313,17 @@
 
                         <!-- Contact -->
                         <TextBlock Text="Contact"
-                                   FontSize="16" FontWeight="SemiBold"
+                                   Classes="section-header"
                                    Margin="0,12,0,4"/>
 
                         <StackPanel Spacing="4">
-                            <TextBlock Text="Email" FontSize="12" Foreground="Gray"/>
+                            <TextBlock Text="Email" Classes="label"/>
                             <TextBox Text="{Binding Email}"
                                      Watermark="email@example.com"/>
                         </StackPanel>
 
                         <StackPanel Spacing="4">
-                            <TextBlock Text="Phone" FontSize="12" Foreground="Gray"/>
+                            <TextBlock Text="Phone" Classes="label"/>
                             <TextBox Text="{Binding Phone}"
                                      Watermark="(000) 000-0000"/>
                         </StackPanel>
@@ -305,7 +371,7 @@
                         <Button Content="+ Add Payment"
                                 Command="{Binding AddPaymentCommand}"
                                 Padding="16,8"
-                                Classes="accent"/>
+                                Classes="primary"/>
                     </StackPanel>
                 </DockPanel>
             </Border>
@@ -319,7 +385,7 @@
                     Margin="0,0,0,16">
                 <StackPanel Spacing="12">
                     <TextBlock Text="New Payment"
-                               FontSize="16" FontWeight="SemiBold"/>
+                               Classes="section-header"/>
 
                     <!-- Payment Validation Error -->
                     <Border IsVisible="{Binding PaymentValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
@@ -335,12 +401,12 @@
 
                         <!-- Row 0 -->
                         <StackPanel Grid.Column="0" Grid.Row="0" Spacing="4">
-                            <TextBlock Text="Payment Date" FontSize="12" Foreground="Gray"/>
+                            <TextBlock Text="Payment Date" Classes="label"/>
                             <DatePicker SelectedDate="{Binding PaymentDate}"/>
                         </StackPanel>
 
                         <StackPanel Grid.Column="2" Grid.Row="0" Spacing="4">
-                            <TextBlock Text="Amount ($)" FontSize="12" Foreground="Gray"/>
+                            <TextBlock Text="Amount ($)" Classes="label"/>
                             <NumericUpDown Value="{Binding PaymentAmount}"
                                            Minimum="0"
                                            FormatString="F2"
@@ -348,27 +414,27 @@
                         </StackPanel>
 
                         <StackPanel Grid.Column="4" Grid.Row="0" Spacing="4">
-                            <TextBlock Text="Description" FontSize="12" Foreground="Gray"/>
+                            <TextBlock Text="Description" Classes="label"/>
                             <TextBox Text="{Binding PaymentDescription}"
                                      Watermark="Payment description"/>
                         </StackPanel>
 
                         <!-- Row 1 -->
                         <StackPanel Grid.Column="0" Grid.Row="2" Spacing="4">
-                            <TextBlock Text="Payment Method" FontSize="12" Foreground="Gray"/>
+                            <TextBlock Text="Payment Method" Classes="label"/>
                             <ComboBox ItemsSource="{Binding PaymentMethodValues}"
                                       SelectedItem="{Binding PaymentMethod}"
                                       HorizontalAlignment="Stretch"/>
                         </StackPanel>
 
                         <StackPanel Grid.Column="2" Grid.Row="2" Spacing="4">
-                            <TextBlock Text="Check Number" FontSize="12" Foreground="Gray"/>
+                            <TextBlock Text="Check Number" Classes="label"/>
                             <TextBox Text="{Binding PaymentCheckNumber}"
                                      Watermark="Optional"/>
                         </StackPanel>
 
                         <StackPanel Grid.Column="4" Grid.Row="2" Spacing="4">
-                            <TextBlock Text="Reference" FontSize="12" Foreground="Gray"/>
+                            <TextBlock Text="Reference" Classes="label"/>
                             <TextBox Text="{Binding PaymentReference}"
                                      Watermark="Optional"/>
                         </StackPanel>
@@ -385,7 +451,7 @@
                         <Button Content="Save Payment"
                                 Command="{Binding SavePaymentCommand}"
                                 Padding="24,8"
-                                Classes="accent"/>
+                                Classes="primary"/>
                     </StackPanel>
                 </StackPanel>
             </Border>
@@ -421,7 +487,7 @@
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate x:DataType="vm:ContractorPaymentRow">
                                 <Button Content="Delete"
-                                        Command="{Binding $parent[DataGrid].((vm:ContractorListViewModel)DataContext).DeletePaymentCommand}"
+                                        Command="{Binding $parent[DataGrid].((vm:ContractorListViewModel)DataContext).RequestDeletePaymentCommand}"
                                         CommandParameter="{Binding}"
                                         Padding="8,4"
                                         FontSize="12"
@@ -434,6 +500,41 @@
 
         </DockPanel>
 
+        <!-- Confirmation Dialog Overlay -->
+        <Border x:Name="ConfirmOverlay"
+                IsVisible="{Binding IsConfirmingAction}"
+                Background="#80000000"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"
+                Focusable="True"
+                KeyDown="ConfirmOverlay_KeyDown">
+            <Border Background="{StaticResource SurfaceBrush}"
+                    CornerRadius="8"
+                    Padding="24"
+                    MaxWidth="400"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    BoxShadow="0 4 16 #40000000">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="Confirm Action"
+                               Classes="section-header"/>
+                    <TextBlock Text="{Binding ConfirmMessage}"
+                               TextWrapping="Wrap"
+                               Foreground="{StaticResource TextSecondaryBrush}"/>
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="12"
+                                HorizontalAlignment="Right">
+                        <Button Content="Cancel"
+                                Command="{Binding CancelConfirmationCommand}"
+                                Classes="secondary"/>
+                        <Button Content="Confirm"
+                                Command="{Binding ConfirmActionCommand}"
+                                Classes="danger"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Border>
+
     </Panel>
 
-</UserControl>
+</views:ConfirmableUserControl>

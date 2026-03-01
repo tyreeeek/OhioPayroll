@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
+using OhioPayroll.App.Extensions;
 using OhioPayroll.App.Services;
 using OhioPayroll.Core.Interfaces;
 using OhioPayroll.Core.Models;
@@ -59,6 +60,14 @@ public partial class EmployeeListViewModel : ViewModelBase
 
     [ObservableProperty]
     private int _editingEmployeeId;
+
+    [ObservableProperty]
+    private bool _isConfirmingAction;
+
+    [ObservableProperty]
+    private string _confirmMessage = string.Empty;
+
+    private Func<Task>? _pendingConfirmAction;
 
     // --- Form fields ---
 
@@ -136,7 +145,8 @@ public partial class EmployeeListViewModel : ViewModelBase
         _encryption = encryption;
         _audit = audit;
 
-        _ = LoadEmployeesAsync();
+        ExecuteWithLoadingAsync(LoadEmployeesAsync, "Loading employees...")
+            .FireAndForgetSafeAsync(errorContext: "loading employees");
     }
 
     partial void OnPayTypeChanged(PayType value)
@@ -152,12 +162,14 @@ public partial class EmployeeListViewModel : ViewModelBase
 
     partial void OnSearchTextChanged(string value)
     {
-        _ = LoadEmployeesAsync();
+        ExecuteWithLoadingAsync(LoadEmployeesAsync, "Searching employees...")
+            .FireAndForgetSafeAsync(errorContext: "searching employees");
     }
 
     partial void OnShowInactiveChanged(bool value)
     {
-        _ = LoadEmployeesAsync();
+        ExecuteWithLoadingAsync(LoadEmployeesAsync, "Loading employees...")
+            .FireAndForgetSafeAsync(errorContext: "loading employees");
     }
 
     [RelayCommand]
@@ -194,6 +206,7 @@ public partial class EmployeeListViewModel : ViewModelBase
             .ToListAsync();
 
         Employees = new ObservableCollection<EmployeeRowViewModel>(employees);
+        ValidationError = null;
     }
 
     [RelayCommand]
@@ -208,44 +221,69 @@ public partial class EmployeeListViewModel : ViewModelBase
     [RelayCommand]
     private async Task EditEmployeeAsync(EmployeeRowViewModel? row)
     {
-        var target = row ?? SelectedEmployee;
-        if (target is null) return;
+        try
+        {
+            var target = row ?? SelectedEmployee;
+            if (target is null) return;
 
-        var employee = await _db.Employees
-            .AsNoTracking()
-            .FirstOrDefaultAsync(e => e.Id == target.Id);
+            var employee = await _db.Employees
+                .AsNoTracking()
+                .FirstOrDefaultAsync(e => e.Id == target.Id);
 
-        if (employee is null) return;
+            if (employee is null)
+            {
+                ValidationError = "Employee not found. They may have been deleted.";
+                return;
+            }
 
-        IsNewEmployee = false;
-        EditingEmployeeId = employee.Id;
+            IsNewEmployee = false;
+            EditingEmployeeId = employee.Id;
 
-        FirstName = employee.FirstName;
-        LastName = employee.LastName;
-        Ssn = string.IsNullOrEmpty(employee.EncryptedSsn)
-            ? string.Empty
-            : _encryption.Decrypt(employee.EncryptedSsn);
-        PayType = employee.PayType;
-        HourlyRate = employee.HourlyRate;
-        AnnualSalary = employee.AnnualSalary;
-        FederalFilingStatus = employee.FederalFilingStatus;
-        OhioFilingStatus = employee.OhioFilingStatus;
-        FederalAllowances = employee.FederalAllowances;
-        OhioExemptions = employee.OhioExemptions;
-        SchoolDistrictCode = employee.SchoolDistrictCode;
-        MunicipalityCode = employee.MunicipalityCode;
-        Address = employee.Address;
-        City = employee.City;
-        State = employee.State;
-        ZipCode = employee.ZipCode;
-        HireDate = new DateTimeOffset(employee.HireDate);
-        ValidationError = null;
+            FirstName = employee.FirstName;
+            LastName = employee.LastName;
+            Ssn = string.IsNullOrEmpty(employee.EncryptedSsn)
+                ? string.Empty
+                : _encryption.Decrypt(employee.EncryptedSsn);
+            PayType = employee.PayType;
+            HourlyRate = employee.HourlyRate;
+            AnnualSalary = employee.AnnualSalary;
+            FederalFilingStatus = employee.FederalFilingStatus;
+            OhioFilingStatus = employee.OhioFilingStatus;
+            FederalAllowances = employee.FederalAllowances;
+            OhioExemptions = employee.OhioExemptions;
+            SchoolDistrictCode = employee.SchoolDistrictCode;
+            MunicipalityCode = employee.MunicipalityCode;
+            Address = employee.Address;
+            City = employee.City;
+            State = employee.State;
+            ZipCode = employee.ZipCode;
+            HireDate = new DateTimeOffset(employee.HireDate);
+            ValidationError = null;
 
-        IsEditing = true;
+            IsEditing = true;
+        }
+        catch (Exception ex)
+        {
+            AppLogger.Error($"Error loading employee for edit: {ex.Message}", ex);
+            ValidationError = $"Error loading employee: {ex.Message}";
+        }
     }
 
     [RelayCommand]
     private async Task SaveEmployeeAsync()
+    {
+        try
+        {
+            await SaveEmployeeInternalAsync();
+        }
+        catch (Exception ex)
+        {
+            AppLogger.Error($"Error saving employee: {ex.Message}", ex);
+            ValidationError = $"Error saving employee: {ex.Message}";
+        }
+    }
+
+    private async Task SaveEmployeeInternalAsync()
     {
         // Validate required fields
         if (string.IsNullOrWhiteSpace(FirstName))
@@ -314,6 +352,29 @@ public partial class EmployeeListViewModel : ViewModelBase
         var cleanSsn = Ssn.Replace("-", "").Replace(" ", "");
         var encryptedSsn = _encryption.Encrypt(cleanSsn);
         var ssnLast4 = cleanSsn[^4..];
+
+        // Check for duplicate SSN (only among active employees)
+        var possibleDuplicates = await _db.Employees
+            .AsNoTracking()
+            .Where(e => e.IsActive && e.SsnLast4 == ssnLast4 && e.Id != EditingEmployeeId)
+            .ToListAsync();
+
+        foreach (var dup in possibleDuplicates)
+        {
+            try
+            {
+                var existingSsn = _encryption.Decrypt(dup.EncryptedSsn).Replace("-", "").Replace(" ", "");
+                if (existingSsn == cleanSsn)
+                {
+                    ValidationError = $"An employee with this SSN already exists: {dup.FullName}.";
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                AppLogger.Warning($"Failed to decrypt SSN for employee {dup.Id} ({dup.FullName}): {ex.Message}");
+            }
+        }
 
         if (IsNewEmployee)
         {
@@ -389,26 +450,123 @@ public partial class EmployeeListViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task DeactivateEmployeeAsync(EmployeeRowViewModel? row)
+    private void RequestDeactivation(EmployeeRowViewModel? row)
     {
         var target = row ?? SelectedEmployee;
         if (target is null) return;
 
-        var employee = await _db.Employees.FindAsync(target.Id);
-        if (employee is null) return;
+        ConfirmMessage = $"Deactivate employee {target.FullName}? This will mark them as terminated.";
+        _pendingConfirmAction = async () =>
+        {
+            var employee = await _db.Employees.FindAsync(target.Id);
+            if (employee is null) return;
 
-        employee.IsActive = false;
-        employee.TerminationDate = DateTime.UtcNow;
-        employee.UpdatedAt = DateTime.UtcNow;
+            employee.IsActive = false;
+            employee.TerminationDate = DateTime.UtcNow;
+            employee.UpdatedAt = DateTime.UtcNow;
 
-        await _db.SaveChangesAsync();
+            await _db.SaveChangesAsync();
 
-        AppLogger.Information($"Employee deactivated: {employee.FullName} (ID: {employee.Id})");
-        await _audit.LogAsync("Deactivated", "Employee", employee.Id,
-            oldValue: "Active",
-            newValue: "Inactive");
+            AppLogger.Information($"Employee deactivated: {employee.FullName} (ID: {employee.Id})");
+            await _audit.LogAsync("Deactivated", "Employee", employee.Id,
+                oldValue: "Active",
+                newValue: "Inactive");
 
-        await LoadEmployeesAsync();
+            await LoadEmployeesAsync();
+        };
+        IsConfirmingAction = true;
+    }
+
+    [RelayCommand]
+    private void RequestActivation(EmployeeRowViewModel? row)
+    {
+        var target = row ?? SelectedEmployee;
+        if (target is null) return;
+
+        ConfirmMessage = $"Activate employee {target.FullName}?";
+        _pendingConfirmAction = async () =>
+        {
+            var employee = await _db.Employees.FindAsync(target.Id);
+            if (employee is null) return;
+
+            employee.IsActive = true;
+            employee.TerminationDate = null;
+            employee.UpdatedAt = DateTime.UtcNow;
+
+            await _db.SaveChangesAsync();
+
+            AppLogger.Information($"Employee activated: {employee.FullName} (ID: {employee.Id})");
+            await _audit.LogAsync("Activated", "Employee", employee.Id,
+                oldValue: "Inactive",
+                newValue: "Active");
+
+            await LoadEmployeesAsync();
+        };
+        IsConfirmingAction = true;
+    }
+
+    [RelayCommand]
+    private void RequestDelete(EmployeeRowViewModel? row)
+    {
+        var target = row ?? SelectedEmployee;
+        if (target is null) return;
+
+        ConfirmMessage = $"Permanently delete employee {target.FullName}? This action cannot be undone.";
+        _pendingConfirmAction = async () =>
+        {
+            var employee = await _db.Employees
+                .Include(e => e.Paychecks)
+                .FirstOrDefaultAsync(e => e.Id == target.Id);
+
+            if (employee is null) return;
+
+            // Check if employee has any paychecks
+            if (employee.Paychecks.Any())
+            {
+                ValidationError = "Cannot delete employee with existing paychecks. Deactivate instead.";
+                return;
+            }
+
+            _db.Employees.Remove(employee);
+            await _db.SaveChangesAsync();
+
+            AppLogger.Information($"Employee deleted: {employee.FullName} (ID: {employee.Id})");
+            await _audit.LogAsync("Deleted", "Employee", employee.Id,
+                oldValue: $"{employee.FullName}");
+
+            await LoadEmployeesAsync();
+        };
+        IsConfirmingAction = true;
+    }
+
+    [RelayCommand]
+    private async Task ConfirmActionAsync()
+    {
+        IsConfirmingAction = false;
+        ConfirmMessage = string.Empty;
+        var action = _pendingConfirmAction;
+        _pendingConfirmAction = null;
+
+        if (action != null)
+        {
+            try
+            {
+                await action();
+            }
+            catch (Exception ex)
+            {
+                AppLogger.Error($"Error executing confirmed action: {ex.Message}", ex);
+                ValidationError = $"Error: {ex.Message}";
+            }
+        }
+    }
+
+    [RelayCommand]
+    private void CancelConfirmation()
+    {
+        IsConfirmingAction = false;
+        ConfirmMessage = string.Empty;
+        _pendingConfirmAction = null;
     }
 
     [RelayCommand]

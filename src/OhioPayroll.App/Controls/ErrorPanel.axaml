@@ -1,0 +1,95 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:OhioPayroll.App.ViewModels"
+             x:Class="OhioPayroll.App.Controls.ErrorPanel"
+             x:Name="ErrorPanelControl"
+             x:DataType="vm:ViewModelBase">
+
+    <!--
+        Error Panel Control
+
+        Usage: Add this to any view that needs error display:
+
+        <controls:ErrorPanel ErrorMessage="{Binding ErrorMessage}"
+                            ErrorContext="{Binding ErrorContext}" />
+
+        It will display when ErrorMessage is not null/empty.
+        Retry and Dismiss buttons bind to parent ViewModel commands.
+    -->
+
+    <Border Background="#FDE8E8"
+            BorderBrush="#F5C6CB"
+            BorderThickness="1"
+            CornerRadius="4"
+            Padding="16"
+            Margin="0,0,0,16"
+            IsVisible="{Binding #ErrorPanelControl.ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+
+        <StackPanel Spacing="12">
+
+            <!-- Header with icon and title -->
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="⚠️"
+                          FontSize="18"
+                          VerticalAlignment="Center"/>
+                <TextBlock Text="Error"
+                          FontWeight="Bold"
+                          Foreground="#C53030"
+                          FontSize="16"
+                          VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <!-- Error message -->
+            <TextBlock Text="{Binding #ErrorPanelControl.ErrorMessage}"
+                      Foreground="#721C24"
+                      TextWrapping="Wrap"
+                      FontSize="14"/>
+
+            <!-- Optional context/help text -->
+            <TextBlock Text="{Binding #ErrorPanelControl.ErrorContext}"
+                      Foreground="#856404"
+                      FontSize="12"
+                      TextWrapping="Wrap"
+                      IsVisible="{Binding #ErrorPanelControl.ErrorContext, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+
+            <!-- Action buttons -->
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <!-- Retry button (only shown if retry action is available) -->
+                <Button Content="Retry"
+                       Command="{Binding RetryCommand, Mode=OneWay}"
+                       IsVisible="{Binding CanRetry, Mode=OneWay}"
+                       Classes="primary">
+                    <Button.Styles>
+                        <Style Selector="Button.primary">
+                            <Setter Property="Background" Value="#2563EB"/>
+                            <Setter Property="Foreground" Value="White"/>
+                            <Setter Property="Padding" Value="12,6"/>
+                            <Setter Property="CornerRadius" Value="4"/>
+                        </Style>
+                        <Style Selector="Button.primary:pointerover /template/ ContentPresenter">
+                            <Setter Property="Background" Value="#1D4ED8"/>
+                        </Style>
+                    </Button.Styles>
+                </Button>
+
+                <!-- Dismiss button -->
+                <Button Content="Dismiss"
+                       Command="{Binding DismissErrorCommand, Mode=OneWay}">
+                    <Button.Styles>
+                        <Style Selector="Button">
+                            <Setter Property="Background" Value="#E5E7EB"/>
+                            <Setter Property="Foreground" Value="#374151"/>
+                            <Setter Property="Padding" Value="12,6"/>
+                            <Setter Property="CornerRadius" Value="4"/>
+                        </Style>
+                        <Style Selector="Button:pointerover /template/ ContentPresenter">
+                            <Setter Property="Background" Value="#D1D5DB"/>
+                        </Style>
+                    </Button.Styles>
+                </Button>
+            </StackPanel>
+
+        </StackPanel>
+    </Border>
+
+</UserControl>

@@ -22,15 +22,26 @@ public class FederalTaxCalculator
         _hohBrackets = hohBrackets.OrderBy(b => b.BracketStart).ToList();
     }
 
+    /// <summary>
+    /// IRS W-4 Step 4(b) "Other adjustments - Deductions" value per allowance claimed.
+    /// </summary>
+    private const decimal AllowanceDeduction = 4_300m;
+
     public decimal Calculate(
         decimal grossPay,
         FilingStatus filingStatus,
-        PayFrequency frequency)
+        PayFrequency frequency,
+        int allowances = 0)
     {
         if (grossPay <= 0) return 0m;
+        if (allowances < 0) throw new ArgumentOutOfRangeException(nameof(allowances), "Allowances cannot be negative.");
 
         int periods = (int)frequency;
         decimal annualizedWage = grossPay * periods;
+
+        // Reduce taxable wages by allowance deductions (W-4 Step 4b)
+        if (allowances > 0)
+            annualizedWage = Math.Max(0m, annualizedWage - allowances * AllowanceDeduction);
 
         var brackets = filingStatus switch
         {

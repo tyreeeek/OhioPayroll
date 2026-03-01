@@ -19,7 +19,22 @@ public class Contractor
     public string? Phone { get; set; }
     public bool IsActive { get; set; } = true;
     public bool Is1099Exempt { get; set; }
+
+    // Rate fields
+    public decimal? HourlyRate { get; set; }
+    public decimal? DailyRate { get; set; }
+    public ContractorRateType RateType { get; set; } = ContractorRateType.Flat;
+
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public ICollection<ContractorPayment> Payments { get; set; } = new List<ContractorPayment>();
+
+    // Validation property
+    public bool HasValidRate => RateType switch
+    {
+        ContractorRateType.Hourly => HourlyRate.HasValue && HourlyRate.Value > 0,
+        ContractorRateType.Daily => DailyRate.HasValue && DailyRate.Value > 0,
+        ContractorRateType.Flat => true,
+        _ => false
+    };
 }

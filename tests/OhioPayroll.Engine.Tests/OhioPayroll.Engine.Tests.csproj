@@ -20,6 +20,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\OhioPayroll.Engine\OhioPayroll.Engine.csproj" />
     <ProjectReference Include="..\..\src\OhioPayroll.Core\OhioPayroll.Core.csproj" />
+    <ProjectReference Include="..\..\src\OhioPayroll.App\OhioPayroll.App.csproj" />
   </ItemGroup>
 
 </Project>

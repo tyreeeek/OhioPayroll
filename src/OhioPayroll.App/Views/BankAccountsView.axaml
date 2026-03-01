@@ -7,22 +7,6 @@
              x:Class="OhioPayroll.App.Views.BankAccountsView"
              x:DataType="vm:BankAccountsViewModel">
 
-    <UserControl.Styles>
-        <Style Selector="Border.section-card">
-            <Setter Property="Background" Value="#2D2D30"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="20,16"/>
-            <Setter Property="BorderBrush" Value="#444"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Margin" Value="0,0,0,16"/>
-        </Style>
-        <Style Selector="TextBlock.section-header">
-            <Setter Property="FontSize" Value="18"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="Margin" Value="0,0,0,12"/>
-        </Style>
-    </UserControl.Styles>
 
     <Panel>
         <!-- ============================================================ -->
@@ -34,12 +18,12 @@
 
                 <!-- Page Header -->
                 <StackPanel Spacing="4" Margin="0,0,0,8">
-                    <TextBlock Text="{Binding Title}" FontSize="24" FontWeight="Bold"/>
-                    <TextBlock Text="{Binding Subtitle}" FontSize="14" Foreground="#888"/>
+                    <TextBlock Text="{Binding Title}" Classes="page-title"/>
+                    <TextBlock Text="{Binding Subtitle}" Classes="page-subtitle"/>
                 </StackPanel>
 
                 <!-- ── Company Bank Accounts Section ──────────────────── -->
-                <Border Classes="section-card">
+                <Border Classes="card" Margin="0,0,0,16">
                     <DockPanel>
                         <DockPanel DockPanel.Dock="Top" Margin="0,0,0,12">
                             <TextBlock Text="Company Bank Accounts"
@@ -50,7 +34,7 @@
                                 <Button Content="+ Add Account"
                                         Command="{Binding AddCompanyAccountCommand}"
                                         Padding="12,6"
-                                        Classes="accent"/>
+                                        Classes="primary"/>
                             </StackPanel>
                         </DockPanel>
 
@@ -103,7 +87,7 @@
                 </Border>
 
                 <!-- ── Employee Bank Accounts Section ─────────────────── -->
-                <Border Classes="section-card">
+                <Border Classes="card" Margin="0,0,0,16">
                     <DockPanel>
                         <DockPanel DockPanel.Dock="Top" Margin="0,0,0,12">
                             <TextBlock Text="Employee Bank Accounts"
@@ -114,7 +98,7 @@
                                 <Button Content="+ Add Account"
                                         Command="{Binding AddEmployeeAccountCommand}"
                                         Padding="12,6"
-                                        Classes="accent"/>
+                                        Classes="primary"/>
                             </StackPanel>
                         </DockPanel>
 
@@ -215,19 +199,19 @@
                 <StackPanel Spacing="16" MaxWidth="500">
 
                     <StackPanel Spacing="4">
-                        <TextBlock Text="Bank Name" FontSize="12" Foreground="Gray"/>
+                        <TextBlock Text="Bank Name" Classes="label"/>
                         <TextBox Text="{Binding CompanyBankName}"
                                  Watermark="Enter bank name"/>
                     </StackPanel>
 
                     <StackPanel Spacing="4">
-                        <TextBlock Text="Routing Number (9 digits)" FontSize="12" Foreground="Gray"/>
+                        <TextBlock Text="Routing Number (9 digits)" Classes="label"/>
                         <TextBox Text="{Binding CompanyRoutingNumber}"
                                  Watermark="000000000"/>
                     </StackPanel>
 
                     <StackPanel Spacing="4">
-                        <TextBlock Text="Account Number" FontSize="12" Foreground="Gray"/>
+                        <TextBlock Text="Account Number" Classes="label"/>
                         <TextBox Text="{Binding CompanyAccountNumber}"
                                  Watermark="Enter account number"/>
                     </StackPanel>
@@ -286,7 +270,7 @@
                 <StackPanel Spacing="16" MaxWidth="500">
 
                     <StackPanel Spacing="4">
-                        <TextBlock Text="Employee" FontSize="12" Foreground="Gray"/>
+                        <TextBlock Text="Employee" Classes="label"/>
                         <ComboBox ItemsSource="{Binding EmployeeOptions}"
                                   SelectedValue="{Binding SelectedEmployeeId}"
                                   SelectedValueBinding="{Binding Id}"
@@ -295,19 +279,19 @@
                     </StackPanel>
 
                     <StackPanel Spacing="4">
-                        <TextBlock Text="Routing Number (9 digits)" FontSize="12" Foreground="Gray"/>
+                        <TextBlock Text="Routing Number (9 digits)" Classes="label"/>
                         <TextBox Text="{Binding EmployeeRoutingNumber}"
                                  Watermark="000000000"/>
                     </StackPanel>
 
                     <StackPanel Spacing="4">
-                        <TextBlock Text="Account Number" FontSize="12" Foreground="Gray"/>
+                        <TextBlock Text="Account Number" Classes="label"/>
                         <TextBox Text="{Binding EmployeeAccountNumber}"
                                  Watermark="Enter account number"/>
                     </StackPanel>
 
                     <StackPanel Spacing="4">
-                        <TextBlock Text="Account Type" FontSize="12" Foreground="Gray"/>
+                        <TextBlock Text="Account Type" Classes="label"/>
                         <ComboBox ItemsSource="{Binding AccountTypeValues}"
                                   SelectedItem="{Binding EmployeeAccountType}"
                                   HorizontalAlignment="Stretch"/>

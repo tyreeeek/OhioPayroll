@@ -1,10 +1,13 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
+using OhioPayroll.App.Extensions;
+using OhioPayroll.App.Services;
 using OhioPayroll.Core.Models.Enums;
 using OhioPayroll.Data;
 
@@ -92,11 +95,21 @@ public partial class QuarterlyViewModel : ViewModelBase
         YearOptions = new ObservableCollection<int>(
             Enumerable.Range(DateTime.Now.Year - 2, 4));
 
-        _ = LoadDataAsync();
+        ExecuteWithLoadingAsync(LoadDataAsync, "Loading quarterly data...")
+            .FireAndForgetSafeAsync(
+                onException: ex => StatusMessage = $"Error loading quarterly data: {ex.Message}",
+                errorContext: "loading quarterly data");
     }
 
-    partial void OnSelectedYearChanged(int value) => _ = LoadDataAsync();
-    partial void OnSelectedQuarterChanged(int value) => _ = LoadDataAsync();
+    partial void OnSelectedYearChanged(int value) => ExecuteWithLoadingAsync(LoadDataAsync, "Loading quarterly data...")
+        .FireAndForgetSafeAsync(
+            onException: ex => StatusMessage = $"Error loading quarterly data: {ex.Message}",
+            errorContext: "loading quarterly data");
+
+    partial void OnSelectedQuarterChanged(int value) => ExecuteWithLoadingAsync(LoadDataAsync, "Loading quarterly data...")
+        .FireAndForgetSafeAsync(
+            onException: ex => StatusMessage = $"Error loading quarterly data: {ex.Message}",
+            errorContext: "loading quarterly data");
 
     private static int GetCurrentQuarter() => (DateTime.Now.Month - 1) / 3 + 1;
 
@@ -108,12 +121,13 @@ public partial class QuarterlyViewModel : ViewModelBase
             IsLoading = true;
             StatusMessage = "Loading quarterly data...";
 
-            var (qStart, qEnd) = GetQuarterDates(SelectedYear, SelectedQuarter);
+            var (qStart, qEnd) = TaxCalendarHelper.GetQuarterDates(SelectedYear, SelectedQuarter);
             QuarterTitle = $"Q{SelectedQuarter} {SelectedYear}";
             PeriodDisplay = $"{qStart:MMMM d} \u2014 {qEnd:MMMM d, yyyy}";
 
-            // Load payroll runs for this quarter
+            // Single query with Include to get runs and paychecks together
             var runs = await _db.PayrollRuns
+                .Include(r => r.Paychecks)
                 .Where(r => r.Status == PayrollRunStatus.Finalized
                     && r.PayDate >= qStart && r.PayDate <= qEnd)
                 .OrderBy(r => r.PayDate)
@@ -135,24 +149,10 @@ public partial class QuarterlyViewModel : ViewModelBase
 
             PayrollRunCount = runs.Count;
 
-            // Get unique employee count from paychecks in this quarter
-            var paycheckEmployeeCount = await _db.Paychecks
-                .Where(p => p.PayrollRun.Status == PayrollRunStatus.Finalized
-                    && p.PayrollRun.PayDate >= qStart && p.PayrollRun.PayDate <= qEnd)
-                .Select(p => p.EmployeeId)
-                .Distinct()
-                .CountAsync();
-            EmployeeCount = paycheckEmployeeCount;
+            // Get unique employee count from the already-loaded paychecks
+            EmployeeCount = runs.SelectMany(r => r.Paychecks).Select(p => p.EmployeeId).Distinct().Count();
 
-            // Payroll run rows (include paychecks for per-run employee counts)
-            var runsWithChecks = await _db.PayrollRuns
-                .Include(r => r.Paychecks)
-                .Where(r => r.Status == PayrollRunStatus.Finalized
-                    && r.PayDate >= qStart && r.PayDate <= qEnd)
-                .OrderBy(r => r.PayDate)
-                .ToListAsync();
-
-            var runRows = runsWithChecks.Select(r => new QuarterPayrollRunRow
+            var runRows = runs.Select(r => new QuarterPayrollRunRow
             {
                 Id = r.Id,
                 PayDate = r.PayDate,
@@ -192,8 +192,8 @@ public partial class QuarterlyViewModel : ViewModelBase
             HasBalance = totalOwed - totalPaid > 0;
 
             // 941 due date and overdue check
-            Form941DueDateDisplay = GetForm941DueDate(SelectedYear, SelectedQuarter);
-            var dueDate = GetForm941DueDateValue(SelectedYear, SelectedQuarter);
+            Form941DueDateDisplay = TaxCalendarHelper.GetForm941DueDate(SelectedYear, SelectedQuarter);
+            var dueDate = TaxCalendarHelper.GetForm941DueDateValue(SelectedYear, SelectedQuarter);
             IsOverdue = HasBalance && DateTime.Now > dueDate;
 
             // Determine filed status based on whether all liabilities are paid
@@ -218,30 +218,4 @@ public partial class QuarterlyViewModel : ViewModelBase
         }
     }
 
-    private static (DateTime start, DateTime end) GetQuarterDates(int year, int quarter) => quarter switch
-    {
-        1 => (new DateTime(year, 1, 1), new DateTime(year, 3, 31)),
-        2 => (new DateTime(year, 4, 1), new DateTime(year, 6, 30)),
-        3 => (new DateTime(year, 7, 1), new DateTime(year, 9, 30)),
-        4 => (new DateTime(year, 10, 1), new DateTime(year, 12, 31)),
-        _ => throw new ArgumentOutOfRangeException(nameof(quarter))
-    };
-
-    private static string GetForm941DueDate(int year, int quarter) => quarter switch
-    {
-        1 => $"April 30, {year}",
-        2 => $"July 31, {year}",
-        3 => $"October 31, {year}",
-        4 => $"January 31, {year + 1}",
-        _ => "N/A"
-    };
-
-    private static DateTime GetForm941DueDateValue(int year, int quarter) => quarter switch
-    {
-        1 => new DateTime(year, 4, 30),
-        2 => new DateTime(year, 7, 31),
-        3 => new DateTime(year, 10, 31),
-        4 => new DateTime(year + 1, 1, 31),
-        _ => DateTime.MaxValue
-    };
 }

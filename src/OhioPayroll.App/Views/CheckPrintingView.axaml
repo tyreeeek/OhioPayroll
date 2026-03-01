@@ -7,56 +7,18 @@
              x:Class="OhioPayroll.App.Views.CheckPrintingView"
              x:DataType="vm:CheckPrintingViewModel">
 
-    <UserControl.Styles>
-        <Style Selector="Border.section-card">
-            <Setter Property="Background" Value="#2D2D30"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="20,16"/>
-            <Setter Property="BorderBrush" Value="#444"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Margin" Value="0,0,0,16"/>
-        </Style>
-        <Style Selector="TextBlock.section-header">
-            <Setter Property="FontSize" Value="18"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="Margin" Value="0,0,0,12"/>
-        </Style>
-        <Style Selector="Button.action-btn">
-            <Setter Property="Padding" Value="16,8"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="MinWidth" Value="160"/>
-        </Style>
-        <Style Selector="Button.void-btn">
-            <Setter Property="Background" Value="#F87171"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="Padding" Value="16,8"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="MinWidth" Value="140"/>
-            <Setter Property="CornerRadius" Value="4"/>
-            <Setter Property="BorderBrush" Value="#DC2626"/>
-            <Setter Property="BorderThickness" Value="1"/>
-        </Style>
-        <Style Selector="Button.void-btn:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="#EF4444"/>
-        </Style>
-        <Style Selector="Button.void-btn:disabled">
-            <Setter Property="Opacity" Value="0.4"/>
-        </Style>
-    </UserControl.Styles>
 
     <ScrollViewer>
         <StackPanel Spacing="8" Margin="8">
 
             <!-- Page Header -->
             <StackPanel Spacing="4" Margin="0,0,0,8">
-                <TextBlock Text="{Binding Title}" FontSize="24" FontWeight="Bold"/>
-                <TextBlock Text="{Binding Subtitle}" FontSize="14" Foreground="#888"/>
+                <TextBlock Text="{Binding Title}" Classes="page-title"/>
+                <TextBlock Text="{Binding Subtitle}" Classes="page-subtitle"/>
             </StackPanel>
 
             <!-- Payroll Run Selection -->
-            <Border Classes="section-card">
+            <Border Classes="card" Margin="0,0,0,16">
                 <StackPanel Spacing="12">
                     <TextBlock Text="Select Payroll Run"
                                Classes="section-header"/>
@@ -75,7 +37,7 @@
             </Border>
 
             <!-- Paychecks Grid -->
-            <Border Classes="section-card">
+            <Border Classes="card" Margin="0,0,0,16">
                 <DockPanel>
                     <TextBlock Text="Paychecks"
                                Classes="section-header"
@@ -113,7 +75,7 @@
             </Border>
 
             <!-- Action Buttons -->
-            <Border Classes="section-card">
+            <Border Classes="card" Margin="0,0,0,16">
                 <StackPanel Spacing="12">
                     <TextBlock Text="Actions"
                                Classes="section-header"/>
@@ -121,15 +83,15 @@
                     <WrapPanel Orientation="Horizontal" HorizontalAlignment="Left">
                         <Button Content="Print All Checks"
                                 Command="{Binding PrintChecksCommand}"
-                                Classes="action-btn accent"
+                                Classes="primary"
                                 Margin="0,0,12,8"/>
                         <Button Content="Print All Paystubs"
                                 Command="{Binding PrintPaystubsCommand}"
-                                Classes="action-btn accent"
+                                Classes="primary"
                                 Margin="0,0,12,8"/>
                         <Button Content="Print Calibration Page"
                                 Command="{Binding PrintCalibrationCommand}"
-                                Classes="action-btn"
+                                Classes="secondary"
                                 Margin="0,0,12,8"/>
 
                         <!-- Separator -->
@@ -139,7 +101,7 @@
                         <Button Content="Void Selected Check"
                                 Command="{Binding VoidPaycheckCommand}"
                                 IsEnabled="{Binding CanVoidSelectedPaycheck}"
-                                Classes="void-btn"
+                                Classes="danger"
                                 Margin="0,0,12,8"/>
                     </WrapPanel>
 

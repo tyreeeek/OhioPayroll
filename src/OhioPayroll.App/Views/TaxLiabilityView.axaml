@@ -7,28 +7,6 @@
              x:Class="OhioPayroll.App.Views.TaxLiabilityView"
              x:DataType="vm:TaxLiabilityViewModel">
 
-    <UserControl.Styles>
-        <Style Selector="Border.summary-card">
-            <Setter Property="Background" Value="#2D2D30"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="20,16"/>
-            <Setter Property="BorderBrush" Value="#444"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="MinWidth" Value="220"/>
-            <Setter Property="MinHeight" Value="90"/>
-        </Style>
-        <Style Selector="TextBlock.card-header">
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Foreground" Value="#999"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Margin" Value="0,0,0,8"/>
-        </Style>
-        <Style Selector="TextBlock.card-value">
-            <Setter Property="FontSize" Value="28"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="White"/>
-        </Style>
-    </UserControl.Styles>
 
     <Panel>
         <!-- ============================================================ -->
@@ -39,8 +17,8 @@
             <!-- Page Header -->
             <Border DockPanel.Dock="Top" Padding="8,8,8,0">
                 <StackPanel Spacing="4">
-                    <TextBlock Text="{Binding Title}" FontSize="24" FontWeight="Bold"/>
-                    <TextBlock Text="{Binding Subtitle}" FontSize="14" Foreground="#888"/>
+                    <TextBlock Text="{Binding Title}" Classes="page-title"/>
+                    <TextBlock Text="{Binding Subtitle}" Classes="page-subtitle"/>
                 </StackPanel>
             </Border>
 
@@ -48,26 +26,24 @@
             <Border DockPanel.Dock="Top" Padding="8,16,8,0">
                 <WrapPanel Orientation="Horizontal" HorizontalAlignment="Left">
 
-                    <Border Classes="summary-card" Margin="0,0,12,12">
+                    <Border Classes="card" Margin="0,0,12,12">
                         <StackPanel>
-                            <TextBlock Text="TOTAL OWED" Classes="card-header"/>
-                            <TextBlock Text="{Binding TotalOwedDisplay}" Classes="card-value"/>
+                            <TextBlock Text="TOTAL OWED" Classes="label" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,8"/>
+                            <TextBlock Text="{Binding TotalOwedDisplay}" FontSize="28" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
                         </StackPanel>
                     </Border>
 
-                    <Border Classes="summary-card" Margin="0,0,12,12">
+                    <Border Classes="card" Margin="0,0,12,12">
                         <StackPanel>
-                            <TextBlock Text="TOTAL PAID" Classes="card-header"/>
-                            <TextBlock Text="{Binding TotalPaidDisplay}" Classes="card-value"
-                                       Foreground="#4ADE80"/>
+                            <TextBlock Text="TOTAL PAID" Classes="label" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,8"/>
+                            <TextBlock Text="{Binding TotalPaidDisplay}" FontSize="28" FontWeight="Bold" Foreground="{StaticResource SuccessBrush}"/>
                         </StackPanel>
                     </Border>
 
-                    <Border Classes="summary-card" Margin="0,0,12,12">
+                    <Border Classes="card" Margin="0,0,12,12">
                         <StackPanel>
-                            <TextBlock Text="BALANCE DUE" Classes="card-header"/>
-                            <TextBlock Text="{Binding BalanceDueDisplay}" Classes="card-value"
-                                       Foreground="#F87171"/>
+                            <TextBlock Text="BALANCE DUE" Classes="label" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,8"/>
+                            <TextBlock Text="{Binding BalanceDueDisplay}" FontSize="28" FontWeight="Bold" Foreground="{StaticResource DangerBrush}"/>
                         </StackPanel>
                     </Border>
 
@@ -117,7 +93,7 @@
                     <Button Content="Mark as Paid"
                             Command="{Binding MarkAsPaidCommand}"
                             Padding="16,6"
-                            Classes="accent"/>
+                            Classes="primary"/>
                     <Button Content="Record Partial Payment"
                             Command="{Binding RecordPartialPaymentCommand}"
                             Padding="16,6"
@@ -229,7 +205,7 @@
                         <Button Content="Confirm Payment"
                                 Command="{Binding ConfirmPaymentCommand}"
                                 Padding="24,8"
-                                Classes="accent"/>
+                                Classes="primary"/>
                     </StackPanel>
 
                 </StackPanel>

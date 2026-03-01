@@ -23,7 +23,7 @@ namespace OhioPayroll.Data.Migrations
                 table: "AuditLog",
                 type: "TEXT",
                 nullable: false,
-                defaultValue: "");
+                defaultValue: "System");
 
             migrationBuilder.AddCheckConstraint(
                 name: "CK_TaxLiability_PeriodDates",

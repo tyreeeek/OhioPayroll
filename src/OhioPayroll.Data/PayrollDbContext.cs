@@ -21,6 +21,8 @@ public class PayrollDbContext : DbContext
     public DbSet<PayrollSettings> PayrollSettings => Set<PayrollSettings>();
     public DbSet<Contractor> Contractors => Set<Contractor>();
     public DbSet<ContractorPayment> ContractorPayments => Set<ContractorPayment>();
+    public DbSet<ContractorPayrollRun> ContractorPayrollRuns => Set<ContractorPayrollRun>();
+    public DbSet<UpdateHistory> UpdateHistory => Set<UpdateHistory>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

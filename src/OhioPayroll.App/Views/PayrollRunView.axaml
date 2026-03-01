@@ -11,169 +11,164 @@
     <UserControl.Styles>
         <!-- Step indicator circle (inactive) -->
         <Style Selector="Border.step-circle">
-            <Setter Property="Width" Value="36"/>
-            <Setter Property="Height" Value="36"/>
-            <Setter Property="CornerRadius" Value="18"/>
-            <Setter Property="Background" Value="#3E3E42"/>
-            <Setter Property="BorderBrush" Value="#555"/>
+            <Setter Property="Width" Value="40"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="CornerRadius" Value="20"/>
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
             <Setter Property="BorderThickness" Value="2"/>
         </Style>
         <!-- Step indicator circle (active) -->
         <Style Selector="Border.step-circle-active">
-            <Setter Property="Width" Value="36"/>
-            <Setter Property="Height" Value="36"/>
-            <Setter Property="CornerRadius" Value="18"/>
-            <Setter Property="Background" Value="#0078D4"/>
-            <Setter Property="BorderBrush" Value="#0078D4"/>
+            <Setter Property="Width" Value="40"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="CornerRadius" Value="20"/>
+            <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
             <Setter Property="BorderThickness" Value="2"/>
         </Style>
         <!-- Step indicator circle (completed) -->
         <Style Selector="Border.step-circle-done">
-            <Setter Property="Width" Value="36"/>
-            <Setter Property="Height" Value="36"/>
-            <Setter Property="CornerRadius" Value="18"/>
-            <Setter Property="Background" Value="#107C10"/>
-            <Setter Property="BorderBrush" Value="#107C10"/>
+            <Setter Property="Width" Value="40"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="CornerRadius" Value="20"/>
+            <Setter Property="Background" Value="{StaticResource SuccessBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource SuccessBrush}"/>
             <Setter Property="BorderThickness" Value="2"/>
         </Style>
         <Style Selector="TextBlock.step-label">
-            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontSize" Value="12"/>
             <Setter Property="HorizontalAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="0,4,0,0"/>
-        </Style>
-        <Style Selector="TextBlock.field-label">
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="0,0,8,0"/>
-            <Setter Property="FontSize" Value="14"/>
-        </Style>
-        <Style Selector="Border.summary-card">
-            <Setter Property="Background" Value="#2D2D30"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="16"/>
-            <Setter Property="BorderBrush" Value="#444"/>
-            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Margin" Value="0,6,0,0"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
         </Style>
     </UserControl.Styles>
 
-    <DockPanel>
+    <DockPanel Margin="0,0,0,32">
         <!-- Page header -->
-        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,16">
-            <TextBlock Text="Run Payroll" FontSize="26" FontWeight="Bold" Margin="0,0,0,4"/>
-            <TextBlock Text="{Binding StepTitle}" FontSize="16" Foreground="#89B4FA"/>
+        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,24">
+            <TextBlock Text="Run Payroll" Classes="page-title" Margin="0,0,0,4"/>
+            <TextBlock Text="{Binding StepTitle}" Classes="page-subtitle"/>
         </StackPanel>
 
         <!-- Step indicator bar -->
-        <Border DockPanel.Dock="Top" Margin="0,0,0,20" Padding="0,8">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="32">
+        <Border DockPanel.Dock="Top" Margin="0,0,0,32" Padding="0,12">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="40">
                 <!-- Step 1 -->
                 <StackPanel>
                     <Border Classes.step-circle-active="{Binding IsStep1}"
                             Classes.step-circle-done="{Binding IsStep2}"
                             Classes.step-circle="{Binding !IsStep1}">
-                        <!-- Use step-circle as fallback, override via done/active when applicable -->
                         <Panel>
                             <Border IsVisible="{Binding IsStep1}"
-                                    Width="36" Height="36" CornerRadius="18"
-                                    Background="#0078D4">
+                                    Width="40" Height="40" CornerRadius="20"
+                                    Background="{StaticResource PrimaryBrush}">
                                 <TextBlock Text="1" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                           Foreground="White" FontWeight="Bold"/>
+                                           Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold" FontSize="16"/>
                             </Border>
                             <Border IsVisible="{Binding !IsStep1}"
-                                    Width="36" Height="36" CornerRadius="18"
-                                    Background="#107C10">
-                                <TextBlock Text="&#x2713;" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                           Foreground="White" FontWeight="Bold"/>
+                                    Width="40" Height="40" CornerRadius="20"
+                                    Background="{StaticResource SuccessBrush}">
+                                <TextBlock Text="✓" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold" FontSize="18"/>
                             </Border>
                         </Panel>
                     </Border>
-                    <TextBlock Text="Select Period" Classes="step-label" Foreground="#CCC"/>
+                    <TextBlock Text="Select Period" Classes="step-label"/>
                 </StackPanel>
 
-                <TextBlock Text="---" VerticalAlignment="Center" Foreground="#555" Margin="0,0,0,18"/>
+                <TextBlock Text="→" VerticalAlignment="Center" Foreground="{StaticResource BorderBrush}"
+                           Margin="0,0,0,18" FontSize="16"/>
 
                 <!-- Step 2 -->
                 <StackPanel>
-                    <Panel Width="36" Height="36">
+                    <Panel Width="40" Height="40">
                         <Border IsVisible="{Binding IsStep2}"
-                                Width="36" Height="36" CornerRadius="18"
-                                Background="#0078D4">
+                                Width="40" Height="40" CornerRadius="20"
+                                Background="{StaticResource PrimaryBrush}">
                             <TextBlock Text="2" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                       Foreground="White" FontWeight="Bold"/>
+                                       Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold" FontSize="16"/>
                         </Border>
                         <Border IsVisible="{Binding IsStep3}"
-                                Width="36" Height="36" CornerRadius="18"
-                                Background="#107C10">
-                            <TextBlock Text="&#x2713;" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                       Foreground="White" FontWeight="Bold"/>
+                                Width="40" Height="40" CornerRadius="20"
+                                Background="{StaticResource SuccessBrush}">
+                            <TextBlock Text="✓" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold" FontSize="18"/>
                         </Border>
                         <Border IsVisible="{Binding IsStep4}"
-                                Width="36" Height="36" CornerRadius="18"
-                                Background="#107C10">
-                            <TextBlock Text="&#x2713;" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                       Foreground="White" FontWeight="Bold"/>
+                                Width="40" Height="40" CornerRadius="20"
+                                Background="{StaticResource SuccessBrush}">
+                            <TextBlock Text="✓" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold" FontSize="18"/>
                         </Border>
                         <Border IsVisible="{Binding IsStep1}"
-                                Width="36" Height="36" CornerRadius="18"
-                                Background="#3E3E42" BorderBrush="#555" BorderThickness="2">
+                                Width="40" Height="40" CornerRadius="20"
+                                Background="{StaticResource SurfaceBrush}"
+                                BorderBrush="{StaticResource BorderBrush}" BorderThickness="2">
                             <TextBlock Text="2" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                       Foreground="#888" FontWeight="Bold"/>
+                                       Foreground="{StaticResource TextMutedBrush}" FontWeight="Bold" FontSize="16"/>
                         </Border>
                     </Panel>
-                    <TextBlock Text="Enter Hours" Classes="step-label" Foreground="#CCC"/>
+                    <TextBlock Text="Enter Hours" Classes="step-label"/>
                 </StackPanel>
 
-                <TextBlock Text="---" VerticalAlignment="Center" Foreground="#555" Margin="0,0,0,18"/>
+                <TextBlock Text="→" VerticalAlignment="Center" Foreground="{StaticResource BorderBrush}"
+                           Margin="0,0,0,18" FontSize="16"/>
 
                 <!-- Step 3 -->
                 <StackPanel>
-                    <Panel Width="36" Height="36">
+                    <Panel Width="40" Height="40">
                         <Border IsVisible="{Binding IsStep3}"
-                                Width="36" Height="36" CornerRadius="18"
-                                Background="#0078D4">
+                                Width="40" Height="40" CornerRadius="20"
+                                Background="{StaticResource PrimaryBrush}">
                             <TextBlock Text="3" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                       Foreground="White" FontWeight="Bold"/>
+                                       Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold" FontSize="16"/>
                         </Border>
                         <Border IsVisible="{Binding IsStep4}"
-                                Width="36" Height="36" CornerRadius="18"
-                                Background="#107C10">
-                            <TextBlock Text="&#x2713;" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                       Foreground="White" FontWeight="Bold"/>
+                                Width="40" Height="40" CornerRadius="20"
+                                Background="{StaticResource SuccessBrush}">
+                            <TextBlock Text="✓" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold" FontSize="18"/>
                         </Border>
                         <Border IsVisible="{Binding IsStep1}"
-                                Width="36" Height="36" CornerRadius="18"
-                                Background="#3E3E42" BorderBrush="#555" BorderThickness="2">
+                                Width="40" Height="40" CornerRadius="20"
+                                Background="{StaticResource SurfaceBrush}"
+                                BorderBrush="{StaticResource BorderBrush}" BorderThickness="2">
                             <TextBlock Text="3" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                       Foreground="#888" FontWeight="Bold"/>
+                                       Foreground="{StaticResource TextMutedBrush}" FontWeight="Bold" FontSize="16"/>
                         </Border>
                         <Border IsVisible="{Binding IsStep2}"
-                                Width="36" Height="36" CornerRadius="18"
-                                Background="#3E3E42" BorderBrush="#555" BorderThickness="2">
+                                Width="40" Height="40" CornerRadius="20"
+                                Background="{StaticResource SurfaceBrush}"
+                                BorderBrush="{StaticResource BorderBrush}" BorderThickness="2">
                             <TextBlock Text="3" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                       Foreground="#888" FontWeight="Bold"/>
+                                       Foreground="{StaticResource TextMutedBrush}" FontWeight="Bold" FontSize="16"/>
                         </Border>
                     </Panel>
-                    <TextBlock Text="Preview" Classes="step-label" Foreground="#CCC"/>
+                    <TextBlock Text="Preview" Classes="step-label"/>
                 </StackPanel>
 
-                <TextBlock Text="---" VerticalAlignment="Center" Foreground="#555" Margin="0,0,0,18"/>
+                <TextBlock Text="→" VerticalAlignment="Center" Foreground="{StaticResource BorderBrush}"
+                           Margin="0,0,0,18" FontSize="16"/>
 
                 <!-- Step 4 -->
                 <StackPanel>
-                    <Panel Width="36" Height="36">
+                    <Panel Width="40" Height="40">
                         <Border IsVisible="{Binding IsStep4}"
-                                Width="36" Height="36" CornerRadius="18"
-                                Background="#107C10">
-                            <TextBlock Text="&#x2713;" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                       Foreground="White" FontWeight="Bold"/>
+                                Width="40" Height="40" CornerRadius="20"
+                                Background="{StaticResource SuccessBrush}">
+                            <TextBlock Text="✓" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold" FontSize="18"/>
                         </Border>
                         <Border IsVisible="{Binding !IsStep4}"
-                                Width="36" Height="36" CornerRadius="18"
-                                Background="#3E3E42" BorderBrush="#555" BorderThickness="2">
+                                Width="40" Height="40" CornerRadius="20"
+                                Background="{StaticResource SurfaceBrush}"
+                                BorderBrush="{StaticResource BorderBrush}" BorderThickness="2">
                             <TextBlock Text="4" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                       Foreground="#888" FontWeight="Bold"/>
+                                       Foreground="{StaticResource TextMutedBrush}" FontWeight="Bold" FontSize="16"/>
                         </Border>
                     </Panel>
-                    <TextBlock Text="Finalize" Classes="step-label" Foreground="#CCC"/>
+                    <TextBlock Text="Finalize" Classes="step-label"/>
                 </StackPanel>
             </StackPanel>
         </Border>
@@ -181,16 +176,16 @@
         <!-- Error message -->
         <Border DockPanel.Dock="Top"
                 IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                Background="#442222" CornerRadius="4" Padding="12" Margin="0,0,0,12"
-                BorderBrush="#CC3333" BorderThickness="1">
-            <TextBlock Text="{Binding ErrorMessage}" Foreground="#FF6666" TextWrapping="Wrap"/>
+                Background="{StaticResource DangerBrush}" CornerRadius="6" Padding="16,12" Margin="0,0,0,16"
+                Opacity="0.15">
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource DangerBrush}" TextWrapping="Wrap"/>
         </Border>
 
         <!-- Loading indicator -->
         <Border DockPanel.Dock="Top"
                 IsVisible="{Binding IsLoading}"
-                Padding="12" Margin="0,0,0,8">
-            <TextBlock Text="Processing..." FontSize="14" Foreground="#89B4FA" FontStyle="Italic"/>
+                Padding="0,0,0,12">
+            <TextBlock Text="Processing..." FontSize="14" Foreground="{StaticResource TextSecondaryBrush}" FontStyle="Italic"/>
         </Border>
 
         <!-- Content area -->
@@ -199,32 +194,32 @@
                 <!-- ════════════════════════════════════════════════════════
                      STEP 1: Select Pay Period
                      ════════════════════════════════════════════════════════ -->
-                <StackPanel IsVisible="{Binding IsStep1}" Spacing="16">
-                    <Border Classes="summary-card">
-                        <StackPanel Spacing="16">
-                            <TextBlock Text="Pay Period Details" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                <StackPanel IsVisible="{Binding IsStep1}" Spacing="24">
+                    <Border Classes="card">
+                        <StackPanel Spacing="20">
+                            <TextBlock Text="Pay Period Details" Classes="section-header"/>
 
-                            <Grid ColumnDefinitions="160,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="12">
+                            <Grid ColumnDefinitions="180,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="16">
                                 <!-- Period Start -->
-                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Period Start" Classes="field-label"/>
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Period Start" Classes="label" VerticalAlignment="Center"/>
                                 <DatePicker Grid.Row="0" Grid.Column="1"
                                             SelectedDate="{Binding PeriodStart}"
                                             MinWidth="250"/>
 
                                 <!-- Period End -->
-                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Period End" Classes="field-label"/>
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Period End" Classes="label" VerticalAlignment="Center"/>
                                 <DatePicker Grid.Row="1" Grid.Column="1"
                                             SelectedDate="{Binding PeriodEnd}"
                                             MinWidth="250"/>
 
                                 <!-- Pay Date -->
-                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Pay Date" Classes="field-label"/>
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Pay Date" Classes="label" VerticalAlignment="Center"/>
                                 <DatePicker Grid.Row="2" Grid.Column="1"
                                             SelectedDate="{Binding PayDate}"
                                             MinWidth="250"/>
 
                                 <!-- Pay Frequency -->
-                                <TextBlock Grid.Row="3" Grid.Column="0" Text="Pay Frequency" Classes="field-label"/>
+                                <TextBlock Grid.Row="3" Grid.Column="0" Text="Pay Frequency" Classes="label" VerticalAlignment="Center"/>
                                 <ComboBox Grid.Row="3" Grid.Column="1"
                                           ItemsSource="{Binding AvailableFrequencies}"
                                           SelectedItem="{Binding SelectedFrequency}"
@@ -237,20 +232,20 @@
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="12">
                         <Button Content="Next: Enter Hours"
                                 Command="{Binding NextStepCommand}"
-                                Padding="24,10" FontSize="14" FontWeight="SemiBold"
-                                Background="#0078D4" Foreground="White" CornerRadius="4"/>
+                                Padding="24,10"
+                                Classes="primary"/>
                     </StackPanel>
                 </StackPanel>
 
                 <!-- ════════════════════════════════════════════════════════
                      STEP 2: Enter Hours
                      ════════════════════════════════════════════════════════ -->
-                <StackPanel IsVisible="{Binding IsStep2}" Spacing="16">
-                    <Border Classes="summary-card">
-                        <StackPanel Spacing="8">
-                            <TextBlock Text="Employee Hours" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                <StackPanel IsVisible="{Binding IsStep2}" Spacing="24">
+                    <Border Classes="card">
+                        <StackPanel Spacing="12">
+                            <TextBlock Text="Employee Hours" Classes="section-header"/>
                             <TextBlock Text="Enter regular and overtime hours for each employee. Salary employees are pre-filled with standard hours."
-                                       FontSize="12" Foreground="#999" Margin="0,0,0,8"/>
+                                       FontSize="13" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,8"/>
 
                             <DataGrid ItemsSource="{Binding EntryRows}"
                                       AutoGenerateColumns="False"
@@ -258,15 +253,14 @@
                                       CanUserSortColumns="False"
                                       IsReadOnly="False"
                                       GridLinesVisibility="Horizontal"
-                                      BorderBrush="#444" BorderThickness="1"
                                       MinHeight="200"
                                       MaxHeight="450">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="Employee" Binding="{Binding EmployeeName}" IsReadOnly="True" Width="200"/>
-                                    <DataGridTextColumn Header="Pay Type" Binding="{Binding PayTypeLabel}" IsReadOnly="True" Width="80"/>
+                                    <DataGridTextColumn Header="Pay Type" Binding="{Binding PayTypeLabel}" IsReadOnly="True" Width="90"/>
                                     <DataGridTextColumn Header="Rate" Binding="{Binding DisplayRate}" IsReadOnly="True" Width="140"/>
-                                    <DataGridTextColumn Header="Regular Hours" Binding="{Binding RegularHours, StringFormat=\{0:F2\}}" Width="120"/>
-                                    <DataGridTextColumn Header="OT Hours" Binding="{Binding OvertimeHours, StringFormat=\{0:F2\}}" Width="100"/>
+                                    <DataGridTextColumn Header="Regular Hours" Binding="{Binding RegularHours, StringFormat=\{0:F2\}}" Width="130"/>
+                                    <DataGridTextColumn Header="OT Hours" Binding="{Binding OvertimeHours, StringFormat=\{0:F2\}}" Width="110"/>
                                 </DataGrid.Columns>
                             </DataGrid>
                         </StackPanel>
@@ -276,31 +270,30 @@
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="12">
                         <Button Content="Back"
                                 Command="{Binding PreviousStepCommand}"
-                                Padding="24,10" FontSize="14"
-                                Background="#3E3E42" Foreground="#CCC" CornerRadius="4"/>
+                                Padding="24,10"
+                                Classes="secondary"/>
                         <Button Content="Next: Preview"
                                 Command="{Binding NextStepCommand}"
-                                Padding="24,10" FontSize="14" FontWeight="SemiBold"
-                                Background="#0078D4" Foreground="White" CornerRadius="4"/>
+                                Padding="24,10"
+                                Classes="primary"/>
                     </StackPanel>
                 </StackPanel>
 
                 <!-- ════════════════════════════════════════════════════════
                      STEP 3: Preview Calculations
                      ════════════════════════════════════════════════════════ -->
-                <StackPanel IsVisible="{Binding IsStep3}" Spacing="16">
-                    <Border Classes="summary-card">
-                        <StackPanel Spacing="8">
-                            <TextBlock Text="Paycheck Preview" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                <StackPanel IsVisible="{Binding IsStep3}" Spacing="24">
+                    <Border Classes="card">
+                        <StackPanel Spacing="12">
+                            <TextBlock Text="Paycheck Preview" Classes="section-header"/>
                             <TextBlock Text="Review the calculated amounts below. Click Finalize to commit this payroll run."
-                                       FontSize="12" Foreground="#999" Margin="0,0,0,8"/>
+                                       FontSize="13" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,8"/>
 
                             <DataGrid ItemsSource="{Binding PreviewRows}"
                                       AutoGenerateColumns="False"
                                       CanUserReorderColumns="False"
                                       IsReadOnly="True"
                                       GridLinesVisibility="Horizontal"
-                                      BorderBrush="#444" BorderThickness="1"
                                       MinHeight="200"
                                       MaxHeight="400">
                                 <DataGrid.Columns>
@@ -320,47 +313,47 @@
                     </Border>
 
                     <!-- Run Summary Totals -->
-                    <Border Classes="summary-card">
-                        <StackPanel Spacing="8">
-                            <TextBlock Text="Run Summary" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                    <Border Classes="card">
+                        <StackPanel Spacing="16">
+                            <TextBlock Text="Run Summary" Classes="section-header"/>
 
-                            <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="6" ColumnSpacing="24">
+                            <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="10" ColumnSpacing="32">
                                 <!-- Column 1: Earnings -->
-                                <TextBlock Grid.Row="0" Grid.Column="0" Text="EARNINGS" FontSize="12" FontWeight="SemiBold" Foreground="#888"/>
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="EARNINGS" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
                                 <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" Spacing="8">
-                                    <TextBlock Text="Total Gross:" FontSize="14"/>
-                                    <TextBlock Text="{Binding TotalGrossPay, StringFormat=\{0:C\}}" FontSize="14" FontWeight="SemiBold" Foreground="#4EC9B0"/>
+                                    <TextBlock Text="Total Gross:" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="{Binding TotalGrossPay, StringFormat=\{0:C\}}" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource SuccessBrush}"/>
                                 </StackPanel>
                                 <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal" Spacing="8">
-                                    <TextBlock Text="Total Net:" FontSize="14"/>
-                                    <TextBlock Text="{Binding TotalNetPay, StringFormat=\{0:C\}}" FontSize="14" FontWeight="SemiBold" Foreground="#4EC9B0"/>
+                                    <TextBlock Text="Total Net:" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="{Binding TotalNetPay, StringFormat=\{0:C\}}" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource SuccessBrush}"/>
                                 </StackPanel>
                                 <StackPanel Grid.Row="3" Grid.Column="0" Orientation="Horizontal" Spacing="8">
-                                    <TextBlock Text="Employees:" FontSize="14"/>
-                                    <TextBlock Text="{Binding EmployeeCount}" FontSize="14" FontWeight="SemiBold"/>
+                                    <TextBlock Text="Employees:" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="{Binding EmployeeCount}" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
                                 </StackPanel>
 
                                 <!-- Column 2: Employee Taxes -->
-                                <TextBlock Grid.Row="0" Grid.Column="1" Text="EMPLOYEE TAXES" FontSize="12" FontWeight="SemiBold" Foreground="#888"/>
+                                <TextBlock Grid.Row="0" Grid.Column="1" Text="EMPLOYEE TAXES" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
                                 <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="8">
-                                    <TextBlock Text="Federal:" FontSize="13"/>
-                                    <TextBlock Text="{Binding TotalFederalTax, StringFormat=\{0:C\}}" FontSize="13"/>
+                                    <TextBlock Text="Federal:" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="{Binding TotalFederalTax, StringFormat=\{0:C\}}" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}"/>
                                 </StackPanel>
                                 <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Spacing="8">
-                                    <TextBlock Text="Ohio State:" FontSize="13"/>
-                                    <TextBlock Text="{Binding TotalStateTax, StringFormat=\{0:C\}}" FontSize="13"/>
+                                    <TextBlock Text="Ohio State:" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="{Binding TotalStateTax, StringFormat=\{0:C\}}" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}"/>
                                 </StackPanel>
                                 <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Spacing="8">
-                                    <TextBlock Text="Social Security:" FontSize="13"/>
-                                    <TextBlock Text="{Binding TotalSsTax, StringFormat=\{0:C\}}" FontSize="13"/>
+                                    <TextBlock Text="Social Security:" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="{Binding TotalSsTax, StringFormat=\{0:C\}}" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}"/>
                                 </StackPanel>
                                 <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" Spacing="8">
-                                    <TextBlock Text="Medicare:" FontSize="13"/>
-                                    <TextBlock Text="{Binding TotalMedTax, StringFormat=\{0:C\}}" FontSize="13"/>
+                                    <TextBlock Text="Medicare:" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="{Binding TotalMedTax, StringFormat=\{0:C\}}" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}"/>
                                 </StackPanel>
                                 <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal" Spacing="8">
-                                    <TextBlock Text="School/Local:" FontSize="13"/>
-                                    <TextBlock FontSize="13">
+                                    <TextBlock Text="School/Local:" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <TextBlock FontSize="13" Foreground="{StaticResource TextPrimaryBrush}">
                                         <TextBlock.Text>
                                             <MultiBinding StringFormat="\{0:C\} / \{1:C\}">
                                                 <Binding Path="TotalSchoolDistrictTax"/>
@@ -371,22 +364,22 @@
                                 </StackPanel>
 
                                 <!-- Column 3: Employer Taxes -->
-                                <TextBlock Grid.Row="0" Grid.Column="2" Text="EMPLOYER TAXES" FontSize="12" FontWeight="SemiBold" Foreground="#888"/>
+                                <TextBlock Grid.Row="0" Grid.Column="2" Text="EMPLOYER TAXES" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}"/>
                                 <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal" Spacing="8">
-                                    <TextBlock Text="Employer SS:" FontSize="13"/>
-                                    <TextBlock Text="{Binding TotalEmployerSs, StringFormat=\{0:C\}}" FontSize="13"/>
+                                    <TextBlock Text="Employer SS:" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="{Binding TotalEmployerSs, StringFormat=\{0:C\}}" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}"/>
                                 </StackPanel>
                                 <StackPanel Grid.Row="2" Grid.Column="2" Orientation="Horizontal" Spacing="8">
-                                    <TextBlock Text="Employer Medicare:" FontSize="13"/>
-                                    <TextBlock Text="{Binding TotalEmployerMed, StringFormat=\{0:C\}}" FontSize="13"/>
+                                    <TextBlock Text="Employer Medicare:" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="{Binding TotalEmployerMed, StringFormat=\{0:C\}}" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}"/>
                                 </StackPanel>
                                 <StackPanel Grid.Row="3" Grid.Column="2" Orientation="Horizontal" Spacing="8">
-                                    <TextBlock Text="FUTA:" FontSize="13"/>
-                                    <TextBlock Text="{Binding TotalEmployerFuta, StringFormat=\{0:C\}}" FontSize="13"/>
+                                    <TextBlock Text="FUTA:" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="{Binding TotalEmployerFuta, StringFormat=\{0:C\}}" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}"/>
                                 </StackPanel>
                                 <StackPanel Grid.Row="4" Grid.Column="2" Orientation="Horizontal" Spacing="8">
-                                    <TextBlock Text="SUTA:" FontSize="13"/>
-                                    <TextBlock Text="{Binding TotalEmployerSuta, StringFormat=\{0:C\}}" FontSize="13"/>
+                                    <TextBlock Text="SUTA:" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="{Binding TotalEmployerSuta, StringFormat=\{0:C\}}" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}"/>
                                 </StackPanel>
                             </Grid>
                         </StackPanel>
@@ -396,42 +389,41 @@
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="12">
                         <Button Content="Back"
                                 Command="{Binding PreviousStepCommand}"
-                                Padding="24,10" FontSize="14"
-                                Background="#3E3E42" Foreground="#CCC" CornerRadius="4"/>
+                                Padding="24,10"
+                                Classes="secondary"/>
                         <Button Content="Finalize Payroll"
                                 Command="{Binding FinalizeCommand}"
-                                Padding="24,10" FontSize="14" FontWeight="SemiBold"
-                                Background="#107C10" Foreground="White" CornerRadius="4"/>
+                                Padding="24,10"
+                                Classes="primary"/>
                     </StackPanel>
                 </StackPanel>
 
                 <!-- ════════════════════════════════════════════════════════
                      STEP 4: Finalized / Success
                      ════════════════════════════════════════════════════════ -->
-                <StackPanel IsVisible="{Binding IsStep4}" Spacing="16"
+                <StackPanel IsVisible="{Binding IsStep4}" Spacing="24"
                             HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <Border Classes="summary-card" MinWidth="500">
-                        <StackPanel Spacing="16" HorizontalAlignment="Center">
-                            <TextBlock Text="&#x2713;" FontSize="48" Foreground="#107C10"
+                    <Border Classes="card" MinWidth="500">
+                        <StackPanel Spacing="20" HorizontalAlignment="Center">
+                            <TextBlock Text="✓" FontSize="64" Foreground="{StaticResource SuccessBrush}"
                                        HorizontalAlignment="Center"/>
                             <TextBlock Text="Payroll Finalized Successfully!"
                                        FontSize="24" FontWeight="Bold" HorizontalAlignment="Center"
-                                       Foreground="#4EC9B0"/>
+                                       Foreground="{StaticResource SuccessBrush}"/>
                             <TextBlock Text="{Binding FinalizedMessage}"
                                        FontSize="14" TextWrapping="Wrap" HorizontalAlignment="Center"
-                                       Foreground="#CCC" TextAlignment="Center"
+                                       Foreground="{StaticResource TextSecondaryBrush}" TextAlignment="Center"
                                        MaxWidth="400"/>
                         </StackPanel>
                     </Border>
 
                     <Button Content="Start New Payroll Run"
                             Command="{Binding StartNewRunCommand}"
-                            Padding="24,10" FontSize="14" FontWeight="SemiBold"
-                            Background="#0078D4" Foreground="White" CornerRadius="4"
+                            Padding="24,10"
+                            Classes="primary"
                             HorizontalAlignment="Center"/>
                 </StackPanel>
             </Panel>
         </ScrollViewer>
     </DockPanel>
 </UserControl>
-

@@ -24,6 +24,9 @@ public class PayrollRun
     public DateTime CreatedAt { get; set; }
     public DateTime? FinalizedAt { get; set; }
 
+    // Optimistic concurrency token
+    public byte[]? RowVersion { get; set; }
+
     public ICollection<Paycheck> Paychecks { get; set; } = new List<Paycheck>();
 }
 

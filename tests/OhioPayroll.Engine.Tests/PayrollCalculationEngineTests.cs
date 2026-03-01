@@ -42,7 +42,7 @@ public class PayrollCalculationEngineTests
             new() { BracketStart = 106_525, BracketEnd = 197_950, Rate = 0.24m, BaseAmount = 15_216.50m },
             new() { BracketStart = 197_950, BracketEnd = 243_725, Rate = 0.32m, BaseAmount = 37_158.50m },
             new() { BracketStart = 243_725, BracketEnd = 609_350, Rate = 0.35m, BaseAmount = 51_806.50m },
-            new() { BracketStart = 609_350, BracketEnd = decimal.MaxValue, Rate = 0.37m, BaseAmount = 179_776.25m },
+            new() { BracketStart = 609_350, BracketEnd = decimal.MaxValue, Rate = 0.37m, BaseAmount = 179_775.25m },
         };
 
         var ohioBrackets = new List<TaxBracket>
@@ -88,7 +88,6 @@ public class PayrollCalculationEngineTests
             ytdGrossPrior: 0,
             ytdSocialSecurityPrior: 0,
             ytdFutaPrior: 0,
-            ytdSutaPrior: 0,
             schoolDistrictRate: 0.0175m,
             localTaxRate: 0.025m);
 
@@ -131,7 +130,6 @@ public class PayrollCalculationEngineTests
             ytdGrossPrior: 0,
             ytdSocialSecurityPrior: 0,
             ytdFutaPrior: 0,
-            ytdSutaPrior: 0,
             schoolDistrictRate: 0,
             localTaxRate: 0);
 
@@ -145,9 +143,9 @@ public class PayrollCalculationEngineTests
         var employee = CreateTestEmployee();
 
         var result1 = engine.CalculatePaycheck(employee, 40, 5, PayFrequency.BiWeekly,
-            10_000m, 10_000m, 5_000m, 5_000m, 0.0175m, 0.025m);
+            10_000m, 10_000m, 5_000m, 0.0175m, 0.025m);
         var result2 = engine.CalculatePaycheck(employee, 40, 5, PayFrequency.BiWeekly,
-            10_000m, 10_000m, 5_000m, 5_000m, 0.0175m, 0.025m);
+            10_000m, 10_000m, 5_000m, 0.0175m, 0.025m);
 
         result1.Should().Be(result2);
     }
@@ -166,11 +164,11 @@ public class PayrollCalculationEngineTests
             ytdGrossPrior: 175_500m,
             ytdSocialSecurityPrior: 175_500m,
             ytdFutaPrior: 10_000m,
-            ytdSutaPrior: 10_000m,
             schoolDistrictRate: 0,
-            localTaxRate: 0);
+            localTaxRate: 0,
+            taxYear: 2025);
 
-        // Gross = 1000. SS cap = 176,100. Prior = 175,500. Taxable = 600
+        // Gross = 1000. SS cap = 176,100 (2025). Prior = 175,500. Taxable = 600
         result.EmployeeTaxes.SocialSecurityTax.Should().Be(37.20m); // 600 * 0.062
         result.EmployeeTaxes.MedicareTax.Should().Be(14.50m); // Always full
     }

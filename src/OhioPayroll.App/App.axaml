@@ -2,7 +2,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="OhioPayroll.App.App"
              xmlns:local="using:OhioPayroll.App"
+             xmlns:converters="using:OhioPayroll.App.Converters"
              RequestedThemeVariant="Dark">
+
+    <Application.Resources>
+        <converters:BoolToOpacityConverter x:Key="BoolToOpacityConverter"/>
+        <converters:StringNotEmptyConverter x:Key="StringNotEmptyConverter"/>
+    </Application.Resources>
 
     <Application.DataTemplates>
         <local:ViewLocator/>
@@ -12,36 +18,21 @@
         <FluentTheme />
         <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
 
-        <!-- Accent button style used across the app -->
-        <Style Selector="Button.accent">
-            <Setter Property="Background" Value="#0078D4"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="CornerRadius" Value="4"/>
-        </Style>
-        <Style Selector="Button.accent:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="#1A86D8"/>
-            <Setter Property="Foreground" Value="White"/>
-        </Style>
-        <Style Selector="Button.accent:pressed /template/ ContentPresenter">
-            <Setter Property="Background" Value="#006CBE"/>
-            <Setter Property="Foreground" Value="White"/>
-        </Style>
+        <!-- Modern Design System -->
+        <StyleInclude Source="avares://OhioPayroll/Styles/ModernColors.axaml"/>
+        <StyleInclude Source="avares://OhioPayroll/Styles/ModernButtons.axaml"/>
+        <StyleInclude Source="avares://OhioPayroll/Styles/ModernControls.axaml"/>
 
-        <!-- Danger button style for destructive actions -->
-        <Style Selector="Button.danger">
-            <Setter Property="Background" Value="#C53030"/>
+        <!-- Accent = Primary for backward compatibility -->
+        <Style Selector="Button.accent">
+            <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="16,10"/>
         </Style>
-        <Style Selector="Button.danger:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="#E53E3E"/>
-            <Setter Property="Foreground" Value="White"/>
-        </Style>
-        <Style Selector="Button.danger:pressed /template/ ContentPresenter">
-            <Setter Property="Background" Value="#9B2C2C"/>
-            <Setter Property="Foreground" Value="White"/>
+        <Style Selector="Button.accent:pointerover">
+            <Setter Property="Background" Value="{StaticResource PrimaryHoverBrush}"/>
         </Style>
     </Application.Styles>
 </Application>

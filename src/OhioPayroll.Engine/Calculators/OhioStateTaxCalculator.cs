@@ -40,13 +40,13 @@ public class OhioStateTaxCalculator
             {
                 decimal taxableInBracket = taxableWage - bracket.BracketStart;
                 if (taxableInBracket < 0) return 0m;
-                return bracket.BaseAmount + Math.Round(taxableInBracket * bracket.Rate, 2, MidpointRounding.AwayFromZero);
+                return Math.Round(bracket.BaseAmount + taxableInBracket * bracket.Rate, 2, MidpointRounding.AwayFromZero);
             }
         }
 
         var lastBracket = _brackets[^1];
         decimal taxableAbove = taxableWage - lastBracket.BracketStart;
-        return lastBracket.BaseAmount + Math.Round(taxableAbove * lastBracket.Rate, 2, MidpointRounding.AwayFromZero);
+        return Math.Round(lastBracket.BaseAmount + taxableAbove * lastBracket.Rate, 2, MidpointRounding.AwayFromZero);
     }
 }
 

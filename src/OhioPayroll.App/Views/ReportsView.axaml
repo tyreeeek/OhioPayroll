@@ -7,77 +7,31 @@
              x:Class="OhioPayroll.App.Views.ReportsView"
              x:DataType="vm:ReportsViewModel">
 
-    <UserControl.Styles>
-        <Style Selector="Border.summary-card">
-            <Setter Property="Background" Value="#2D2D30"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="20,16"/>
-            <Setter Property="BorderBrush" Value="#444"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="MinWidth" Value="220"/>
-            <Setter Property="MinHeight" Value="90"/>
-        </Style>
-        <Style Selector="TextBlock.card-header">
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Foreground" Value="#999"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Margin" Value="0,0,0,8"/>
-        </Style>
-        <Style Selector="TextBlock.card-value">
-            <Setter Property="FontSize" Value="28"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="White"/>
-        </Style>
-        <Style Selector="ListBox.report-list">
-            <Setter Property="Background" Value="#2D2D30"/>
-            <Setter Property="BorderBrush" Value="#444"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="4"/>
-        </Style>
-        <Style Selector="ListBox.report-list ListBoxItem">
-            <Setter Property="Padding" Value="16,12"/>
-            <Setter Property="Margin" Value="2"/>
-            <Setter Property="CornerRadius" Value="6"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Foreground" Value="#CCC"/>
-        </Style>
-        <Style Selector="ListBox.report-list ListBoxItem:selected">
-            <Setter Property="Background" Value="#3E3E42"/>
-            <Setter Property="Foreground" Value="White"/>
-        </Style>
-        <Style Selector="ListBox.report-list ListBoxItem:pointerover">
-            <Setter Property="Background" Value="#383838"/>
-        </Style>
-        <Style Selector="Border.param-section">
-            <Setter Property="Background" Value="#2D2D30"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="24,20"/>
-            <Setter Property="BorderBrush" Value="#444"/>
-            <Setter Property="BorderThickness" Value="1"/>
-        </Style>
-    </UserControl.Styles>
 
     <DockPanel>
         <!-- Page Header -->
-        <Border DockPanel.Dock="Top" Padding="8,8,8,0">
+        <Border DockPanel.Dock="Top" Padding="0,0,0,32">
             <StackPanel Spacing="4">
-                <TextBlock Text="Reports" FontSize="24" FontWeight="Bold"/>
+                <TextBlock Text="Reports" Classes="page-title"/>
                 <TextBlock Text="Generate payroll, tax, and compliance reports."
-                           FontSize="14" Foreground="#888"/>
+                           Classes="page-subtitle"/>
             </StackPanel>
         </Border>
 
         <!-- Main Content: Left Panel (Report Types) + Right Panel (Parameters) -->
-        <Grid Margin="8,16,8,8" ColumnDefinitions="260,*">
+        <Grid Margin="0,0,0,24" ColumnDefinitions="280,*">
 
             <!-- Left Panel: Report Type List -->
-            <Border Grid.Column="0" Margin="0,0,12,0">
+            <Border Grid.Column="0" Margin="0,0,24,0" Classes="card">
                 <DockPanel>
                     <TextBlock DockPanel.Dock="Top" Text="REPORT TYPE"
-                               FontSize="12" Foreground="#999" FontWeight="SemiBold"
-                               Margin="4,0,0,8"/>
-                    <ListBox Classes="report-list"
+                               FontSize="11" Foreground="{StaticResource TextMutedBrush}" FontWeight="SemiBold"
+                               Margin="0,0,0,12"/>
+                    <ListBox Background="{StaticResource SurfaceBrush}"
+                             BorderBrush="{StaticResource BorderBrush}"
+                             BorderThickness="1"
+                             CornerRadius="6"
+                             Padding="4"
                              ItemsSource="{Binding ReportTypes}"
                              SelectedItem="{Binding SelectedReportType}"/>
                 </DockPanel>
@@ -87,39 +41,38 @@
             <DockPanel Grid.Column="1">
 
                 <!-- Status Message at Bottom -->
-                <Border DockPanel.Dock="Bottom" Margin="0,12,0,0"
+                <Border DockPanel.Dock="Bottom" Margin="0,16,0,0"
                         IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-                    <Border Background="#2D2D30" CornerRadius="6" Padding="16,12"
-                            BorderBrush="#444" BorderThickness="1">
+                    <Border Background="{StaticResource SuccessBrush}" CornerRadius="6" Padding="16,12" Opacity="0.15">
                         <TextBlock Text="{Binding StatusMessage}"
-                                   FontSize="13" Foreground="#4ADE80"
+                                   FontSize="14" Foreground="{StaticResource SuccessBrush}"
                                    TextWrapping="Wrap"/>
                     </Border>
                 </Border>
 
                 <!-- Parameter Section -->
-                <Border Classes="param-section">
-                    <StackPanel Spacing="20">
+                <Border Classes="card">
+                    <StackPanel Spacing="24">
 
                         <!-- Report Title -->
                         <TextBlock Text="{Binding SelectedReportType}"
-                                   FontSize="20" FontWeight="Bold" Foreground="White"/>
+                                   Classes="section-header"/>
 
                         <!-- Date Range Parameters -->
                         <StackPanel Spacing="12"
                                     IsVisible="{Binding ShowDateRange}">
-                            <TextBlock Text="DATE RANGE" FontSize="12" Foreground="#999"
+                            <TextBlock Text="DATE RANGE" FontSize="11" Foreground="{StaticResource TextMutedBrush}"
                                        FontWeight="SemiBold"/>
-                            <StackPanel Orientation="Horizontal" Spacing="16">
+                            <StackPanel Orientation="Horizontal" Spacing="20">
                                 <StackPanel Spacing="4">
-                                    <TextBlock Text="Start Date" FontSize="12" Foreground="Gray"/>
+                                    <TextBlock Text="Start Date" Classes="label"/>
                                     <DatePicker SelectedDate="{Binding StartDate}"
-                                                MinWidth="180"/>
+                                                MinWidth="200"/>
                                 </StackPanel>
                                 <StackPanel Spacing="4">
-                                    <TextBlock Text="End Date" FontSize="12" Foreground="Gray"/>
+                                    <TextBlock Text="End Date" Classes="label"/>
                                     <DatePicker SelectedDate="{Binding EndDate}"
-                                                MinWidth="180"/>
+                                                MinWidth="200"/>
                                 </StackPanel>
                             </StackPanel>
                         </StackPanel>
@@ -127,21 +80,21 @@
                         <!-- Year Filter -->
                         <StackPanel Spacing="12"
                                     IsVisible="{Binding ShowYearFilter}">
-                            <TextBlock Text="YEAR" FontSize="12" Foreground="#999"
+                            <TextBlock Text="YEAR" FontSize="11" Foreground="{StaticResource TextMutedBrush}"
                                        FontWeight="SemiBold"/>
                             <ComboBox ItemsSource="{Binding AvailableYears}"
                                       SelectedItem="{Binding SelectedYear}"
-                                      MinWidth="140"/>
+                                      MinWidth="180"/>
                         </StackPanel>
 
                         <!-- Quarter Filter -->
                         <StackPanel Spacing="12"
                                     IsVisible="{Binding ShowQuarterFilter}">
-                            <TextBlock Text="QUARTER" FontSize="12" Foreground="#999"
+                            <TextBlock Text="QUARTER" FontSize="11" Foreground="{StaticResource TextMutedBrush}"
                                        FontWeight="SemiBold"/>
                             <ComboBox ItemsSource="{Binding AvailableQuarters}"
                                       SelectedItem="{Binding SelectedQuarter}"
-                                      MinWidth="140"/>
+                                      MinWidth="180"/>
                         </StackPanel>
 
                         <!-- Generate Button -->
@@ -149,16 +102,14 @@
                                 Command="{Binding GenerateReportCommand}"
                                 IsEnabled="{Binding !IsGenerating}"
                                 Padding="24,10"
-                                FontSize="14"
-                                FontWeight="SemiBold"
                                 HorizontalAlignment="Left"
-                                Classes="accent"/>
+                                Classes="primary"/>
 
                         <!-- Generating indicator -->
-                        <StackPanel Orientation="Horizontal" Spacing="8"
+                        <StackPanel Orientation="Horizontal" Spacing="12"
                                     IsVisible="{Binding IsGenerating}">
                             <TextBlock Text="Generating report, please wait..."
-                                       FontSize="13" Foreground="#999"
+                                       FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"
                                        VerticalAlignment="Center"/>
                         </StackPanel>
 
@@ -168,4 +119,3 @@
         </Grid>
     </DockPanel>
 </UserControl>
-

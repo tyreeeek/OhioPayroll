@@ -16,6 +16,8 @@ public class PayrollSettingsConfiguration : IEntityTypeConfiguration<PayrollSett
         builder.Property(s => s.BackupDirectory).HasMaxLength(500);
         builder.Property(s => s.CheckOffsetX).HasPrecision(8, 2);
         builder.Property(s => s.CheckOffsetY).HasPrecision(8, 2);
+        // Use UpdatedAt as concurrency token to prevent duplicate check numbers
+        builder.Property(s => s.UpdatedAt).IsConcurrencyToken();
     }
 }
 

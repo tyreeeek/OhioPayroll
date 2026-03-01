@@ -43,6 +43,9 @@ sealed class Program
             App.Services = InitializeServices();
 
             // ── Auto-backup on startup ──────────────────────────────────
+            // CRITICAL: Backups include encryption keys which are required to decrypt
+            // SSNs, TINs, and bank account numbers. Without key backups, this data is
+            // permanently lost if the system fails.
             try
             {
                 var appDataDir = Path.Combine(
@@ -56,6 +59,21 @@ sealed class Program
                 var backupService = new BackupService(dbPath, backupDir);
                 var lastBackup = backupService.GetLastBackupTime();
 
+                // Log critical warning if no backup has ever been created
+                if (lastBackup is null)
+                {
+                    AppLogger.Warning(
+                        "CRITICAL: No backups found! Your encryption keys and payroll data are not backed up. " +
+                        $"If this machine fails, encrypted data (SSNs, bank accounts) will be PERMANENTLY LOST. " +
+                        $"Backup location: {backupDir}");
+                }
+                else if ((DateTime.Now - lastBackup.Value).TotalDays > 30)
+                {
+                    AppLogger.Warning(
+                        $"WARNING: Last backup is {(int)(DateTime.Now - lastBackup.Value).TotalDays} days old. " +
+                        "Consider creating a more recent backup to protect your payroll data and encryption keys.");
+                }
+
                 if (lastBackup is null || (DateTime.Now - lastBackup.Value).TotalDays > 7)
                 {
                     AppLogger.Information("Auto-backup triggered (last backup: " +
@@ -64,6 +82,7 @@ sealed class Program
                     if (backupService.VerifyBackup(backupPath))
                     {
                         AppLogger.Information("Auto-backup created and verified: " + Path.GetFileName(backupPath));
+                        AppLogger.Information($"Backup includes encryption keys. Location: {backupDir}");
                         backupService.PruneOldBackups(30);
                     }
                     else
@@ -74,7 +93,7 @@ sealed class Program
             }
             catch (Exception ex)
             {
-                AppLogger.Error("Auto-backup failed", ex);
+                AppLogger.Error("Auto-backup failed - CRITICAL: Encryption keys may not be backed up!", ex);
             }
 
             BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
@@ -99,7 +118,8 @@ sealed class Program
             "OhioPayroll");
         Directory.CreateDirectory(appDataDir);
         var dbPath = Path.Combine(appDataDir, "payroll.db");
-        var connectionString = $"Data Source={dbPath}";
+        // Enable WAL mode for better concurrency and add command timeout
+        var connectionString = $"Data Source={dbPath};Mode=ReadWriteCreate;Cache=Shared;Pooling=True";
 
         // Initialize database (migrations + seed data)
         var optionsBuilder = new DbContextOptionsBuilder<PayrollDbContext>();
@@ -188,6 +208,8 @@ sealed class Program
         services.AddSingleton<IEncryptionService>(new EncryptionService(encKey));
         services.AddTransient<IAuditService, AuditService>();
         services.AddSingleton<IPayrollCalculationEngine>(engine);
+        services.AddTransient<ContractorPayrollService>();
+        services.AddTransient<UpdaterService>();
 
         // ViewModels (transient so each navigation creates a fresh instance)
         services.AddTransient<MainWindowViewModel>();
@@ -196,6 +218,7 @@ sealed class Program
         services.AddTransient<EmployeeListViewModel>();
         services.AddTransient<ContractorListViewModel>();
         services.AddTransient<PayrollRunViewModel>();
+        services.AddTransient<ContractorPayrollViewModel>();
         services.AddTransient<BankAccountsViewModel>();
         services.AddTransient<CheckPrintingViewModel>();
         services.AddTransient<DirectDepositViewModel>();
@@ -213,32 +236,92 @@ sealed class Program
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "OhioPayroll");
         Directory.CreateDirectory(appDataDir);
+
+        // ═══════════════════════════════════════════════════════════════════════════════
+        // CRITICAL: ENCRYPTION KEY BACKUP REQUIREMENTS
+        // ═══════════════════════════════════════════════════════════════════════════════
+        //
+        // BOTH of the following paths MUST be backed up together:
+        //   1. Key file:        {LocalAppData}/OhioPayroll/.enckey
+        //   2. DataProtection:  {LocalAppData}/OhioPayroll/dp-keys/
+        //
+        // WHAT IS ENCRYPTED:
+        //   • Employee Social Security Numbers (SSNs)
+        //   • Contractor Tax Identification Numbers (TINs)
+        //   • Bank account numbers and routing numbers
+        //
+        // IF KEYS ARE LOST:
+        //   • All encrypted data becomes PERMANENTLY UNRECOVERABLE
+        //   • You will need to re-enter all SSNs, TINs, and bank account information
+        //   • Historical W-2/1099 generation will fail for affected records
+        //
+        // BACKUP RECOMMENDATIONS:
+        //   1. Include these paths in your regular backup routine
+        //   2. Store backup copies in a secure, separate location
+        //   3. Test key restoration on a separate machine periodically
+        //   4. The BackupService automatically includes keys when creating backups
+        //
+        // PLATFORM PATHS:
+        //   Windows: C:\Users\{user}\AppData\Local\OhioPayroll\
+        //   macOS:   ~/Library/Application Support/OhioPayroll/
+        //   Linux:   ~/.local/share/OhioPayroll/
+        // ═══════════════════════════════════════════════════════════════════════════════
+
         var keyFilePath = Path.Combine(appDataDir, ".enckey");
-
-        // Build a DataProtection provider that persists keys to the app data directory
         var keysDir = Path.Combine(appDataDir, "dp-keys");
-        var serviceCollection = new ServiceCollection();
-        serviceCollection.AddDataProtection()
-            .SetApplicationName("OhioPayroll")
-            .PersistKeysToFileSystem(new DirectoryInfo(keysDir));
-        using var services = serviceCollection.BuildServiceProvider();
-        var protector = services.GetRequiredService<IDataProtectionProvider>()
-            .CreateProtector("EncryptionKey");
 
-        if (File.Exists(keyFilePath))
+        try
         {
-            var protectedKey = File.ReadAllText(keyFilePath);
-            var keyBytes = Convert.FromBase64String(protector.Unprotect(protectedKey));
-            return keyBytes;
-        }
-        else
-        {
+            // Build a DataProtection provider that persists keys to the app data directory
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddDataProtection()
+                .SetApplicationName("OhioPayroll")
+                .PersistKeysToFileSystem(new DirectoryInfo(keysDir));
+            using var services = serviceCollection.BuildServiceProvider();
+            var protector = services.GetRequiredService<IDataProtectionProvider>()
+                .CreateProtector("EncryptionKey");
+
+            if (File.Exists(keyFilePath))
+            {
+                try
+                {
+                    var protectedKey = File.ReadAllText(keyFilePath);
+                    var keyBytes = Convert.FromBase64String(protector.Unprotect(protectedKey));
+                    return keyBytes;
+                }
+                catch (Exception ex) when (ex is System.Security.Cryptography.CryptographicException
+                    or FormatException or IOException)
+                {
+                    AppLogger.Error(
+                        $"Encryption key file is corrupted or unreadable at '{keyFilePath}': {ex.Message}. " +
+                        "Renaming corrupted file and generating a new key. " +
+                        "WARNING: Previously encrypted data will be unreadable.", ex);
+
+                    // Rename corrupted key file so a new one can be generated
+                    var corruptedPath = keyFilePath + $".corrupted.{DateTime.UtcNow:yyyyMMddHHmmss}";
+                    try { File.Move(keyFilePath, corruptedPath); }
+                    catch { /* Best effort rename */ }
+                }
+            }
+
+            // Generate a new encryption key (first-time setup or recovery from corruption)
+            AppLogger.Information(
+                $"Generating new encryption key. Key file: '{keyFilePath}', DataProtection keys: '{keysDir}'");
             var key = new byte[32];
             using var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
             rng.GetBytes(key);
-            var protectedKey = protector.Protect(Convert.ToBase64String(key));
-            File.WriteAllText(keyFilePath, protectedKey);
+            var newProtectedKey = protector.Protect(Convert.ToBase64String(key));
+            File.WriteAllText(keyFilePath, newProtectedKey);
             return key;
+        }
+        catch (Exception ex) when (ex is FileNotFoundException
+            or System.Security.Cryptography.CryptographicException or FormatException or IOException)
+        {
+            AppLogger.Error(
+                $"Fatal error deriving encryption key. Key file: '{keyFilePath}', Keys dir: '{keysDir}'. " +
+                "To recover: restore backups of both the .enckey file and the dp-keys directory, " +
+                "then restart the application. Contact support if backups are unavailable.", ex);
+            throw;
         }
     }
 }

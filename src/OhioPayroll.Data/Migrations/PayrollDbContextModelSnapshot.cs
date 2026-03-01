@@ -15,7 +15,7 @@ namespace OhioPayroll.Data.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "8.0.24");
+            modelBuilder.HasAnnotation("ProductVersion", "10.0.3");
 
             modelBuilder.Entity("OhioPayroll.Core.Models.AuditLogEntry", b =>
                 {
@@ -74,13 +74,16 @@ namespace OhioPayroll.Data.Migrations
                     b.Property<DateTime?>("ClearedDate")
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("ContractorPaymentId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("IssuedDate")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("PaycheckId")
+                    b.Property<int?>("PaycheckId")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("Status")
@@ -97,6 +100,8 @@ namespace OhioPayroll.Data.Migrations
 
                     b.HasIndex("CheckNumber")
                         .IsUnique();
+
+                    b.HasIndex("ContractorPaymentId");
 
                     b.HasIndex("PaycheckId")
                         .IsUnique();
@@ -133,6 +138,11 @@ namespace OhioPayroll.Data.Migrations
 
                     b.Property<bool>("IsDefaultForChecks")
                         .HasColumnType("INTEGER");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("BLOB");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("TEXT");
@@ -221,12 +231,18 @@ namespace OhioPayroll.Data.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
+                    b.Property<decimal?>("DailyRate")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Email")
                         .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("EncryptedTin")
                         .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("HourlyRate")
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("Is1099Exempt")
@@ -246,6 +262,9 @@ namespace OhioPayroll.Data.Migrations
                     b.Property<string>("Phone")
                         .HasMaxLength(20)
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("RateType")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("State")
                         .IsRequired()
@@ -271,6 +290,8 @@ namespace OhioPayroll.Data.Migrations
 
                     b.HasIndex("Name");
 
+                    b.HasIndex("TinLast4");
+
                     b.ToTable("Contractors");
                 });
 
@@ -291,7 +312,20 @@ namespace OhioPayroll.Data.Migrations
                     b.Property<int>("ContractorId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("ContractorNameSnapshot")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("ContractorPayrollRunId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("DaysWorked")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Description")
@@ -299,10 +333,34 @@ namespace OhioPayroll.Data.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("TEXT");
 
+                    b.Property<bool>("HasCheck")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("HasPaystub")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal?>("HoursWorked")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsLocked")
+                        .HasColumnType("INTEGER");
+
                     b.Property<DateTime>("PaymentDate")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("PaymentMethod")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("PaymentType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal?>("RateAtPayment")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("RateTypeAtPayment")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Reference")
@@ -315,13 +373,74 @@ namespace OhioPayroll.Data.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("TEXT");
+
                     b.HasKey("Id");
 
+                    b.HasIndex("ContractorPayrollRunId");
+
                     b.HasIndex("PaymentDate");
+
+                    b.HasIndex("ContractorId", "IsDeleted");
 
                     b.HasIndex("ContractorId", "TaxYear");
 
                     b.ToTable("ContractorPayments");
+                });
+
+            modelBuilder.Entity("OhioPayroll.Core.Models.ContractorPayrollRun", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("FinalizedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FinalizedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("PayDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("PayFrequency")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("PeriodEnd")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("PeriodStart")
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("BLOB");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PayDate");
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("ContractorPayrollRuns");
                 });
 
             modelBuilder.Entity("OhioPayroll.Core.Models.Employee", b =>
@@ -633,6 +752,11 @@ namespace OhioPayroll.Data.Migrations
                     b.Property<DateTime>("PeriodStart")
                         .HasColumnType("TEXT");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("BLOB");
+
                     b.Property<int>("Status")
                         .HasColumnType("INTEGER");
 
@@ -695,6 +819,9 @@ namespace OhioPayroll.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<bool>("AutoCheckForUpdates")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("BackupDirectory")
                         .IsRequired()
                         .HasMaxLength(500)
@@ -708,8 +835,17 @@ namespace OhioPayroll.Data.Migrations
                         .HasPrecision(8, 2)
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime?>("ContractorPayrollLockDate")
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("CurrentTaxYear")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("LastKnownVersion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("LastUpdateCheck")
+                        .HasColumnType("TEXT");
 
                     b.Property<decimal>("LocalTaxRate")
                         .HasPrecision(10, 6)
@@ -733,7 +869,14 @@ namespace OhioPayroll.Data.Migrations
                         .HasPrecision(10, 6)
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("UpdateChannel")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("UpdateChannelUrl")
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTime>("UpdatedAt")
+                        .IsConcurrencyToken()
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -840,13 +983,50 @@ namespace OhioPayroll.Data.Migrations
                     b.ToTable("TaxTables");
                 });
 
+            modelBuilder.Entity("OhioPayroll.Core.Models.UpdateHistory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FromVersion")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ToVersion")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UpdatedBy")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("WasSuccessful")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("UpdateHistory");
+                });
+
             modelBuilder.Entity("OhioPayroll.Core.Models.CheckRegisterEntry", b =>
                 {
+                    b.HasOne("OhioPayroll.Core.Models.ContractorPayment", "ContractorPayment")
+                        .WithMany()
+                        .HasForeignKey("ContractorPaymentId");
+
                     b.HasOne("OhioPayroll.Core.Models.Paycheck", "Paycheck")
                         .WithOne()
                         .HasForeignKey("OhioPayroll.Core.Models.CheckRegisterEntry", "PaycheckId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("ContractorPayment");
 
                     b.Navigation("Paycheck");
                 });
@@ -856,10 +1036,16 @@ namespace OhioPayroll.Data.Migrations
                     b.HasOne("OhioPayroll.Core.Models.Contractor", "Contractor")
                         .WithMany("Payments")
                         .HasForeignKey("ContractorId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("OhioPayroll.Core.Models.ContractorPayrollRun", "ContractorPayrollRun")
+                        .WithMany("Payments")
+                        .HasForeignKey("ContractorPayrollRunId");
+
                     b.Navigation("Contractor");
+
+                    b.Navigation("ContractorPayrollRun");
                 });
 
             modelBuilder.Entity("OhioPayroll.Core.Models.EmployeeBankAccount", b =>
@@ -893,6 +1079,11 @@ namespace OhioPayroll.Data.Migrations
                 });
 
             modelBuilder.Entity("OhioPayroll.Core.Models.Contractor", b =>
+                {
+                    b.Navigation("Payments");
+                });
+
+            modelBuilder.Entity("OhioPayroll.Core.Models.ContractorPayrollRun", b =>
                 {
                     b.Navigation("Payments");
                 });

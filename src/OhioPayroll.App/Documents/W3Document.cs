@@ -1,6 +1,7 @@
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
+using static OhioPayroll.App.Documents.IrsFormHelpers;
 
 namespace OhioPayroll.App.Documents;
 
@@ -35,12 +36,7 @@ public class W3Document : IDocument
 {
     private readonly W3Data _data;
 
-    private static readonly string HeaderBg = "#1B3A5C";
-    private static readonly string HeaderText = "#FFFFFF";
-    private static readonly string LabelColor = "#64748B";
-    private static readonly string BorderColor = "#000000";
-    private static readonly string LightBorderColor = "#CBD5E1";
-    private static readonly string SectionHeaderBg = "#E8EDF2";
+    private const float B = BorderWidth;
 
     public W3Document(W3Data data)
     {
@@ -57,312 +53,294 @@ public class W3Document : IDocument
             page.Margin(0.5f, Unit.Inch);
             page.DefaultTextStyle(x => x.FontSize(9));
 
-            page.Header().Element(ComposeHeader);
-            page.Content().Element(ComposeContent);
-            page.Footer().Element(ComposeFooter);
+            page.Content().Column(col =>
+            {
+                col.Item().Element(ComposeW3Grid);
+            });
+
+            page.Footer().Element(c => PageFooter(c, "Form W-3", _data.TaxYear));
         });
     }
 
-    private void ComposeHeader(IContainer container)
+    private void ComposeW3Grid(IContainer container)
     {
-        container.Column(column =>
+        container.Column(grid =>
         {
-            column.Item().Background(HeaderBg).Padding(10).Row(row =>
+            // ── Row 1: Control number (left) | Form Title (right)
+            grid.Item().Row(row =>
             {
-                row.RelativeItem().Column(col =>
-                {
-                    col.Item().Text($"W-3 Transmittal of Wage and Tax Statements  {_data.TaxYear}")
-                        .FontSize(16).Bold().FontColor(HeaderText);
-                    col.Item().Text("Send this entire page with the entire Copy A page of Form(s) W-2 to the SSA")
-                        .FontSize(8).FontColor(HeaderText);
-                });
-                row.ConstantItem(150).AlignRight().AlignMiddle()
-                    .Text("Department of the Treasury - IRS")
-                    .FontSize(8).FontColor(HeaderText);
+                row.RelativeItem(7)
+                    .Border(B).BorderColor("#000000").Padding(2)
+                    .Column(col =>
+                    {
+                        col.Item().Text("a  Control number").FontSize(LabelFontSize);
+                        col.Item().PaddingTop(1).Text("33333")
+                            .FontFamily(DataFont).FontSize(ValueFontSize).Bold();
+                    });
+                row.RelativeItem(8)
+                    .Border(B).BorderColor("#000000").Padding(3)
+                    .Column(titleCol =>
+                    {
+                        titleCol.Item().Row(titleRow =>
+                        {
+                            titleRow.RelativeItem().Text(text =>
+                            {
+                                text.Span("Form ").FontSize(7);
+                                text.Span("W-3").FontSize(14).Bold();
+                            });
+                            titleRow.ConstantItem(35).AlignRight()
+                                .Text(_data.TaxYear.ToString()).FontSize(11).Bold();
+                        });
+                        titleCol.Item().Text("Transmittal of Wage and Tax Statements").FontSize(6);
+                    });
             });
+
+            // ── Row 2: Kind of Payer/Employer (left, triple) | Box 1-6
+            grid.Item().Row(row =>
+            {
+                row.RelativeItem(7)
+                    .Border(B).BorderColor("#000000").Padding(2)
+                    .Column(col =>
+                    {
+                        col.Item().Text("b  Kind of Payer").FontSize(LabelFontSize);
+                        col.Item().PaddingTop(1).Row(chkRow =>
+                        {
+                            chkRow.RelativeItem().Element(c => IrsCheckbox(c, "941", true));
+                            chkRow.RelativeItem().Element(c => IrsCheckbox(c, "Military", false));
+                            chkRow.RelativeItem().Element(c => IrsCheckbox(c, "943", false));
+                            chkRow.RelativeItem().Element(c => IrsCheckbox(c, "944", false));
+                        });
+                        col.Item().PaddingTop(1).Row(chkRow =>
+                        {
+                            chkRow.RelativeItem().Element(c => IrsCheckbox(c, "CT-1", false));
+                            chkRow.RelativeItem().Element(c => IrsCheckbox(c, "Hshld emp.", false));
+                            chkRow.RelativeItem().Element(c => IrsCheckbox(c, "Medicare govt.", false));
+                        });
+                        col.Item().PaddingTop(4).Text("Kind of Employer").FontSize(LabelFontSize);
+                        col.Item().PaddingTop(1).Row(chkRow =>
+                        {
+                            chkRow.RelativeItem().Element(c => IrsCheckbox(c, "None apply", true));
+                            chkRow.RelativeItem().Element(c => IrsCheckbox(c, "State/local", false));
+                        });
+                        col.Item().PaddingTop(1).Row(chkRow =>
+                        {
+                            chkRow.RelativeItem().Element(c => IrsCheckbox(c, "Tax-exempt", false));
+                            chkRow.RelativeItem().Element(c => IrsCheckbox(c, "Federal govt.", false));
+                        });
+                    });
+
+                row.RelativeItem(8).Column(numCol =>
+                {
+                    numCol.Item().Row(numRow =>
+                    {
+                        numRow.RelativeItem().Element(c =>
+                            IrsAmountBox(c, "1  Wages, tips, other compensation",
+                                FormatMoney(_data.TotalWages)));
+                        numRow.RelativeItem().Element(c =>
+                            IrsAmountBox(c, "2  Federal income tax withheld",
+                                FormatMoney(_data.TotalFederalTax)));
+                    });
+                    numCol.Item().Row(numRow =>
+                    {
+                        numRow.RelativeItem().Element(c =>
+                            IrsAmountBox(c, "3  Social security wages",
+                                FormatMoney(_data.TotalSsWages)));
+                        numRow.RelativeItem().Element(c =>
+                            IrsAmountBox(c, "4  Social security tax withheld",
+                                FormatMoney(_data.TotalSsTax)));
+                    });
+                    numCol.Item().Row(numRow =>
+                    {
+                        numRow.RelativeItem().Element(c =>
+                            IrsAmountBox(c, "5  Medicare wages and tips",
+                                FormatMoney(_data.TotalMedicareWages)));
+                        numRow.RelativeItem().Element(c =>
+                            IrsAmountBox(c, "6  Medicare tax withheld",
+                                FormatMoney(_data.TotalMedicareTax)));
+                    });
+                });
+            });
+
+            // ── Row 3: c/d + Box 7/8
+            grid.Item().Row(row =>
+            {
+                row.RelativeItem(7).Row(innerRow =>
+                {
+                    innerRow.RelativeItem()
+                        .Border(B).BorderColor("#000000").Padding(2)
+                        .Column(col =>
+                        {
+                            col.Item().Text("c  Total number of Forms W-2").FontSize(LabelFontSize);
+                            col.Item().PaddingTop(1).Text(_data.NumberOfW2s.ToString())
+                                .FontFamily(DataFont).FontSize(11).Bold();
+                        });
+                    innerRow.RelativeItem()
+                        .Border(B).BorderColor("#000000").Padding(2)
+                        .Column(col =>
+                        {
+                            col.Item().Text("d  Establishment number").FontSize(LabelFontSize);
+                            col.Item().PaddingTop(1).Text("").FontSize(ValueFontSize);
+                        });
+                });
+                row.RelativeItem(4).Element(c =>
+                    IrsAmountBox(c, "7  Social security tips", ""));
+                row.RelativeItem(4).Element(c =>
+                    IrsAmountBox(c, "8  Allocated tips", ""));
+            });
+
+            // ── Row 4: e EIN (left) | Box 9/10
+            grid.Item().Row(row =>
+            {
+                row.RelativeItem(7).Element(c =>
+                    IrsTinBox(c, "e  Employer identification number (EIN)",
+                        FormatTin(_data.EmployerEin)));
+                row.RelativeItem(4).Element(c =>
+                    IrsBox(c, "9", ""));
+                row.RelativeItem(4).Element(c =>
+                    IrsAmountBox(c, "10  Dependent care benefits", ""));
+            });
+
+            // ── Row 5: f Employer name (left) | Box 11/12a
+            grid.Item().Row(row =>
+            {
+                row.RelativeItem(7)
+                    .Border(B).BorderColor("#000000").Padding(2)
+                    .Column(col =>
+                    {
+                        col.Item().Text("f  Employer's name").FontSize(LabelFontSize);
+                        col.Item().PaddingTop(1).Text(_data.EmployerName)
+                            .FontFamily(DataFont).FontSize(ValueFontSize).Bold().ClampLines(1);
+                    });
+                row.RelativeItem(4).Element(c =>
+                    IrsAmountBox(c, "11  Nonqualified plans", ""));
+                row.RelativeItem(4).Element(c =>
+                    IrsAmountBox(c, "12a  Deferred compensation", ""));
+            });
+
+            // ── Row 6: g Address (left, tall) | Box 12b-13, 14
+            grid.Item().Row(row =>
+            {
+                row.RelativeItem(7)
+                    .Border(B).BorderColor("#000000").Padding(2)
+                    .Column(col =>
+                    {
+                        col.Item().Text("g  Employer's address and ZIP code").FontSize(LabelFontSize);
+                        col.Item().PaddingTop(1).Text(_data.EmployerAddress)
+                            .FontFamily(DataFont).FontSize(7).ClampLines(1);
+                        col.Item().Text($"{_data.EmployerCity}, {_data.EmployerState} {_data.EmployerZip}")
+                            .FontFamily(DataFont).FontSize(7).ClampLines(1);
+                        col.Item().PaddingTop(4).Text("h  Other EIN used this year").FontSize(LabelFontSize);
+                        col.Item().PaddingTop(1).Text("").FontSize(ValueFontSize);
+                    });
+
+                row.RelativeItem(8).Column(numCol =>
+                {
+                    numCol.Item().Row(numRow =>
+                    {
+                        numRow.RelativeItem().Element(c =>
+                            IrsBox(c, "12b", ""));
+                        numRow.RelativeItem().Element(c =>
+                            IrsBox(c, "13  For third-party sick pay use only", ""));
+                    });
+                    numCol.Item().Row(numRow =>
+                    {
+                        numRow.RelativeItem().Element(c =>
+                            IrsAmountBox(c, "14  Income tax withheld by payer of third-party sick pay", ""));
+                        numRow.RelativeItem()
+                            .Border(B).BorderColor("#000000");
+                    });
+                });
+            });
+
+            // ── Row 7: State/Local (Boxes 15-19)
+            grid.Item().Row(row =>
+            {
+                row.ConstantItem(36)
+                    .Border(B).BorderColor("#000000").Padding(2)
+                    .Column(col =>
+                    {
+                        col.Item().Text("15  State").FontSize(LabelFontSize);
+                        col.Item().PaddingTop(1).Text(_data.EmployerState)
+                            .FontFamily(DataFont).FontSize(9).Bold();
+                    });
+                row.ConstantItem(90)
+                    .Border(B).BorderColor("#000000").Padding(2)
+                    .Column(col =>
+                    {
+                        col.Item().Text("Employer's state ID number").FontSize(LabelFontSize);
+                        col.Item().PaddingTop(1).Text(_data.StateWithholdingId)
+                            .FontFamily(DataFont).FontSize(7);
+                    });
+                row.ConstantItem(90)
+                    .Border(B).BorderColor("#000000").Padding(2)
+                    .Column(col =>
+                    {
+                        col.Item().Text("16  State wages, tips, etc.").FontSize(LabelFontSize);
+                        col.Item().PaddingTop(1).AlignRight()
+                            .Text(FormatMoney(_data.TotalStateWages)).FontFamily(DataFont).FontSize(7);
+                    });
+                row.ConstantItem(90)
+                    .Border(B).BorderColor("#000000").Padding(2)
+                    .Column(col =>
+                    {
+                        col.Item().Text("17  State income tax").FontSize(LabelFontSize);
+                        col.Item().PaddingTop(1).AlignRight()
+                            .Text(FormatMoney(_data.TotalStateTax)).FontFamily(DataFont).FontSize(7);
+                    });
+                row.ConstantItem(80)
+                    .Border(B).BorderColor("#000000").Padding(2)
+                    .Column(col =>
+                    {
+                        col.Item().Text("18  Local wages, tips, etc.").FontSize(LabelFontSize);
+                        col.Item().PaddingTop(1).AlignRight()
+                            .Text(FormatMoney(_data.TotalLocalWages)).FontFamily(DataFont).FontSize(7);
+                    });
+                row.RelativeItem()
+                    .Border(B).BorderColor("#000000").Padding(2)
+                    .Column(col =>
+                    {
+                        col.Item().Text("19  Local income tax").FontSize(LabelFontSize);
+                        col.Item().PaddingTop(1).AlignRight()
+                            .Text(FormatMoney(_data.TotalLocalTax)).FontFamily(DataFont).FontSize(7);
+                    });
+            });
+
+            // ── Contact info row
+            grid.Item().Row(row =>
+            {
+                row.RelativeItem()
+                    .Border(B).BorderColor("#000000").Padding(2)
+                    .Column(col =>
+                    {
+                        col.Item().Text("Employer's contact person").FontSize(LabelFontSize);
+                        col.Item().PaddingTop(1).Text("").FontSize(7);
+                    });
+                row.RelativeItem()
+                    .Border(B).BorderColor("#000000").Padding(2)
+                    .Column(col =>
+                    {
+                        col.Item().Text("Employer's telephone number").FontSize(LabelFontSize);
+                        col.Item().PaddingTop(1).Text("").FontSize(7);
+                    });
+                row.RelativeItem()
+                    .Border(B).BorderColor("#000000").Padding(2)
+                    .Column(col =>
+                    {
+                        col.Item().Text("Employer's email address").FontSize(LabelFontSize);
+                        col.Item().PaddingTop(1).Text("").FontSize(7);
+                    });
+                row.RelativeItem()
+                    .Border(B).BorderColor("#000000").Padding(2)
+                    .Column(col =>
+                    {
+                        col.Item().Text("Employer's fax number").FontSize(LabelFontSize);
+                        col.Item().PaddingTop(1).Text("").FontSize(7);
+                    });
+            });
+
+            // ── Transmittal label
+            grid.Item().PaddingTop(3).PaddingBottom(2).PaddingLeft(4)
+                .Text("Transmittal of Wage and Tax Statements").FontSize(6).Bold();
         });
-    }
-
-    private void ComposeContent(IContainer container)
-    {
-        container.PaddingTop(8).Column(column =>
-        {
-            // Row 1: Kind of Payer / Kind of Employer
-            column.Item().Row(row =>
-            {
-                row.RelativeItem().Border(1).BorderColor(BorderColor).Column(col =>
-                {
-                    col.Item().Padding(3).Text("a  Control number")
-                        .FontSize(6).FontColor(LabelColor);
-                    col.Item().PaddingLeft(5).PaddingBottom(4)
-                        .Text("").FontSize(8);
-                });
-                row.ConstantItem(4);
-                row.RelativeItem().Border(1).BorderColor(BorderColor).Column(col =>
-                {
-                    col.Item().Padding(3).Text("b  Kind of Payer")
-                        .FontSize(6).FontColor(LabelColor);
-                    col.Item().PaddingLeft(5).PaddingBottom(4)
-                        .Text("941  Regular").FontSize(8).Bold();
-                });
-                row.ConstantItem(4);
-                row.RelativeItem().Border(1).BorderColor(BorderColor).Column(col =>
-                {
-                    col.Item().Padding(3).Text("b  Kind of Employer")
-                        .FontSize(6).FontColor(LabelColor);
-                    col.Item().PaddingLeft(5).PaddingBottom(4)
-                        .Text("None apply").FontSize(8);
-                });
-            });
-
-            column.Item().Height(4);
-
-            // Row 2: Number of W-2s + Employer EIN
-            column.Item().Row(row =>
-            {
-                row.RelativeItem().Border(1).BorderColor(BorderColor).Column(col =>
-                {
-                    col.Item().Padding(3).Text("c  Total number of Forms W-2")
-                        .FontSize(6).FontColor(LabelColor);
-                    col.Item().PaddingLeft(5).PaddingBottom(4)
-                        .Text(_data.NumberOfW2s.ToString())
-                        .FontSize(12).Bold();
-                });
-                row.ConstantItem(4);
-                row.RelativeItem().Border(1).BorderColor(BorderColor).Column(col =>
-                {
-                    col.Item().Padding(3).Text("d  Establishment number")
-                        .FontSize(6).FontColor(LabelColor);
-                    col.Item().PaddingLeft(5).PaddingBottom(4)
-                        .Text("").FontSize(8);
-                });
-                row.ConstantItem(4);
-                row.RelativeItem().Border(1).BorderColor(BorderColor).Column(col =>
-                {
-                    col.Item().Padding(3).Text("e  Employer identification number (EIN)")
-                        .FontSize(6).FontColor(LabelColor);
-                    col.Item().PaddingLeft(5).PaddingBottom(4)
-                        .Text(FormatEin(_data.EmployerEin))
-                        .FontSize(11).Bold();
-                });
-            });
-
-            column.Item().Height(4);
-
-            // Row 3: Employer name and address
-            column.Item().Border(1).BorderColor(BorderColor).Column(col =>
-            {
-                col.Item().Padding(3).Text("f  Employer's name")
-                    .FontSize(6).FontColor(LabelColor);
-                col.Item().PaddingLeft(5).Text(_data.EmployerName)
-                    .FontSize(10).Bold();
-                col.Item().PaddingLeft(5).Text(_data.EmployerAddress)
-                    .FontSize(8);
-                col.Item().PaddingLeft(5).PaddingBottom(4)
-                    .Text($"{_data.EmployerCity}, {_data.EmployerState} {_data.EmployerZip}")
-                    .FontSize(8);
-            });
-
-            column.Item().Height(8);
-
-            // Wage and Tax Totals Section
-            column.Item().Background(SectionHeaderBg).Padding(6)
-                .Text("TRANSMITTAL TOTALS").FontSize(10).Bold().FontColor("#1B3A5C");
-
-            column.Item().Table(table =>
-            {
-                table.ColumnsDefinition(columns =>
-                {
-                    columns.RelativeColumn(3); // Box label
-                    columns.RelativeColumn(2); // Amount
-                    columns.ConstantColumn(20); // Spacer
-                    columns.RelativeColumn(3); // Box label
-                    columns.RelativeColumn(2); // Amount
-                });
-
-                // Row: Box 1 + Box 2
-                ComposeTableBoxLabel(table, "1  Wages, tips, other compensation");
-                ComposeTableBoxValue(table, _data.TotalWages);
-                table.Cell().Text("");
-                ComposeTableBoxLabel(table, "2  Federal income tax withheld");
-                ComposeTableBoxValue(table, _data.TotalFederalTax);
-
-                // Row: Box 3 + Box 4
-                ComposeTableBoxLabel(table, "3  Social security wages");
-                ComposeTableBoxValue(table, _data.TotalSsWages);
-                table.Cell().Text("");
-                ComposeTableBoxLabel(table, "4  Social security tax withheld");
-                ComposeTableBoxValue(table, _data.TotalSsTax);
-
-                // Row: Box 5 + Box 6
-                ComposeTableBoxLabel(table, "5  Medicare wages and tips");
-                ComposeTableBoxValue(table, _data.TotalMedicareWages);
-                table.Cell().Text("");
-                ComposeTableBoxLabel(table, "6  Medicare tax withheld");
-                ComposeTableBoxValue(table, _data.TotalMedicareTax);
-
-                // Boxes 7-14 are intentionally zero. This application does not track
-                // social security tips, allocated tips, dependent care benefits,
-                // nonqualified plans, deferred compensation, third-party sick pay,
-                // or payer-withheld income tax. These boxes are reported as zero
-                // because the corresponding benefit/compensation types are not
-                // supported by this payroll system.
-
-                // Row: Box 7 + Box 8
-                ComposeTableBoxLabel(table, "7  Social security tips");
-                ComposeTableBoxValue(table, 0m);
-                table.Cell().Text("");
-                ComposeTableBoxLabel(table, "8  Allocated tips");
-                ComposeTableBoxValue(table, 0m);
-
-                // Row: Box 9 + Box 10
-                ComposeTableBoxLabel(table, "9  ");
-                ComposeTableBoxValue(table, 0m, showZero: false);
-                table.Cell().Text("");
-                ComposeTableBoxLabel(table, "10  Dependent care benefits");
-                ComposeTableBoxValue(table, 0m);
-
-                // Row: Box 11 + Box 12a
-                ComposeTableBoxLabel(table, "11  Nonqualified plans");
-                ComposeTableBoxValue(table, 0m);
-                table.Cell().Text("");
-                ComposeTableBoxLabel(table, "12a  Deferred compensation");
-                ComposeTableBoxValue(table, 0m);
-
-                // Row: Box 13 + Box 14
-                ComposeTableBoxLabel(table, "13  For third-party sick pay use only");
-                ComposeTableBoxValue(table, 0m, showZero: false);
-                table.Cell().Text("");
-                ComposeTableBoxLabel(table, "14  Income tax withheld by payer");
-                ComposeTableBoxValue(table, 0m);
-            });
-
-            column.Item().Height(8);
-
-            // State and Local section
-            column.Item().Background(SectionHeaderBg).Padding(6)
-                .Text("STATE AND LOCAL TAX INFORMATION").FontSize(10).Bold().FontColor("#1B3A5C");
-
-            column.Item().Table(table =>
-            {
-                table.ColumnsDefinition(columns =>
-                {
-                    columns.RelativeColumn(1);   // 15 State
-                    columns.RelativeColumn(1.5f); // 15 Employer's state ID
-                    columns.RelativeColumn(1.5f); // 16 State wages
-                    columns.RelativeColumn(1.5f); // 17 State tax
-                    columns.RelativeColumn(1.5f); // 18 Local wages
-                    columns.RelativeColumn(1.5f); // 19 Local tax
-                });
-
-                // Header labels
-                table.Cell().Border(1).BorderColor(LightBorderColor).Padding(3)
-                    .Text("15  State").FontSize(6).FontColor(LabelColor);
-                table.Cell().Border(1).BorderColor(LightBorderColor).Padding(3)
-                    .Text("Employer's state ID").FontSize(6).FontColor(LabelColor);
-                table.Cell().Border(1).BorderColor(LightBorderColor).Padding(3)
-                    .Text("16  State wages, tips, etc.").FontSize(6).FontColor(LabelColor);
-                table.Cell().Border(1).BorderColor(LightBorderColor).Padding(3)
-                    .Text("17  State income tax").FontSize(6).FontColor(LabelColor);
-                table.Cell().Border(1).BorderColor(LightBorderColor).Padding(3)
-                    .Text("18  Local wages, tips, etc.").FontSize(6).FontColor(LabelColor);
-                table.Cell().Border(1).BorderColor(LightBorderColor).Padding(3)
-                    .Text("19  Local income tax").FontSize(6).FontColor(LabelColor);
-
-                // Data row
-                table.Cell().Border(1).BorderColor(LightBorderColor).Padding(4)
-                    .Text("OH").FontSize(9).Bold();
-                // Box 15: Employer's state withholding account number (NOT the federal EIN)
-                table.Cell().Border(1).BorderColor(LightBorderColor).Padding(4)
-                    .Text(_data.StateWithholdingId).FontSize(7);
-                table.Cell().Border(1).BorderColor(LightBorderColor).Padding(4)
-                    .Text(FormatCurrency(_data.TotalStateWages)).FontSize(8).Bold();
-                table.Cell().Border(1).BorderColor(LightBorderColor).Padding(4)
-                    .Text(FormatCurrency(_data.TotalStateTax)).FontSize(8).Bold();
-                table.Cell().Border(1).BorderColor(LightBorderColor).Padding(4)
-                    .Text(FormatCurrency(_data.TotalLocalWages)).FontSize(8).Bold();
-                table.Cell().Border(1).BorderColor(LightBorderColor).Padding(4)
-                    .Text(FormatCurrency(_data.TotalLocalTax)).FontSize(8).Bold();
-            });
-
-            column.Item().Height(12);
-
-            // Contact info section
-            column.Item().Border(1).BorderColor(BorderColor).Padding(8).Column(contactCol =>
-            {
-                contactCol.Item().Text("Contact Information")
-                    .FontSize(9).Bold().FontColor("#1B3A5C");
-                contactCol.Item().PaddingTop(4).Row(row =>
-                {
-                    row.RelativeItem().Column(col =>
-                    {
-                        col.Item().Text("Employer's contact person:").FontSize(7).FontColor(LabelColor);
-                        col.Item().Text("").FontSize(8);
-                    });
-                    row.RelativeItem().Column(col =>
-                    {
-                        col.Item().Text("Telephone number:").FontSize(7).FontColor(LabelColor);
-                        col.Item().Text("").FontSize(8);
-                    });
-                    row.RelativeItem().Column(col =>
-                    {
-                        col.Item().Text("Email address:").FontSize(7).FontColor(LabelColor);
-                        col.Item().Text("").FontSize(8);
-                    });
-                    row.RelativeItem().Column(col =>
-                    {
-                        col.Item().Text("Fax number:").FontSize(7).FontColor(LabelColor);
-                        col.Item().Text("").FontSize(8);
-                    });
-                });
-            });
-        });
-    }
-
-    private static void ComposeTableBoxLabel(TableDescriptor table, string label)
-    {
-        table.Cell().Border(1).BorderColor(LightBorderColor).Padding(5)
-            .Text(label).FontSize(8);
-    }
-
-    private static void ComposeTableBoxValue(TableDescriptor table, decimal value, bool showZero = true)
-    {
-        table.Cell().Border(1).BorderColor(LightBorderColor).Padding(5).AlignRight()
-            .Text(showZero || value != 0 ? FormatCurrency(value) : "")
-            .FontSize(9).Bold();
-    }
-
-    private void ComposeFooter(IContainer container)
-    {
-        container.Column(column =>
-        {
-            column.Item().LineHorizontal(1).LineColor(LightBorderColor);
-            column.Item().PaddingTop(4).Row(row =>
-            {
-                row.RelativeItem().Text($"Form W-3  Tax Year {_data.TaxYear}")
-                    .FontSize(7).FontColor("#94A3B8");
-                row.RelativeItem().AlignCenter()
-                    .Text("Transmittal of Wage and Tax Statements")
-                    .FontSize(7).FontColor("#94A3B8");
-                row.RelativeItem().AlignRight()
-                    .Text($"Generated {DateTime.Now:MM/dd/yyyy}")
-                    .FontSize(7).FontColor("#94A3B8");
-            });
-        });
-    }
-
-    private static string FormatCurrency(decimal value)
-    {
-        // IRS W-3 instructions prohibit "$" symbols and comma separators in money boxes.
-        // Use plain numeric format: digits and decimal point only.
-        return value.ToString("0.00");
-    }
-
-    private static string FormatEin(string ein)
-    {
-        if (ein.Length == 9)
-            return $"{ein[..2]}-{ein[2..]}";
-        return ein;
     }
 }
-

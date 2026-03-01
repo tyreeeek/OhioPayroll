@@ -26,10 +26,10 @@ public class PayrollCalculationEngine : IPayrollCalculationEngine
         decimal ytdGrossPrior,
         decimal ytdSocialSecurityPrior,
         decimal ytdFutaPrior,
-        decimal ytdSutaPrior,
         decimal schoolDistrictRate,
         decimal localTaxRate,
-        decimal? customSutaRate = null)
+        decimal? customSutaRate = null,
+        int taxYear = 0)
     {
         // Step 1: Gross Pay
         var (regularPay, overtimePay, grossPay) = GrossPayCalculator.Calculate(
@@ -38,7 +38,7 @@ public class PayrollCalculationEngine : IPayrollCalculationEngine
 
         // Step 2: Federal Tax
         decimal federal = _federalCalc.Calculate(
-            grossPay, employee.FederalFilingStatus, frequency);
+            grossPay, employee.FederalFilingStatus, frequency, employee.FederalAllowances);
 
         // Step 3: Ohio State Tax
         decimal ohio = _ohioCalc.Calculate(
@@ -52,15 +52,15 @@ public class PayrollCalculationEngine : IPayrollCalculationEngine
         decimal local = LocalMunicipalityTaxCalculator.Calculate(
             grossPay, localTaxRate);
 
-        // Step 6: Employee FICA
+        // Step 6: Employee FICA (includes Additional Medicare Tax)
         var (empSs, empMed) = FicaCalculator.CalculateEmployee(
-            grossPay, ytdSocialSecurityPrior);
+            grossPay, ytdSocialSecurityPrior, ytdGrossPrior, taxYear);
 
-        // Step 7: Employer FICA
+        // Step 7: Employer FICA (no Additional Medicare Tax)
         var (emplrSs, emplrMed) = FicaCalculator.CalculateEmployer(
-            grossPay, ytdSocialSecurityPrior);
+            grossPay, ytdSocialSecurityPrior, taxYear);
 
-        // Step 8: FUTA + SUTA (uses separate YTD tracking for wage caps)
+        // Step 8: FUTA + SUTA (ytdFutaPrior = YTD gross wages for wage cap)
         var (futa, suta) = EmployerTaxCalculator.Calculate(
             grossPay, ytdFutaPrior, customSutaRate);
 

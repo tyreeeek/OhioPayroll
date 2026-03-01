@@ -7,40 +7,18 @@
              x:Class="OhioPayroll.App.Views.DirectDepositView"
              x:DataType="vm:DirectDepositViewModel">
 
-    <UserControl.Styles>
-        <Style Selector="Border.section-card">
-            <Setter Property="Background" Value="#2D2D30"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="20,16"/>
-            <Setter Property="BorderBrush" Value="#444"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Margin" Value="0,0,0,16"/>
-        </Style>
-        <Style Selector="TextBlock.section-header">
-            <Setter Property="FontSize" Value="18"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="Margin" Value="0,0,0,12"/>
-        </Style>
-        <Style Selector="Border.info-card">
-            <Setter Property="Background" Value="#383838"/>
-            <Setter Property="CornerRadius" Value="6"/>
-            <Setter Property="Padding" Value="16,12"/>
-            <Setter Property="MinWidth" Value="180"/>
-        </Style>
-    </UserControl.Styles>
 
     <ScrollViewer>
         <StackPanel Spacing="8" Margin="8">
 
             <!-- Page Header -->
             <StackPanel Spacing="4" Margin="0,0,0,8">
-                <TextBlock Text="{Binding Title}" FontSize="24" FontWeight="Bold"/>
-                <TextBlock Text="{Binding Subtitle}" FontSize="14" Foreground="#888"/>
+                <TextBlock Text="{Binding Title}" Classes="page-title"/>
+                <TextBlock Text="{Binding Subtitle}" Classes="page-subtitle"/>
             </StackPanel>
 
             <!-- Payroll Run Selection -->
-            <Border Classes="section-card">
+            <Border Classes="card" Margin="0,0,0,16">
                 <StackPanel Spacing="12">
                     <TextBlock Text="Select Payroll Run"
                                Classes="section-header"/>
@@ -59,13 +37,13 @@
             </Border>
 
             <!-- Summary Info Cards -->
-            <Border Classes="section-card">
+            <Border Classes="card" Margin="0,0,0,16">
                 <StackPanel Spacing="12">
                     <TextBlock Text="Summary"
                                Classes="section-header"/>
                     <WrapPanel Orientation="Horizontal" HorizontalAlignment="Left">
                         <!-- DD Employee Count -->
-                        <Border Classes="info-card" Margin="0,0,12,8">
+                        <Border Background="{StaticResource BackgroundBrush}" CornerRadius="6" Padding="16,12" MinWidth="180" Margin="0,0,12,8">
                             <StackPanel Spacing="4">
                                 <TextBlock Text="Employees with DD"
                                            FontSize="11"
@@ -78,7 +56,7 @@
                         </Border>
 
                         <!-- Total Amount -->
-                        <Border Classes="info-card" Margin="0,0,12,8">
+                        <Border Background="{StaticResource BackgroundBrush}" CornerRadius="6" Padding="16,12" MinWidth="180" Margin="0,0,12,8">
                             <StackPanel Spacing="4">
                                 <TextBlock Text="Total DD Amount"
                                            FontSize="11"
@@ -91,7 +69,7 @@
                         </Border>
 
                         <!-- Missing DD Count -->
-                        <Border Classes="info-card" Margin="0,0,12,8">
+                        <Border Background="{StaticResource BackgroundBrush}" CornerRadius="6" Padding="16,12" MinWidth="180" Margin="0,0,12,8">
                             <StackPanel Spacing="4">
                                 <TextBlock Text="Missing DD Setup"
                                            FontSize="11"
@@ -118,7 +96,7 @@
             </Border>
 
             <!-- ACH Preview Grid -->
-            <Border Classes="section-card">
+            <Border Classes="card" Margin="0,0,0,16">
                 <DockPanel>
                     <TextBlock Text="ACH Entries Preview"
                                Classes="section-header"
@@ -155,7 +133,7 @@
             </Border>
 
             <!-- Action Button -->
-            <Border Classes="section-card">
+            <Border Classes="card" Margin="0,0,0,16">
                 <StackPanel Spacing="12">
                     <TextBlock Text="Generate"
                                Classes="section-header"/>
@@ -165,7 +143,7 @@
                             Padding="16,8"
                             FontSize="13"
                             MinWidth="180"
-                            Classes="accent"/>
+                            Classes="primary"/>
 
                     <!-- Busy indicator -->
                     <StackPanel Orientation="Horizontal"

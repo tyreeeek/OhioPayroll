@@ -1,0 +1,118 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Style>
+        <Style.Resources>
+            <!-- LIGHT MODE COLORS -->
+            <Color x:Key="Light_Primary">#0066FF</Color>
+            <Color x:Key="Light_PrimaryHover">#0052CC</Color>
+            <Color x:Key="Light_PrimaryActive">#0043A8</Color>
+
+            <Color x:Key="Light_Success">#00C853</Color>
+            <Color x:Key="Light_SuccessHover">#00A344</Color>
+
+            <Color x:Key="Light_Danger">#FF3B30</Color>
+            <Color x:Key="Light_DangerHover">#E52D22</Color>
+
+            <Color x:Key="Light_Warning">#FF9500</Color>
+            <Color x:Key="Light_WarningHover">#E08100</Color>
+
+            <Color x:Key="Light_Background">#F8F9FA</Color>
+            <Color x:Key="Light_Surface">#FFFFFF</Color>
+            <Color x:Key="Light_SurfaceHover">#F5F6F7</Color>
+            <Color x:Key="Light_Border">#E1E4E8</Color>
+            <Color x:Key="Light_Sidebar">#FAFBFC</Color>
+
+            <Color x:Key="Light_TextPrimary">#1A1F36</Color>
+            <Color x:Key="Light_TextSecondary">#4E5D78</Color>
+            <Color x:Key="Light_TextMuted">#8792A2</Color>
+
+            <!-- DARK MODE COLORS -->
+            <Color x:Key="Dark_Primary">#3B82F6</Color>
+            <Color x:Key="Dark_PrimaryHover">#2563EB</Color>
+            <Color x:Key="Dark_PrimaryActive">#1D4ED8</Color>
+
+            <Color x:Key="Dark_Success">#10B981</Color>
+            <Color x:Key="Dark_SuccessHover">#059669</Color>
+
+            <Color x:Key="Dark_Danger">#EF4444</Color>
+            <Color x:Key="Dark_DangerHover">#DC2626</Color>
+
+            <Color x:Key="Dark_Warning">#F59E0B</Color>
+            <Color x:Key="Dark_WarningHover">#D97706</Color>
+
+            <Color x:Key="Dark_Background">#0D1117</Color>
+            <Color x:Key="Dark_Surface">#161B22</Color>
+            <Color x:Key="Dark_SurfaceHover">#1F2937</Color>
+            <Color x:Key="Dark_Border">#30363D</Color>
+            <Color x:Key="Dark_Sidebar">#0D1117</Color>
+
+            <Color x:Key="Dark_TextPrimary">#F0F6FC</Color>
+            <Color x:Key="Dark_TextSecondary">#C9D1D9</Color>
+            <Color x:Key="Dark_TextMuted">#8B949E</Color>
+
+            <!-- Active Theme Brushes (Default: Light) -->
+            <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Light_Primary}"/>
+            <SolidColorBrush x:Key="PrimaryHoverBrush" Color="{StaticResource Light_PrimaryHover}"/>
+            <SolidColorBrush x:Key="PrimaryActiveBrush" Color="{StaticResource Light_PrimaryActive}"/>
+
+            <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource Light_Success}"/>
+            <SolidColorBrush x:Key="SuccessHoverBrush" Color="{StaticResource Light_SuccessHover}"/>
+
+            <SolidColorBrush x:Key="DangerBrush" Color="{StaticResource Light_Danger}"/>
+            <SolidColorBrush x:Key="DangerHoverBrush" Color="{StaticResource Light_DangerHover}"/>
+
+            <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource Light_Warning}"/>
+            <SolidColorBrush x:Key="WarningHoverBrush" Color="{StaticResource Light_WarningHover}"/>
+
+            <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource Light_Background}"/>
+            <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource Light_Surface}"/>
+            <SolidColorBrush x:Key="SurfaceHoverBrush" Color="{StaticResource Light_SurfaceHover}"/>
+            <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource Light_Border}"/>
+            <SolidColorBrush x:Key="SidebarBrush" Color="{StaticResource Light_Sidebar}"/>
+
+            <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource Light_TextPrimary}"/>
+            <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource Light_TextSecondary}"/>
+            <SolidColorBrush x:Key="TextMutedBrush" Color="{StaticResource Light_TextMuted}"/>
+
+            <!-- Gradients -->
+            <LinearGradientBrush x:Key="PrimaryGradient" StartPoint="0%,0%" EndPoint="100%,100%">
+                <GradientStop Color="#667EEA" Offset="0"/>
+                <GradientStop Color="#764BA2" Offset="1"/>
+            </LinearGradientBrush>
+
+            <LinearGradientBrush x:Key="AccentGradient" StartPoint="0%,0%" EndPoint="100%,100%">
+                <GradientStop Color="#0066FF" Offset="0"/>
+                <GradientStop Color="#00C6FF" Offset="1"/>
+            </LinearGradientBrush>
+        </Style.Resources>
+    </Style>
+
+    <!-- Dark Mode Theme -->
+    <Style Selector="Window.dark-theme">
+        <Style.Resources>
+            <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Dark_Primary}"/>
+            <SolidColorBrush x:Key="PrimaryHoverBrush" Color="{StaticResource Dark_PrimaryHover}"/>
+            <SolidColorBrush x:Key="PrimaryActiveBrush" Color="{StaticResource Dark_PrimaryActive}"/>
+
+            <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource Dark_Success}"/>
+            <SolidColorBrush x:Key="SuccessHoverBrush" Color="{StaticResource Dark_SuccessHover}"/>
+
+            <SolidColorBrush x:Key="DangerBrush" Color="{StaticResource Dark_Danger}"/>
+            <SolidColorBrush x:Key="DangerHoverBrush" Color="{StaticResource Dark_DangerHover}"/>
+
+            <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource Dark_Warning}"/>
+            <SolidColorBrush x:Key="WarningHoverBrush" Color="{StaticResource Dark_WarningHover}"/>
+
+            <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource Dark_Background}"/>
+            <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource Dark_Surface}"/>
+            <SolidColorBrush x:Key="SurfaceHoverBrush" Color="{StaticResource Dark_SurfaceHover}"/>
+            <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource Dark_Border}"/>
+            <SolidColorBrush x:Key="SidebarBrush" Color="{StaticResource Dark_Sidebar}"/>
+
+            <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource Dark_TextPrimary}"/>
+            <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource Dark_TextSecondary}"/>
+            <SolidColorBrush x:Key="TextMutedBrush" Color="{StaticResource Dark_TextMuted}"/>
+        </Style.Resources>
+    </Style>
+</Styles>

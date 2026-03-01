@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
+using OhioPayroll.App.Extensions;
+using OhioPayroll.App.Services;
 using OhioPayroll.Core.Interfaces;
 using OhioPayroll.Core.Models;
 using OhioPayroll.Core.Models.Enums;
@@ -114,12 +116,16 @@ public partial class TaxLiabilityViewModel : ViewModelBase
 
         FilterYear = DateTime.Now.Year;
 
-        _ = InitializeAsync();
+        ExecuteWithLoadingAsync(InitializeAsync, "Loading tax liabilities...")
+            .FireAndForgetSafeAsync(errorContext: "initializing tax liability");
     }
 
-    partial void OnFilterYearChanged(int value) => _ = LoadLiabilitiesAsync();
-    partial void OnFilterQuarterChanged(int value) => _ = LoadLiabilitiesAsync();
-    partial void OnFilterStatusChanged(string value) => _ = LoadLiabilitiesAsync();
+    partial void OnFilterYearChanged(int value) => ExecuteWithLoadingAsync(LoadLiabilitiesAsync, "Loading tax liabilities...")
+        .FireAndForgetSafeAsync(errorContext: "loading tax liabilities");
+    partial void OnFilterQuarterChanged(int value) => ExecuteWithLoadingAsync(LoadLiabilitiesAsync, "Loading tax liabilities...")
+        .FireAndForgetSafeAsync(errorContext: "loading tax liabilities");
+    partial void OnFilterStatusChanged(string value) => ExecuteWithLoadingAsync(LoadLiabilitiesAsync, "Loading tax liabilities...")
+        .FireAndForgetSafeAsync(errorContext: "loading tax liabilities");
 
     private async Task InitializeAsync()
     {
@@ -129,69 +135,86 @@ public partial class TaxLiabilityViewModel : ViewModelBase
 
     private async Task LoadYearOptionsAsync()
     {
-        var years = await _db.TaxLiabilities
-            .AsNoTracking()
-            .Select(t => t.TaxYear)
-            .Distinct()
-            .OrderByDescending(y => y)
-            .ToListAsync();
+        try
+        {
+            var years = await _db.TaxLiabilities
+                .AsNoTracking()
+                .Select(t => t.TaxYear)
+                .Distinct()
+                .OrderByDescending(y => y)
+                .ToListAsync();
 
-        if (!years.Contains(DateTime.Now.Year))
-            years.Insert(0, DateTime.Now.Year);
+            if (!years.Contains(DateTime.Now.Year))
+                years.Insert(0, DateTime.Now.Year);
 
-        years.Sort();
-        years.Reverse();
+            years.Sort();
+            years.Reverse();
 
-        YearOptions = new ObservableCollection<int>(years);
+            YearOptions = new ObservableCollection<int>(years);
+        }
+        catch (Exception ex)
+        {
+            AppLogger.Error($"Error loading year options: {ex.Message}", ex);
+            YearOptions = new ObservableCollection<int> { DateTime.Now.Year };
+        }
     }
 
     [RelayCommand]
     private async Task LoadLiabilitiesAsync()
     {
-        IQueryable<TaxLiability> query = _db.TaxLiabilities.AsNoTracking();
-
-        if (FilterYear > 0)
-            query = query.Where(t => t.TaxYear == FilterYear);
-
-        if (FilterQuarter > 0)
-            query = query.Where(t => t.Quarter == FilterQuarter);
-
-        if (FilterStatus == "Unpaid")
-            query = query.Where(t => t.Status != TaxLiabilityStatus.Paid);
-        else if (FilterStatus == "Paid")
-            query = query.Where(t => t.Status == TaxLiabilityStatus.Paid);
-
-        var items = await query
-            .OrderBy(t => t.TaxYear)
-            .ThenBy(t => t.Quarter)
-            .ThenBy(t => t.TaxType)
-            .ToListAsync();
-
-        var rows = items.Select(t => new TaxLiabilityRow
+        try
         {
-            Id = t.Id,
-            TaxType = t.TaxType,
-            TaxYear = t.TaxYear,
-            Quarter = t.Quarter,
-            PeriodStart = t.PeriodStart,
-            PeriodEnd = t.PeriodEnd,
-            AmountOwed = t.AmountOwed,
-            AmountPaid = t.AmountPaid,
-            Status = t.Status,
-            PaymentDate = t.PaymentDate,
-            PaymentReference = t.PaymentReference
-        }).ToList();
+            IQueryable<TaxLiability> query = _db.TaxLiabilities.AsNoTracking();
 
-        Liabilities = new ObservableCollection<TaxLiabilityRow>(rows);
+            if (FilterYear > 0)
+                query = query.Where(t => t.TaxYear == FilterYear);
 
-        // Update summary
-        var totalOwed = rows.Sum(r => r.AmountOwed);
-        var totalPaid = rows.Sum(r => r.AmountPaid);
-        var balanceDue = totalOwed - totalPaid;
+            if (FilterQuarter > 0)
+                query = query.Where(t => t.Quarter == FilterQuarter);
 
-        TotalOwedDisplay = totalOwed.ToString("C");
-        TotalPaidDisplay = totalPaid.ToString("C");
-        BalanceDueDisplay = balanceDue.ToString("C");
+            if (FilterStatus == "Unpaid")
+                query = query.Where(t => t.Status != TaxLiabilityStatus.Paid);
+            else if (FilterStatus == "Paid")
+                query = query.Where(t => t.Status == TaxLiabilityStatus.Paid);
+
+            var items = await query
+                .OrderBy(t => t.TaxYear)
+                .ThenBy(t => t.Quarter)
+                .ThenBy(t => t.TaxType)
+                .ToListAsync();
+
+            var rows = items.Select(t => new TaxLiabilityRow
+            {
+                Id = t.Id,
+                TaxType = t.TaxType,
+                TaxYear = t.TaxYear,
+                Quarter = t.Quarter,
+                PeriodStart = t.PeriodStart,
+                PeriodEnd = t.PeriodEnd,
+                AmountOwed = t.AmountOwed,
+                AmountPaid = t.AmountPaid,
+                Status = t.Status,
+                PaymentDate = t.PaymentDate,
+                PaymentReference = t.PaymentReference
+            }).ToList();
+
+            Liabilities = new ObservableCollection<TaxLiabilityRow>(rows);
+
+            // Update summary
+            var totalOwed = rows.Sum(r => r.AmountOwed);
+            var totalPaid = rows.Sum(r => r.AmountPaid);
+            var balanceDue = totalOwed - totalPaid;
+
+            TotalOwedDisplay = totalOwed.ToString("C");
+            TotalPaidDisplay = totalPaid.ToString("C");
+            BalanceDueDisplay = balanceDue.ToString("C");
+            ValidationError = null;
+        }
+        catch (Exception ex)
+        {
+            AppLogger.Error($"Error loading tax liabilities: {ex.Message}", ex);
+            ValidationError = $"Error loading tax liabilities: {ex.Message}";
+        }
     }
 
     [RelayCommand]
@@ -240,30 +263,42 @@ public partial class TaxLiabilityViewModel : ViewModelBase
             return;
         }
 
-        ValidationError = null;
+        try
+        {
+            ValidationError = null;
 
-        var liability = await _db.TaxLiabilities.FindAsync(SelectedLiability.Id);
-        if (liability is null) return;
+            var liability = await _db.TaxLiabilities.FindAsync(SelectedLiability.Id);
+            if (liability is null)
+            {
+                ValidationError = "Tax liability not found. It may have been deleted.";
+                return;
+            }
 
-        var oldPaid = liability.AmountPaid;
-        liability.AmountPaid += PaymentAmount;
-        liability.PaymentDate = DateTime.UtcNow;
-        liability.PaymentReference = string.IsNullOrWhiteSpace(PaymentReference)
-            ? null
-            : PaymentReference.Trim();
-        liability.UpdatedAt = DateTime.UtcNow;
+            var oldPaid = liability.AmountPaid;
+            liability.AmountPaid += PaymentAmount;
+            liability.PaymentDate = DateTime.UtcNow;
+            liability.PaymentReference = string.IsNullOrWhiteSpace(PaymentReference)
+                ? null
+                : PaymentReference.Trim();
+            liability.UpdatedAt = DateTime.UtcNow;
 
-        if (liability.AmountPaid >= liability.AmountOwed)
-            liability.Status = TaxLiabilityStatus.Paid;
+            if (liability.AmountPaid >= liability.AmountOwed)
+                liability.Status = TaxLiabilityStatus.Paid;
 
-        await _db.SaveChangesAsync();
+            await _db.SaveChangesAsync();
 
-        await _audit.LogAsync("Payment", "TaxLiability", liability.Id,
-            oldValue: $"Paid: {oldPaid:C}",
-            newValue: $"Paid: {liability.AmountPaid:C} | Ref: {liability.PaymentReference}");
+            await _audit.LogAsync("Payment", "TaxLiability", liability.Id,
+                oldValue: $"Paid: {oldPaid:C}",
+                newValue: $"Paid: {liability.AmountPaid:C} | Ref: {liability.PaymentReference}");
 
-        IsPaymentDialogOpen = false;
-        await LoadLiabilitiesAsync();
+            IsPaymentDialogOpen = false;
+            await LoadLiabilitiesAsync();
+        }
+        catch (Exception ex)
+        {
+            AppLogger.Error($"Error recording payment: {ex.Message}", ex);
+            ValidationError = $"Error recording payment: {ex.Message}";
+        }
     }
 
     [RelayCommand]

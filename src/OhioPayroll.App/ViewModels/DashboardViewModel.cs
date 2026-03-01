@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
+using OhioPayroll.App.Extensions;
+using OhioPayroll.App.Services;
 using OhioPayroll.Core.Models.Enums;
 using OhioPayroll.Data;
 
@@ -49,7 +51,7 @@ public partial class DashboardViewModel : ViewModelBase
     [ObservableProperty] private bool _quarterIsSpecificQuarter; // true when Q1-Q4 selected (not YTD)
 
     // ── UI State ────────────────────────────────────────────────────
-    [ObservableProperty] private bool _isLoading;
+    // Note: IsLoading, LoadingMessage, and ErrorMessage are inherited from ViewModelBase
     [ObservableProperty] private string _statusMessage = string.Empty;
 
     // ── Formatted display values ────────────────────────────────────
@@ -64,31 +66,30 @@ public partial class DashboardViewModel : ViewModelBase
     public DashboardViewModel(PayrollDbContext db)
     {
         _db = db;
-        _ = LoadDataAsync();
+        ExecuteWithLoadingAsync(LoadDataAsync, "Loading dashboard...").FireAndForgetSafeAsync(errorContext: "loading dashboard data");
     }
 
     [RelayCommand]
     private async Task RefreshAsync()
     {
-        await LoadDataAsync();
+        await ExecuteWithLoadingAsync(
+            LoadDataAsync,
+            loadingMessage: "Refreshing dashboard...");
     }
 
     [RelayCommand]
     private void SelectQuarter(string quarter)
     {
-        SelectedQuarterTab = int.Parse(quarter);
+        if (int.TryParse(quarter, out var q))
+            SelectedQuarterTab = q;
     }
 
-    partial void OnSelectedQuarterTabChanged(int value) => _ = LoadQuarterDataAsync();
+    partial void OnSelectedQuarterTabChanged(int value) =>
+        ExecuteWithLoadingAsync(LoadQuarterDataAsync, "Loading quarter data...").FireAndForgetSafeAsync(errorContext: "loading quarter data");
 
     private async Task LoadDataAsync()
     {
-        try
-        {
-            IsLoading = true;
-            StatusMessage = "Loading dashboard...";
-
-            // Company name
+        // Company name
             var company = await _db.CompanyInfo.FirstOrDefaultAsync();
             CompanyName = company?.CompanyName ?? "Ohio Payroll";
 
@@ -185,15 +186,6 @@ public partial class DashboardViewModel : ViewModelBase
             await LoadQuarterDataAsync();
 
             StatusMessage = string.Empty;
-        }
-        catch (Exception ex)
-        {
-            StatusMessage = $"Error loading dashboard: {ex.Message}";
-        }
-        finally
-        {
-            IsLoading = false;
-        }
     }
 
     private async Task LoadQuarterDataAsync()
@@ -231,7 +223,7 @@ public partial class DashboardViewModel : ViewModelBase
             else
             {
                 int quarter = SelectedQuarterTab;
-                var (qStart, qEnd) = GetQuarterDates(year, quarter);
+                var (qStart, qEnd) = TaxCalendarHelper.GetQuarterDates(year, quarter);
                 QuarterLabel = $"Q{quarter} ({qStart:MMM} \u2013 {qEnd:MMM yyyy})";
                 QuarterIsSpecificQuarter = true;
 
@@ -261,8 +253,8 @@ public partial class DashboardViewModel : ViewModelBase
                 QuarterHasBalance = owed - paid > 0;
 
                 // 941 due dates
-                QuarterDueDateDisplay = GetForm941DueDate(year, quarter);
-                QuarterIsOverdue = QuarterHasBalance && DateTime.Now > GetForm941DueDateValue(year, quarter);
+                QuarterDueDateDisplay = TaxCalendarHelper.GetForm941DueDate(year, quarter);
+                QuarterIsOverdue = QuarterHasBalance && DateTime.Now > TaxCalendarHelper.GetForm941DueDateValue(year, quarter);
             }
         }
         catch (Exception ex)
@@ -271,31 +263,5 @@ public partial class DashboardViewModel : ViewModelBase
         }
     }
 
-    private static (DateTime start, DateTime end) GetQuarterDates(int year, int quarter) => quarter switch
-    {
-        1 => (new DateTime(year, 1, 1), new DateTime(year, 3, 31)),
-        2 => (new DateTime(year, 4, 1), new DateTime(year, 6, 30)),
-        3 => (new DateTime(year, 7, 1), new DateTime(year, 9, 30)),
-        4 => (new DateTime(year, 10, 1), new DateTime(year, 12, 31)),
-        _ => throw new ArgumentOutOfRangeException(nameof(quarter))
-    };
-
-    private static string GetForm941DueDate(int year, int quarter) => quarter switch
-    {
-        1 => $"April 30, {year}",
-        2 => $"July 31, {year}",
-        3 => $"October 31, {year}",
-        4 => $"January 31, {year + 1}",
-        _ => "N/A"
-    };
-
-    private static DateTime GetForm941DueDateValue(int year, int quarter) => quarter switch
-    {
-        1 => new DateTime(year, 4, 30),
-        2 => new DateTime(year, 7, 31),
-        3 => new DateTime(year, 10, 31),
-        4 => new DateTime(year + 1, 1, 31),
-        _ => DateTime.MaxValue
-    };
 }
 

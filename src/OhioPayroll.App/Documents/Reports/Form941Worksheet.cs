@@ -1,6 +1,7 @@
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
+using static OhioPayroll.App.Documents.IrsFormHelpers;
 
 namespace OhioPayroll.App.Documents.Reports;
 
@@ -28,12 +29,7 @@ public class Form941WorksheetDocument : IDocument
 {
     private readonly Form941Data _data;
 
-    private static readonly string HeaderBg = "#1B3A5C";
-    private static readonly string HeaderText = "#FFFFFF";
-    private static readonly string SectionHeaderBg = "#E8EDF2";
-    private static readonly string LabelColor = "#64748B";
-    private static readonly string BorderColor = "#CBD5E1";
-    private static readonly string AltRowBg = "#F5F7FA";
+    private const float B = BorderWidth;
 
     public Form941WorksheetDocument(Form941Data data)
     {
@@ -48,273 +44,301 @@ public class Form941WorksheetDocument : IDocument
         {
             page.Size(PageSizes.Letter);
             page.Margin(0.5f, Unit.Inch);
-            page.DefaultTextStyle(x => x.FontSize(10));
+            page.DefaultTextStyle(x => x.FontSize(9));
 
-            page.Header().Element(ComposeHeader);
-            page.Content().Element(ComposeContent);
-            page.Footer().Element(ComposeFooter);
+            page.Content().Column(col =>
+            {
+                col.Item().Element(ComposeForm941);
+            });
+
+            page.Footer().Element(c =>
+                PageFooter(c, $"Form 941 (Q{_data.Quarter})", _data.TaxYear));
         });
     }
 
-    private void ComposeHeader(IContainer container)
+    private void ComposeForm941(IContainer container)
     {
-        container.Column(column =>
+        container.Column(main =>
         {
-            column.Item().Background(HeaderBg).Padding(10).Row(row =>
+            // ── Form header with quarter checkboxes ──────────────────────
+            main.Item().Column(hdr =>
             {
-                row.RelativeItem().Column(col =>
+                hdr.Item().Row(row =>
                 {
-                    col.Item().Text("Form 941 Worksheet")
-                        .FontSize(16).Bold().FontColor(HeaderText);
-                    col.Item().Text("Employer's QUARTERLY Federal Tax Return")
-                        .FontSize(9).FontColor(HeaderText);
-                });
-                row.ConstantItem(200).AlignRight().Column(col =>
-                {
-                    col.Item().AlignRight().Text($"Tax Year {_data.TaxYear}  Q{_data.Quarter}")
-                        .FontSize(12).Bold().FontColor(HeaderText);
-                    col.Item().AlignRight().Text(GetQuarterDateRange())
-                        .FontSize(8).FontColor(HeaderText);
-                });
-            });
-
-            // Employer info bar
-            column.Item().PaddingTop(8).Row(row =>
-            {
-                row.RelativeItem().Border(1).BorderColor(BorderColor).Padding(8).Row(r =>
-                {
-                    r.RelativeItem().Column(col =>
+                    row.RelativeItem().Column(titleCol =>
                     {
-                        col.Item().Text("Employer Name").FontSize(7).FontColor(LabelColor);
-                        col.Item().Text(_data.EmployerName).FontSize(10).Bold();
-                    });
-                    r.ConstantItem(200).Column(col =>
-                    {
-                        col.Item().Text("Employer EIN").FontSize(7).FontColor(LabelColor);
-                        col.Item().Text(FormatEin(_data.EmployerEin)).FontSize(10).Bold();
+                        titleCol.Item().Text(text =>
+                        {
+                            text.Span("Form ").FontSize(10);
+                            text.Span("941").FontSize(14).Bold();
+                            text.Span(" for ").FontSize(10);
+                            text.Span(_data.TaxYear.ToString()).FontSize(14).Bold();
+                            text.Span(": ").FontSize(10);
+                            text.Span("Employer's QUARTERLY Federal Tax Return").FontSize(8);
+                        });
+                        titleCol.Item().PaddingTop(1)
+                            .Text("Department of the Treasury \u2014 Internal Revenue Service")
+                            .FontSize(6.5f).Italic();
                     });
                 });
-            });
 
-            column.Item().PaddingTop(8).LineHorizontal(1).LineColor(BorderColor);
-        });
-    }
-
-    private void ComposeContent(IContainer container)
-    {
-        container.PaddingTop(8).Column(column =>
-        {
-            // Part 1: Answer these questions
-            column.Item().Background(SectionHeaderBg).Padding(6)
-                .Text("Part 1: Lines 1-15 Calculation").FontSize(10).Bold().FontColor("#1B3A5C");
-
-            column.Item().PaddingTop(4).Table(table =>
-            {
-                table.ColumnsDefinition(columns =>
+                // Quarter selection checkboxes
+                hdr.Item().PaddingTop(3).Row(row =>
                 {
-                    columns.ConstantColumn(50);  // Line #
-                    columns.RelativeColumn(4);   // Description
-                    columns.RelativeColumn(2);   // Amount
-                });
-
-                // Header
-                table.Header(header =>
-                {
-                    header.Cell().Background("#2C5F8A").Padding(5)
-                        .Text("Line").FontSize(8).Bold().FontColor("#FFFFFF");
-                    header.Cell().Background("#2C5F8A").Padding(5)
-                        .Text("Description").FontSize(8).Bold().FontColor("#FFFFFF");
-                    header.Cell().Background("#2C5F8A").Padding(5).AlignRight()
-                        .Text("Amount").FontSize(8).Bold().FontColor("#FFFFFF");
-                });
-
-                // Line 1
-                ComposeLineRow(table, "1", "Number of employees who received wages, tips, or other compensation",
-                    _data.NumberOfEmployees.ToString(), false);
-
-                // Line 2
-                ComposeLineRow(table, "2", "Wages, tips, and other compensation",
-                    FormatCurrency(_data.Line2_WagesTipsCompensation), true);
-
-                // Line 3
-                ComposeLineRow(table, "3", "Federal income tax withheld from wages, tips, and other compensation",
-                    FormatCurrency(_data.Line3_FederalTaxWithheld), false);
-
-                // Line 4
-                ComposeLineRow(table, "4", "If no wages, tips, and other compensation are subject to social security or Medicare tax",
-                    "", true);
-
-                // Line 5a
-                ComposeDualLineRow(table, "5a", "Taxable social security wages",
-                    FormatCurrency(_data.Line5a_TaxableSsWages), "x 0.124 =",
-                    FormatCurrency(_data.Line5a_SsTaxDue), false);
-
-                // Line 5b
-                ComposeDualLineRow(table, "5b", "Taxable social security tips",
-                    FormatCurrency(0m), "x 0.124 =",
-                    FormatCurrency(0m), true);
-
-                // Line 5c
-                ComposeDualLineRow(table, "5c", "Taxable Medicare wages & tips",
-                    FormatCurrency(_data.Line5c_TaxableMedicareWages), "x 0.029 =",
-                    FormatCurrency(_data.Line5c_MedicareTaxDue), false);
-
-                // Line 5d
-                ComposeLineRow(table, "5d", "Taxable wages & tips subject to Additional Medicare Tax withholding",
-                    FormatCurrency(0m), true);
-
-                // Line 5e: Sum of 5a through 5d. Lines 5b (social security tips) and
-                // 5d (Additional Medicare Tax) are zero because this application does
-                // not track tip income or Additional Medicare Tax withholding.
-                ComposeLineRow(table, "5e", "Total social security and Medicare taxes (add 5a through 5d)",
-                    FormatCurrency(_data.Line5a_SsTaxDue + _data.Line5c_MedicareTaxDue), false);
-
-                // Line 6
-                ComposeLineRow(table, "6", "Total taxes before adjustments (add lines 3 and 5e)",
-                    FormatCurrency(_data.Line6_TotalTaxesBeforeAdjustments), true);
-
-                // Lines 7-9 adjustments
-                ComposeLineRow(table, "7", "Current quarter's adjustment for fractions of cents",
-                    FormatCurrency(0m), false);
-                ComposeLineRow(table, "8", "Current quarter's adjustment for sick pay",
-                    FormatCurrency(0m), true);
-                ComposeLineRow(table, "9", "Current quarter's adjustments for tips and group-term life insurance",
-                    FormatCurrency(0m), false);
-
-                // Line 10
-                ComposeLineRow(table, "10", "Total taxes after adjustments (combine lines 6 through 9)",
-                    FormatCurrency(_data.Line10_TotalTaxes), true);
-
-                // Line 11
-                ComposeLineRow(table, "11", "Qualified small business payroll tax credit for increasing research activities",
-                    FormatCurrency(0m), false);
-
-                // Line 12
-                ComposeLineRow(table, "12", "Total taxes after adjustments and credits (line 10 - line 11)",
-                    FormatCurrency(_data.Line10_TotalTaxes), true);
-
-                // Line 13
-                ComposeLineRow(table, "13", "Total deposits for this quarter, including overpayment applied from prior quarter",
-                    FormatCurrency(_data.Line11_TotalDeposits), false);
-
-                // Line 14
-                var line14 = _data.Line14_BalanceDueOrOverpayment;
-                var line14Label = line14 >= 0
-                    ? "Balance due (line 12 - line 13)"
-                    : "Overpayment (line 13 - line 12)";
-                ComposeLineRow(table, "14", line14Label,
-                    FormatCurrency(Math.Abs(line14)), true);
-
-                // Line 15
-                ComposeLineRow(table, "15", "Overpayment: Apply to next return / Send a refund",
-                    line14 < 0 ? FormatCurrency(Math.Abs(line14)) : FormatCurrency(0m), false);
-            });
-
-            column.Item().PaddingTop(16);
-
-            // Summary box
-            column.Item().Border(2).BorderColor("#1B3A5C").Column(summaryCol =>
-            {
-                summaryCol.Item().Background(SectionHeaderBg).Padding(8)
-                    .Text("SUMMARY").FontSize(11).Bold().FontColor("#1B3A5C");
-
-                summaryCol.Item().Padding(8).Table(table =>
-                {
-                    table.ColumnsDefinition(columns =>
+                    row.ConstantItem(100).Text("Report for this Quarter of " + _data.TaxYear)
+                        .FontSize(7).Bold();
+                    row.RelativeItem().Row(qRow =>
                     {
-                        columns.RelativeColumn(3);
-                        columns.RelativeColumn(2);
+                        qRow.RelativeItem().Element(c =>
+                            IrsCheckbox(c, "1: Jan, Feb, Mar", _data.Quarter == 1));
+                        qRow.RelativeItem().Element(c =>
+                            IrsCheckbox(c, "2: Apr, May, Jun", _data.Quarter == 2));
+                        qRow.RelativeItem().Element(c =>
+                            IrsCheckbox(c, "3: Jul, Aug, Sep", _data.Quarter == 3));
+                        qRow.RelativeItem().Element(c =>
+                            IrsCheckbox(c, "4: Oct, Nov, Dec", _data.Quarter == 4));
                     });
+                });
 
-                    SummaryRow(table, "Total Taxes for Quarter:", FormatCurrency(_data.Line10_TotalTaxes));
-                    SummaryRow(table, "Total Deposits Made:", FormatCurrency(_data.Line11_TotalDeposits));
+                hdr.Item().PaddingTop(3).LineHorizontal(1).LineColor("#000000");
+            });
 
-                    var balance = _data.Line14_BalanceDueOrOverpayment;
-                    var balanceLabel = balance >= 0 ? "Balance Due:" : "Overpayment:";
-                    SummaryRow(table, balanceLabel, FormatCurrency(Math.Abs(balance)));
+            // ── Employer info ────────────────────────────────────────────
+            main.Item().Element(c =>
+                EmployerInfoBlock(c, _data.EmployerEin, _data.EmployerName));
+
+            // ── Part 1: Answer these questions for this quarter ──────────
+            main.Item().Element(c =>
+                PartHeader(c, "Part 1: Answer these questions for this quarter."));
+
+            // Line 1
+            main.Item().Element(c =>
+                LineItemRow(c, "1",
+                    "Number of employees who received wages, tips, or other compensation for the pay period including: " +
+                    GetQuarterMonth12(),
+                    _data.NumberOfEmployees.ToString()));
+
+            // Line 2
+            main.Item().Element(c =>
+                LineItemRow(c, "2",
+                    "Wages, tips, and other compensation",
+                    FormatMoney(_data.Line2_WagesTipsCompensation)));
+
+            // Line 3
+            main.Item().Element(c =>
+                LineItemRow(c, "3",
+                    "Federal income tax withheld from wages, tips, and other compensation",
+                    FormatMoney(_data.Line3_FederalTaxWithheld)));
+
+            // Line 4
+            main.Item().Element(c =>
+                LineItemRow(c, "4",
+                    "If no wages, tips, and other compensation are subject to social security or Medicare tax, check and go to line 6",
+                    "", false));
+
+            // Line 5a (with rate column)
+            main.Item().Element(c =>
+                LineItemRowWithRate(c, "5a",
+                    "Taxable social security wages",
+                    FormatMoney(_data.Line5a_TaxableSsWages),
+                    "0.124",
+                    FormatMoney(_data.Line5a_SsTaxDue)));
+
+            // Line 5b (with rate column)
+            main.Item().Element(c =>
+                LineItemRowWithRate(c, "5b",
+                    "Taxable social security tips",
+                    FormatMoney(0m),
+                    "0.124",
+                    FormatMoney(0m)));
+
+            // Line 5c (with rate column)
+            main.Item().Element(c =>
+                LineItemRowWithRate(c, "5c",
+                    "Taxable Medicare wages & tips",
+                    FormatMoney(_data.Line5c_TaxableMedicareWages),
+                    "0.029",
+                    FormatMoney(_data.Line5c_MedicareTaxDue)));
+
+            // Line 5d (with rate column)
+            main.Item().Element(c =>
+                LineItemRowWithRate(c, "5d",
+                    "Taxable wages & tips subject to Additional Medicare Tax withholding",
+                    FormatMoney(0m),
+                    "0.009",
+                    FormatMoney(0m)));
+
+            // Line 5e
+            main.Item().Element(c =>
+                LineItemRow(c, "5e",
+                    "Total social security and Medicare taxes. Add Column 2 from lines 5a, 5a(i), 5b, 5c, and 5d",
+                    FormatMoney(_data.Line5a_SsTaxDue + _data.Line5c_MedicareTaxDue)));
+
+            // Line 6
+            main.Item().Element(c =>
+                LineItemRow(c, "6",
+                    "Total taxes before adjustments. Add lines 3 and 5e",
+                    FormatMoney(_data.Line6_TotalTaxesBeforeAdjustments)));
+
+            // Lines 7-9 (adjustments)
+            main.Item().Element(c =>
+                LineItemRow(c, "7",
+                    "Current quarter's adjustment for fractions of cents",
+                    FormatMoney(0m)));
+            main.Item().Element(c =>
+                LineItemRow(c, "8",
+                    "Current quarter's adjustment for sick pay",
+                    FormatMoney(0m)));
+            main.Item().Element(c =>
+                LineItemRow(c, "9",
+                    "Current quarter's adjustments for tips and group-term life insurance",
+                    FormatMoney(0m)));
+
+            // Line 10
+            main.Item().Element(c =>
+                LineItemRow(c, "10",
+                    "Total taxes after adjustments. Combine lines 6 through 9",
+                    FormatMoney(_data.Line10_TotalTaxes)));
+
+            // Line 11
+            main.Item().Element(c =>
+                LineItemRow(c, "11",
+                    "Qualified small business payroll tax credit for increasing research activities. Attach Form 8974",
+                    FormatMoney(0m)));
+
+            // Line 12
+            main.Item().Element(c =>
+                LineItemRow(c, "12",
+                    "Total taxes after adjustments and credits. Subtract line 11 from line 10",
+                    FormatMoney(_data.Line10_TotalTaxes)));
+
+            // Line 13
+            main.Item().Element(c =>
+                LineItemRow(c, "13",
+                    "Total deposits for this quarter, including overpayment applied from a prior quarter",
+                    FormatMoney(_data.Line11_TotalDeposits)));
+
+            // Line 14
+            var line14 = _data.Line14_BalanceDueOrOverpayment;
+            var line14Label = line14 >= 0
+                ? "Balance due. If line 12 is more than line 13, enter the difference and see instructions"
+                : "Overpayment. If line 13 is more than line 12, enter the difference";
+            main.Item().Element(c =>
+                LineItemRow(c, "14", line14Label,
+                    FormatMoney(Math.Abs(line14))));
+
+            // Line 15
+            main.Item().Element(c =>
+                LineItemRow(c, "15",
+                    "Overpayment: Check one  \u25A1 Apply to next return  \u25A1 Send a refund",
+                    line14 < 0 ? FormatMoney(Math.Abs(line14)) : "", false));
+
+            // ── Part 2: Tell us about your deposit schedule ─────────────
+            main.Item().Element(c =>
+                PartHeader(c, "Part 2: Tell us about your deposit schedule and tax liability for this quarter."));
+            main.Item().MinHeight(16).PaddingLeft(4).Row(row =>
+            {
+                row.RelativeItem().AlignMiddle()
+                    .Text("If line 12 is less than $2,500, don\u2019t complete Part 2 and go to Part 3.")
+                    .FontSize(7.5f);
+            });
+            main.Item().MinHeight(16).PaddingLeft(4).Row(row =>
+            {
+                row.RelativeItem().AlignMiddle().Row(chkRow =>
+                {
+                    chkRow.RelativeItem().Element(c =>
+                        IrsCheckbox(c, "Line 12 on this return is less than $2,500. Go to Part 3.", false));
                 });
             });
+            main.Item().MinHeight(16).PaddingLeft(4).Row(row =>
+            {
+                row.RelativeItem().AlignMiddle().Row(chkRow =>
+                {
+                    chkRow.RelativeItem().Element(c =>
+                        IrsCheckbox(c, "You were a monthly schedule depositor for the entire quarter. Enter your tax liability for each month and total.", false));
+                });
+            });
+
+            // ── Part 3: Tell us about your business ─────────────────────
+            main.Item().Element(c =>
+                PartHeader(c, "Part 3: Tell us about your business. If a question does NOT apply to your business, leave it blank."));
+            main.Item().MinHeight(16).PaddingLeft(4).Row(row =>
+            {
+                row.RelativeItem().AlignMiddle()
+                    .Text("If your business has closed or you stopped paying wages . . . . . . . . . . . . . . . . . Check here, and enter the final date you paid wages")
+                    .FontSize(7.5f);
+                row.ConstantItem(AmountBoxWidth)
+                    .Border(B).BorderColor("#000000")
+                    .Padding(2).AlignMiddle()
+                    .Text("__ / __ / ____").FontFamily(DataFont).FontSize(8);
+            });
+
+            // ── Part 4: May we speak with your third-party designee? ────
+            main.Item().Element(c =>
+                PartHeader(c, "Part 4: May we speak with your third-party designee?"));
+            main.Item().MinHeight(16).Row(row =>
+            {
+                row.RelativeItem().PaddingLeft(4).AlignMiddle()
+                    .Text("Do you want to allow an employee, a paid tax preparer, or another person to discuss this return with the IRS?")
+                    .FontSize(7.5f);
+                row.ConstantItem(100).Row(chkRow =>
+                {
+                    chkRow.RelativeItem().Element(c => IrsCheckbox(c, "Yes", false));
+                    chkRow.RelativeItem().Element(c => IrsCheckbox(c, "No", true));
+                });
+            });
+
+            // ── Part 5: Sign here ────────────────────────────────────────
+            main.Item().Element(c =>
+                PartHeader(c, "Part 5: Sign here. You MUST complete both pages of Form 941 and SIGN it."));
+            main.Item().PaddingTop(2).MinHeight(30).Row(row =>
+            {
+                row.RelativeItem()
+                    .Border(B).BorderColor("#000000").Padding(3)
+                    .Column(col =>
+                    {
+                        col.Item().Text("Sign your name here").FontSize(LabelFontSize);
+                        col.Item().PaddingTop(8).Text("").FontSize(ValueFontSize);
+                    });
+                row.ConstantItem(80)
+                    .Border(B).BorderColor("#000000").Padding(3)
+                    .Column(col =>
+                    {
+                        col.Item().Text("Date").FontSize(LabelFontSize);
+                        col.Item().PaddingTop(8).Text("").FontSize(ValueFontSize);
+                    });
+            });
+            main.Item().MinHeight(16).Row(row =>
+            {
+                row.RelativeItem()
+                    .Border(B).BorderColor("#000000").Padding(3)
+                    .Column(col =>
+                    {
+                        col.Item().Text("Print your name here").FontSize(LabelFontSize);
+                        col.Item().PaddingTop(1).Text("").FontSize(ValueFontSize);
+                    });
+                row.RelativeItem()
+                    .Border(B).BorderColor("#000000").Padding(3)
+                    .Column(col =>
+                    {
+                        col.Item().Text("Print your title here").FontSize(LabelFontSize);
+                        col.Item().PaddingTop(1).Text("").FontSize(ValueFontSize);
+                    });
+            });
+
+            main.Item().PaddingTop(4);
         });
     }
 
-    private static void ComposeLineRow(TableDescriptor table, string lineNum, string description,
-        string amount, bool altRow)
-    {
-        var bg = altRow ? AltRowBg : "#FFFFFF";
-
-        table.Cell().Background(bg).BorderBottom(1).BorderColor(BorderColor).Padding(5)
-            .Text(lineNum).FontSize(9).Bold();
-        table.Cell().Background(bg).BorderBottom(1).BorderColor(BorderColor).Padding(5)
-            .Text(description).FontSize(8);
-        table.Cell().Background(bg).BorderBottom(1).BorderColor(BorderColor).Padding(5).AlignRight()
-            .Text(amount).FontSize(9).Bold();
-    }
-
-    private static void ComposeDualLineRow(TableDescriptor table, string lineNum, string description,
-        string wageAmount, string multiplier, string taxAmount, bool altRow)
-    {
-        var bg = altRow ? AltRowBg : "#FFFFFF";
-
-        table.Cell().Background(bg).BorderBottom(1).BorderColor(BorderColor).Padding(5)
-            .Text(lineNum).FontSize(9).Bold();
-        table.Cell().Background(bg).BorderBottom(1).BorderColor(BorderColor).Padding(5)
-            .Row(row =>
-            {
-                row.RelativeItem().Text(description).FontSize(8);
-                row.ConstantItem(80).AlignRight().Text(wageAmount).FontSize(8);
-                row.ConstantItem(60).AlignCenter().Text(multiplier).FontSize(7).FontColor(LabelColor);
-            });
-        table.Cell().Background(bg).BorderBottom(1).BorderColor(BorderColor).Padding(5).AlignRight()
-            .Text(taxAmount).FontSize(9).Bold();
-    }
-
-    private static void SummaryRow(TableDescriptor table, string label, string value)
-    {
-        table.Cell().Padding(4).Text(label).FontSize(10).Bold();
-        table.Cell().Padding(4).AlignRight().Text(value).FontSize(11).Bold();
-    }
-
-    private void ComposeFooter(IContainer container)
-    {
-        container.Column(column =>
-        {
-            column.Item().LineHorizontal(1).LineColor(BorderColor);
-            column.Item().PaddingTop(4).Row(row =>
-            {
-                row.RelativeItem().Text($"Form 941 Worksheet  Q{_data.Quarter} {_data.TaxYear}")
-                    .FontSize(7).FontColor("#94A3B8");
-                row.RelativeItem().AlignCenter()
-                    .Text("For internal use only - not for filing")
-                    .FontSize(7).FontColor("#94A3B8").Italic();
-                row.RelativeItem().AlignRight()
-                    .Text($"Generated {DateTime.Now:MM/dd/yyyy}")
-                    .FontSize(7).FontColor("#94A3B8");
-            });
-        });
-    }
-
-    private string GetQuarterDateRange()
+    private string GetQuarterMonth12()
     {
         return _data.Quarter switch
         {
-            1 => $"January 1 - March 31, {_data.TaxYear}",
-            2 => $"April 1 - June 30, {_data.TaxYear}",
-            3 => $"July 1 - September 30, {_data.TaxYear}",
-            4 => $"October 1 - December 31, {_data.TaxYear}",
+            1 => "March 12",
+            2 => "June 12",
+            3 => "September 12",
+            4 => "December 12",
             _ => ""
         };
     }
-
-    private static string FormatCurrency(decimal value)
-    {
-        return value.ToString("$#,##0.00");
-    }
-
-    private static string FormatEin(string ein)
-    {
-        if (ein.Length == 9)
-            return $"{ein[..2]}-{ein[2..]}";
-        return ein;
-    }
 }
-

@@ -34,6 +34,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 "Employees" => _services.GetRequiredService<EmployeeListViewModel>(),
                 "Contractors" => _services.GetRequiredService<ContractorListViewModel>(),
                 "Payroll" => _services.GetRequiredService<PayrollRunViewModel>(),
+                "ContractorPayroll" => _services.GetRequiredService<ContractorPayrollViewModel>(),
                 "BankAccounts" => _services.GetRequiredService<BankAccountsViewModel>(),
                 "CheckPrinting" => _services.GetRequiredService<CheckPrintingViewModel>(),
                 "DirectDeposit" => _services.GetRequiredService<DirectDepositViewModel>(),
